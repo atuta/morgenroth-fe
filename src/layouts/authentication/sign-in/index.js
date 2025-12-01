@@ -19,6 +19,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import GoogleIcon from "@mui/icons-material/Google";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 // custom components
 import MDBox from "components/MDBox";
@@ -39,6 +41,7 @@ function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
@@ -46,7 +49,6 @@ function Basic() {
   const handleSignIn = async (event) => {
     event.preventDefault();
 
-    // Validation
     if (!username.trim() || !password.trim()) {
       toast.error("Username and password are required", {
         duration: 2500,
@@ -63,15 +65,12 @@ function Basic() {
 
     const response = await loginApi({ username, password });
 
-    console.log("LOGIN API RESPONSE:", response); // Log server response
+    console.log("LOGIN API RESPONSE:", response);
 
     setLoading(false);
 
     if (response.status === "success") {
-      toast.success("Login successful", {
-        duration: 2000,
-      });
-
+      toast.success("Login successful", { duration: 2000 });
       navigate("/dashboard");
       return;
     }
@@ -144,14 +143,28 @@ function Basic() {
               />
             </MDBox>
 
-            <MDBox mb={2}>
+            <MDBox mb={2} sx={{ position: "relative" }}>
               <MDInput
-                type="password"
+                type={showPass ? "text" : "password"}
                 label="Password"
                 fullWidth
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+
+              <span
+                onClick={() => setShowPass(!showPass)}
+                style={{
+                  position: "absolute",
+                  right: 10,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  cursor: "pointer",
+                  color: "#888",
+                }}
+              >
+                {showPass ? <VisibilityOffIcon /> : <VisibilityIcon />}
+              </span>
             </MDBox>
 
             <MDBox display="flex" alignItems="center" ml={-1}>

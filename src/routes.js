@@ -11,6 +11,7 @@ import Billing from "layouts/billing";
 import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
+import AddStaffUser from "layouts/pages/AddStaffUser";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
 
@@ -45,8 +46,8 @@ const routes = [
         type: "collapse",
         name: "Add Staff",
         key: "staff-add",
-        route: "#", // DEAD LINK
-        // component: <Tables />, // Component removed for dead link
+        route: "/add-staff-user",
+        component: <AddStaffUser />,
       },
       {
         type: "collapse",

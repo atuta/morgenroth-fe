@@ -19,6 +19,8 @@ const Configs = {
   apiUserFullNameEp: `${BASE_URL}/api/user-full-name/`,
   apiUserHasPermissionEp: `${BASE_URL}/api/user-has-permission/`,
   apiUserHasModulePermissionEp: `${BASE_URL}/api/user-has-module-permission/`,
+  apiAddUserEp: `${BASE_URL}/api/add-user/`,
+  apiChangePasswordEp: `${BASE_URL}/api/change-password/`,
 
   // Admin notice
   apiCreateAdminNoticeEp: `${BASE_URL}/api/create-admin-notice/`,

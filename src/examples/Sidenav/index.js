@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 
 // react-router-dom components
-import { useLocation, NavLink } from "react-router-dom";
+import { useLocation, NavLink, useNavigate } from "react-router-dom";
 
 // prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
@@ -40,7 +40,11 @@ import {
   setWhiteSidenav,
 } from "context";
 
+// Toast
+import toast from "react-hot-toast";
+
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
+  const navigate = useNavigate();
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = controller;
   const location = useLocation();
@@ -74,14 +78,30 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       let returnValue;
 
       if (type === "collapse") {
+        // --- Handle Sign Out directly ---
+        if (key === "sign-out") {
+          return (
+            <MDBox
+              key={key}
+              onClick={() => {
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
+                navigate("/authentication/sign-in");
+                toast.success("Logged out successfully", { duration: 2000 });
+              }}
+              sx={{ cursor: "pointer" }}
+            >
+              <SidenavCollapse name={name} icon={icon} />
+            </MDBox>
+          );
+        }
+
         // Logic to handle TOP-LEVEL nested routes
         if (collapse) {
-          // --- TOP-LEVEL Exclusive Collapse Logic ---
           const isParentActive = collapse.some(({ key: nestedKey }) => nestedKey === collapseName);
           const handleCollapse = () => {
             setOpenCollapse((prevKey) => (prevKey === key ? "" : key));
           };
-          // ------------------------------------------
 
           returnValue = (
             <MDBox key={key}>
@@ -95,14 +115,12 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
                 open={openCollapse === key}
               />
               <Collapse in={openCollapse === key} timeout="auto" unmountOnExit>
-                {/* Delegate recursive rendering to the new component */}
                 <SidenavCollapseItem routes={collapse} />
               </Collapse>
             </MDBox>
           );
-        }
-        // Logic for TOP-LEVEL leaf routes (Sign Out)
-        else {
+        } else {
+          // TOP-LEVEL leaf routes (not sign-out)
           returnValue = href ? (
             <Link
               href={href}
