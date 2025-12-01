@@ -11,14 +11,23 @@ const CustomAlert = ({ message, severity, duration = 4000, open, onClose }) => {
       onClose={onClose}
       anchorOrigin={{ vertical: "top", horizontal: "center" }}
     >
-      <Alert onClose={onClose} severity={severity} sx={{ width: "100%" }}>
+      <Alert
+        onClose={onClose}
+        severity={severity}
+        sx={{
+          width: "100%",
+          alignItems: "center", // vertically center icon and text
+          "& .MuiAlert-icon": {
+            marginTop: 0, // ensures icon is perfectly aligned
+          },
+        }}
+      >
         {message}
       </Alert>
     </Snackbar>
   );
 };
 
-// Add prop types for validation
 CustomAlert.propTypes = {
   message: PropTypes.string.isRequired,
   severity: PropTypes.oneOf(["error", "warning", "info", "success"]),
