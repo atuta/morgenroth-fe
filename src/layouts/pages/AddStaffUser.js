@@ -1,23 +1,22 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-* Adjusted frontend validations and UI
-=========================================================
-*/
-
 import { useState } from "react";
 import Grid from "@mui/material/Grid";
+
+// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
+
+// Layout components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 
 // API service
 import addUserApi from "../../api/addUserApi";
+
+// Custom alert
+import CustomAlert from "../../components/CustomAlert";
 
 const USER_ROLE_CHOICES = [
   { value: "admin", label: "Admin" },
@@ -29,35 +28,41 @@ function AddStaffUser() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState(""); // no default selection
+  const [role, setRole] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Validation errors
+  // Field errors
   const [errors, setErrors] = useState({});
+
+  // Server alert
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertSeverity, setAlertSeverity] = useState("info");
+
+  const showAlert = (message, severity = "info") => {
+    setAlertMessage(message);
+    setAlertSeverity(severity);
+    setAlertOpen(true);
+  };
 
   const validateFields = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9]{6,15}$/;
-
     const newErrors = {};
 
     if (!firstName.trim()) newErrors.firstName = "First name is required";
-    else if (firstName.length > 50) newErrors.firstName = "Max 50 characters";
-
     if (!lastName.trim()) newErrors.lastName = "Last name is required";
-    else if (lastName.length > 50) newErrors.lastName = "Max 50 characters";
-
     if (!email.trim()) newErrors.email = "Email is required";
-    else if (!emailRegex.test(email)) newErrors.email = "Invalid email format";
-
+    if (!role) newErrors.role = "User role is required";
     if (!phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
-    else if (!phoneRegex.test(phoneNumber)) newErrors.phoneNumber = "Invalid phone number";
 
-    if (!role.trim()) newErrors.role = "User role is required";
+    if (firstName.length > 50) newErrors.firstName = "Max 50 characters";
+    if (lastName.length > 50) newErrors.lastName = "Max 50 characters";
+    if (email && !emailRegex.test(email)) newErrors.email = "Invalid email";
+    if (phoneNumber && !phoneRegex.test(phoneNumber)) newErrors.phoneNumber = "Invalid phone";
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
@@ -66,7 +71,6 @@ function AddStaffUser() {
     if (!validateFields()) return;
 
     setLoading(true);
-
     const data = {
       email,
       first_name: firstName,
@@ -78,21 +82,19 @@ function AddStaffUser() {
 
     try {
       const response = await addUserApi(data);
-
       if (response.status === "success") {
-        // Clear form
+        showAlert("Staff user added successfully!", "success");
         setFirstName("");
         setLastName("");
         setEmail("");
         setPhoneNumber("");
         setRole("");
         setErrors({});
-        alert("Staff user added successfully!");
       } else {
-        alert(response.message || "Failed to add user");
+        showAlert(response.message || "Failed to add user", "error");
       }
-    } catch (error) {
-      alert("Server error, try again");
+    } catch (err) {
+      showAlert("Server error, try again", "error");
     } finally {
       setLoading(false);
     }
@@ -106,7 +108,7 @@ function AddStaffUser() {
           <Grid item xs={12} md={6} lg={4}>
             <MDBox component="form" onSubmit={handleSubmit}>
               <MDTypography variant="h5" fontWeight="medium" mb={3}>
-                Add User
+                Add Staff User
               </MDTypography>
 
               {/* First Name */}
@@ -116,10 +118,10 @@ function AddStaffUser() {
                   fullWidth
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  style={{ borderColor: errors.firstName ? "red" : "" }}
+                  error={!!errors.firstName}
                 />
                 {errors.firstName && (
-                  <MDTypography variant="caption" color="error" sx={{ fontSize: "0.7rem" }}>
+                  <MDTypography variant="caption" color="error">
                     {errors.firstName}
                   </MDTypography>
                 )}
@@ -132,10 +134,10 @@ function AddStaffUser() {
                   fullWidth
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  style={{ borderColor: errors.lastName ? "red" : "" }}
+                  error={!!errors.lastName}
                 />
                 {errors.lastName && (
-                  <MDTypography variant="caption" color="error" sx={{ fontSize: "0.7rem" }}>
+                  <MDTypography variant="caption" color="error">
                     {errors.lastName}
                   </MDTypography>
                 )}
@@ -149,10 +151,10 @@ function AddStaffUser() {
                   fullWidth
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{ borderColor: errors.email ? "red" : "" }}
+                  error={!!errors.email}
                 />
                 {errors.email && (
-                  <MDTypography variant="caption" color="error" sx={{ fontSize: "0.7rem" }}>
+                  <MDTypography variant="caption" color="error">
                     {errors.email}
                   </MDTypography>
                 )}
@@ -165,40 +167,49 @@ function AddStaffUser() {
                   fullWidth
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  style={{ borderColor: errors.phoneNumber ? "red" : "" }}
+                  error={!!errors.phoneNumber}
                 />
                 {errors.phoneNumber && (
-                  <MDTypography variant="caption" color="error" sx={{ fontSize: "0.7rem" }}>
+                  <MDTypography variant="caption" color="error">
                     {errors.phoneNumber}
                   </MDTypography>
                 )}
               </MDBox>
 
-              {/* User Role Buttons */}
-              <MDBox mb={2}>
-                <MDTypography variant="button" fontWeight="medium" display="block" mb={1}>
+              {/* User Role Title */}
+              <MDBox mb={1}>
+                <MDTypography
+                  variant="button"
+                  fontWeight="bold"
+                  color="dark"
+                  display="block"
+                  mb={1}
+                >
                   User Role
                 </MDTypography>
-                <MDBox display="flex" gap={1}>
-                  {USER_ROLE_CHOICES.map((r) => (
-                    <MDButton
-                      key={r.value}
-                      variant={role === r.value ? "gradient" : "outlined"}
-                      color="info"
-                      size="small"
-                      onClick={() => setRole(r.value)}
-                    >
-                      {r.label}
-                    </MDButton>
-                  ))}
-                </MDBox>
+              </MDBox>
+
+              {/* User Role Buttons */}
+              <MDBox mb={2}>
+                {USER_ROLE_CHOICES.map((r) => (
+                  <MDButton
+                    key={r.value}
+                    variant={role === r.value ? "gradient" : "outlined"}
+                    color="info"
+                    onClick={() => setRole(r.value)}
+                    sx={{ mr: 1, mt: 1 }}
+                  >
+                    {r.label}
+                  </MDButton>
+                ))}
                 {errors.role && (
-                  <MDTypography variant="caption" color="error" sx={{ fontSize: "0.7rem" }}>
+                  <MDTypography variant="caption" color="error" display="block">
                     {errors.role}
                   </MDTypography>
                 )}
               </MDBox>
 
+              {/* Submit Button */}
               <MDBox mt={4}>
                 <MDButton
                   type="submit"
@@ -207,13 +218,22 @@ function AddStaffUser() {
                   fullWidth
                   disabled={loading}
                 >
-                  {loading ? "Adding..." : "Add User"}
+                  {loading ? "Adding..." : "Add Staff User"}
                 </MDButton>
               </MDBox>
             </MDBox>
           </Grid>
         </Grid>
       </MDBox>
+
+      {/* Server Response Alert */}
+      <CustomAlert
+        message={alertMessage}
+        severity={alertSeverity}
+        open={alertOpen}
+        onClose={() => setAlertOpen(false)}
+      />
+
       <Footer />
     </DashboardLayout>
   );
