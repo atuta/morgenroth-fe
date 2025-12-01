@@ -12,6 +12,7 @@ import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import AddStaffUser from "layouts/pages/AddStaffUser";
+import ClockInPage from "layouts/pages/ClockInPage";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
 
@@ -103,10 +104,23 @@ const routes = [
   // --- Attendance Reports (Parent Link) ---
   {
     type: "collapse",
-    name: "Attendance Reports",
+    name: "Attendance",
     key: "attendance-reports",
     icon: <Icon fontSize="small">summarize</Icon>,
     collapse: [
+      {
+        type: "collapse",
+        name: "Clock In",
+        key: "clock-in",
+        route: "/clock-in",
+        component: <ClockInPage />,
+      },
+      {
+        type: "collapse",
+        name: "Daily Attendance",
+        key: "attendance-daily",
+        route: "#", // DEAD LINK
+      },
       {
         type: "collapse",
         name: "Attendance Summary",
