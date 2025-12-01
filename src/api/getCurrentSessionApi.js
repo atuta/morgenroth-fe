@@ -1,18 +1,15 @@
 import axiosInstance from "../axios/axiosInstance";
 import Configs from "../configs/Configs";
 
-const clockOutApi = async (data) => {
+const getCurrentSessionApi = async () => {
   try {
-    // data example:
-    // { notes: "Leaving early today", photo_base64: "..." }
-    const response = await axiosInstance.post(Configs.apiClockOutEp, data);
+    const response = await axiosInstance.get(Configs.apiCurrentSessionEp);
 
     return {
       data: response.data,
       status: response.status, // HTTP status code
     };
   } catch (error) {
-    // Capture the HTTP status code if available
     if (error.response) {
       return {
         data: error.response.data,
@@ -23,4 +20,4 @@ const clockOutApi = async (data) => {
   }
 };
 
-export default clockOutApi;
+export default getCurrentSessionApi;

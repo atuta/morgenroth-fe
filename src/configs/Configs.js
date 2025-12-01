@@ -34,6 +34,7 @@ const Configs = {
   apiLunchInEp: `${BASE_URL}/api/lunch-in/`,
   apiLunchOutEp: `${BASE_URL}/api/lunch-out/`,
   apiTotalHoursEp: `${BASE_URL}/api/total-hours/`,
+  apiCurrentSessionEp: `${BASE_URL}/api/attendance/current-session/`,
 
   // Advance
   apiCreateAdvanceEp: `${BASE_URL}/api/create-advance/`,

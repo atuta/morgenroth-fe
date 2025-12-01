@@ -12,7 +12,7 @@ import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import AddStaffUser from "layouts/pages/AddStaffUser";
-import ClockInPage from "layouts/pages/ClockInPage";
+import ClockPage from "layouts/pages/ClockPage";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
 
@@ -113,7 +113,7 @@ const routes = [
         name: "Clock In",
         key: "clock-in",
         route: "/clock-in",
-        component: <ClockInPage />,
+        component: <ClockPage />,
       },
       {
         type: "collapse",
