@@ -21,11 +21,9 @@ import MDBox from "components/MDBox";
 import Sidenav from "examples/Sidenav";
 import Configurator from "examples/Configurator";
 
-// Material Dashboard 2 React themes
+// themes
 import theme from "assets/theme";
 import themeRTL from "assets/theme/theme-rtl";
-
-// Material Dashboard 2 React Dark Mode themes
 import themeDark from "assets/theme-dark";
 import themeDarkRTL from "assets/theme-dark/theme-rtl";
 
@@ -34,15 +32,18 @@ import rtlPlugin from "stylis-plugin-rtl";
 import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
 
-// Material Dashboard 2 React routes
+// routes
 import routes from "routes";
 
-// Material Dashboard 2 React contexts
+// contexts
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
 
-// Images
+// images
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
+
+// 🔥 Add ProtectedRoute
+import ProtectedRoute from "context/ProtectedRoute";
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
@@ -56,6 +57,7 @@ export default function App() {
     whiteSidenav,
     darkMode,
   } = controller;
+
   const [onMouseEnter, setOnMouseEnter] = useState(false);
   const [rtlCache, setRtlCache] = useState(null);
   const { pathname } = useLocation();
@@ -70,7 +72,7 @@ export default function App() {
     setRtlCache(cacheRtl);
   }, []);
 
-  // Open sidenav when mouse enter on mini sidenav
+  // Sidenav hover events
   const handleOnMouseEnter = () => {
     if (miniSidenav && !onMouseEnter) {
       setMiniSidenav(dispatch, false);
@@ -78,7 +80,6 @@ export default function App() {
     }
   };
 
-  // Close sidenav when mouse leave mini sidenav
   const handleOnMouseLeave = () => {
     if (onMouseEnter) {
       setMiniSidenav(dispatch, true);
@@ -86,20 +87,18 @@ export default function App() {
     }
   };
 
-  // Change the openConfigurator state
-  const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
-
-  // Setting the dir attribute for the body element
+  // change body direction
   useEffect(() => {
     document.body.setAttribute("dir", direction);
   }, [direction]);
 
-  // Setting page scroll to 0 when changing the route
+  // auto scroll on route change
   useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
   }, [pathname]);
 
+  // ROUTE HANDLING WITH PROTECTION
   const getRoutes = (allRoutes) =>
     allRoutes.map((route) => {
       if (route.collapse) {
@@ -107,7 +106,18 @@ export default function App() {
       }
 
       if (route.route) {
-        return <Route exact path={route.route} element={route.component} key={route.key} />;
+        const isPublic = route.route.startsWith("/authentication");
+
+        return (
+          <Route
+            exact
+            path={route.route}
+            key={route.key}
+            element={
+              isPublic ? route.component : <ProtectedRoute>{route.component}</ProtectedRoute>
+            }
+          />
+        );
       }
 
       return null;
@@ -129,7 +139,7 @@ export default function App() {
       zIndex={99}
       color="dark"
       sx={{ cursor: "pointer" }}
-      onClick={handleConfiguratorOpen}
+      onClick={() => setOpenConfigurator(dispatch, !openConfigurator)}
     >
       <Icon fontSize="small" color="inherit">
         settings
@@ -155,10 +165,11 @@ export default function App() {
             {configsButton}
           </>
         )}
+
         {layout === "vr" && <Configurator />}
+
         <Routes>
           {getRoutes(routes)}
-          {/* --- CHANGE HERE for RTL block --- */}
           <Route path="*" element={<Navigate to="/authentication/sign-in" />} />
         </Routes>
       </ThemeProvider>
@@ -180,10 +191,11 @@ export default function App() {
           {configsButton}
         </>
       )}
+
       {layout === "vr" && <Configurator />}
+
       <Routes>
         {getRoutes(routes)}
-        {/* --- CHANGE HERE for LTR block --- */}
         <Route path="*" element={<Navigate to="/authentication/sign-in" />} />
       </Routes>
     </ThemeProvider>
