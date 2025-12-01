@@ -70,6 +70,10 @@ function Basic() {
     setLoading(false);
 
     if (response.status === "success") {
+      // Store tokens in localStorage
+      localStorage.setItem("accessToken", response.data.access_token);
+      localStorage.setItem("refreshToken", response.data.refresh_token);
+
       toast.success("Login successful", { duration: 2000 });
       navigate("/dashboard");
       return;
