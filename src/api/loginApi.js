@@ -1,27 +1,28 @@
 import axios from "axios";
 import Configs from "../configs/Configs";
 
-const loginApi = async (data) => {
+const loginApi = async ({ username, password }) => {
   try {
     const response = await axios.post(
       Configs.loginEp,
       {
-        username: data.username, // our backend expects username not email
-        password: data.password,
+        username, // backend expects username not email
+        password,
       },
       {
         headers: {
           "Content-Type": "application/json",
         },
+        timeout: 20000,
       }
     );
 
     const result = response.data;
 
-    if (result.status === "success" && result.data) {
+    // Strictly validate token structure
+    if (result?.status === "success" && result?.data?.access && result?.data?.refresh) {
       const { access, refresh } = result.data;
 
-      // Save tokens, consistent with our axios interceptor
       localStorage.setItem("accessToken", access);
       localStorage.setItem("refreshToken", refresh);
     }
@@ -29,11 +30,10 @@ const loginApi = async (data) => {
     return result;
   } catch (error) {
     if (error.response) {
-      // server returned an error
       return error.response.data;
     }
 
-    // network/connection error
+    // A generic but clearer fallback (network issues, timeout, CORS, etc.)
     return {
       status: "error",
       message: "network_error",

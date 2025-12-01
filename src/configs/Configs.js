@@ -1,5 +1,8 @@
-const BASE_URL = "https://api.morgenroth-schulhaus.org";
-const BASE_WS_URL = "wss://api.morgenroth-schulhaus.org";
+// const BASE_URL = "https://api.morgenroth-schulhaus.org";
+// const BASE_WS_URL = "wss://api.morgenroth-schulhaus.org";
+
+const BASE_URL = "http://127.0.0.1:8000";
+const BASE_WS_URL = "ws://127.0.0.1:8000";
 
 const Configs = {
   baseUrl: BASE_URL,
