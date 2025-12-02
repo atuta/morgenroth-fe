@@ -5,6 +5,7 @@ import Configs from "../configs/Configs";
 const getTodayUserTimeSummaryApi = async () => {
   try {
     const response = await axiosInstance.get(Configs.apiGetTodayUserTimeSummaryEp);
+    console.log("Server response:", response.data);
 
     return {
       data: response.data,
