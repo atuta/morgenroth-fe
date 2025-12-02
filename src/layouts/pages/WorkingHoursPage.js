@@ -3,6 +3,15 @@
 import { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 
+// Material UI Table Components for structured display
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead"; // Still needed for import completeness, though not used in the return block
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper"; // Import Paper for table container background
+
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -63,15 +72,25 @@ function WorkingHoursPage() {
     if (!startTime) newErrors.startTime = "Start time is required.";
     if (!endTime) newErrors.endTime = "End time is required.";
 
-    if (startTime && endTime && startTime >= endTime) {
-      newErrors.startTime = "Start Time must be before End Time.";
-      newErrors.endTime = "End Time must be after Start Time.";
+    // Check time validation only if both fields are present
+    if (startTime && endTime) {
+      // Create date objects for comparison (e.g., '2000-01-01THH:MM:SS')
+      const startDateTime = new Date(`2000-01-01T${startTime}:00`);
+      const endDateTime = new Date(`2000-01-01T${endTime}:00`);
+
+      if (startDateTime >= endDateTime) {
+        newErrors.startTime = "Start Time must be before End Time.";
+        newErrors.endTime = "End Time must be after Start Time.";
+      }
     }
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      showAlert("Please correct the highlighted errors.", "warning");
+      // Only show a general alert if there are errors other than the ones displayed under the text fields
+      if (newErrors.dayOfWeek) {
+        showAlert("Please correct the highlighted errors.", "warning");
+      }
     }
 
     return Object.keys(newErrors).length === 0;
@@ -83,6 +102,7 @@ function WorkingHoursPage() {
       try {
         const res = await getWorkingHoursApi(DEFAULT_TIMEZONE);
         if (res.data?.status === "success" && Array.isArray(res.data.data)) {
+          // Assuming the API returns day_name along with day_of_week, start_time, etc.
           setWorkingHoursList(res.data.data);
         }
       } catch (err) {
@@ -117,7 +137,7 @@ function WorkingHoursPage() {
           const existingIndex = prev.findIndex((item) => item.day_of_week === payload.day_of_week);
           const newEntry = {
             day_of_week: payload.day_of_week,
-            day_name: dayOfWeek,
+            day_name: dayOfWeek, // Use the selected dayOfWeek for day_name in the UI list
             start_time: startTime,
             end_time: endTime,
             timezone: DEFAULT_TIMEZONE,
@@ -133,8 +153,8 @@ function WorkingHoursPage() {
           }
         });
 
-        // Reset form
-        setDayOfWeek("");
+        // Reset form (Optional: Can keep the day selected for quick edits)
+        // setDayOfWeek("");
         setStartTime("");
         setEndTime("");
         setErrors({});
@@ -158,21 +178,62 @@ function WorkingHoursPage() {
               Set Working Hours
             </MDTypography>
 
-            {/* Display existing working hours */}
-            <MDBox mb={2}>
+            {/* --- Existing Working Hours Display (Table WITHOUT Header) --- */}
+            <MDBox mb={4}>
+              <MDTypography variant="subtitle2" fontWeight="medium" mb={1}>
+                Existing Working Hours:
+              </MDTypography>
               {workingHoursList.length > 0 ? (
-                <>
-                  <MDTypography variant="subtitle2">Existing Working Hours:</MDTypography>
-                  {workingHoursList.map((cfg) => (
-                    <MDTypography key={cfg.day_of_week} variant="caption" display="block">
-                      {cfg.day_name}: {cfg.start_time} - {cfg.end_time}
-                    </MDTypography>
-                  ))}
-                </>
+                <TableContainer
+                  component={Paper}
+                  sx={{ boxShadow: "none", border: "1px solid #ddd" }}
+                >
+                  <Table size="small" aria-label="working hours table">
+                    {/* Manually insert the header row look-alike using a TableRow inside TableBody */}
+                    <TableBody>
+                      <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
+                        <TableCell sx={{ padding: "8px 16px", fontWeight: "bold" }}>Day</TableCell>
+                        <TableCell sx={{ padding: "8px 16px", fontWeight: "bold" }} align="center">
+                          Start Time
+                        </TableCell>
+                        <TableCell sx={{ padding: "8px 16px", fontWeight: "bold" }} align="center">
+                          End Time
+                        </TableCell>
+                      </TableRow>
+
+                      {/* Data rows */}
+                      {workingHoursList
+                        .sort((a, b) => a.day_of_week - b.day_of_week)
+                        .map((cfg) => (
+                          <TableRow
+                            key={cfg.day_of_week}
+                            // Highlight the row if it's the currently selected day for editing
+                            sx={{
+                              backgroundColor:
+                                dayToNumberMap[dayOfWeek] === cfg.day_of_week
+                                  ? "#e0f7fa"
+                                  : "inherit",
+                            }}
+                          >
+                            <TableCell sx={{ padding: "8px 16px" }}>{cfg.day_name}</TableCell>
+                            <TableCell sx={{ padding: "8px 16px" }} align="center">
+                              {cfg.start_time}
+                            </TableCell>
+                            <TableCell sx={{ padding: "8px 16px" }} align="center">
+                              {cfg.end_time}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               ) : (
-                <MDTypography variant="subtitle2">No working hours configured yet.</MDTypography>
+                <MDTypography variant="caption" display="block" color="text">
+                  No working hours configured yet.
+                </MDTypography>
               )}
             </MDBox>
+            {/* ----------------------------------------------------------------- */}
 
             <Grid container spacing={3}>
               {/* Day of Week Selector Buttons */}
@@ -208,7 +269,7 @@ function WorkingHoursPage() {
               {/* Timezone Info */}
               <Grid item xs={12}>
                 <MDTypography variant="caption" color="text" fontWeight="medium">
-                  Timezone: Africa/Nairobi (EAT)
+                  Timezone: {DEFAULT_TIMEZONE} (EAT)
                 </MDTypography>
               </Grid>
 
@@ -222,14 +283,8 @@ function WorkingHoursPage() {
                   onChange={(e) => setStartTime(e.target.value)}
                   InputLabelProps={{ shrink: true }}
                   error={!!errors.startTime}
+                  helperText={errors.startTime}
                 />
-                {errors.startTime && (
-                  <MDBox mt={0.5}>
-                    <MDTypography variant="caption" color="error">
-                      {errors.startTime}
-                    </MDTypography>
-                  </MDBox>
-                )}
               </Grid>
 
               {/* End Time */}
@@ -242,14 +297,8 @@ function WorkingHoursPage() {
                   onChange={(e) => setEndTime(e.target.value)}
                   InputLabelProps={{ shrink: true }}
                   error={!!errors.endTime}
+                  helperText={errors.endTime}
                 />
-                {errors.endTime && (
-                  <MDBox mt={0.5}>
-                    <MDTypography variant="caption" color="error">
-                      {errors.endTime}
-                    </MDTypography>
-                  </MDBox>
-                )}
               </Grid>
             </Grid>
 
