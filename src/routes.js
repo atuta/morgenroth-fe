@@ -14,6 +14,7 @@ import Profile from "layouts/profile";
 import AddStaffUser from "layouts/pages/AddStaffUser";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
+import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
 import DeductionsPage from "layouts/pages/DeductionsPage";
 import SignIn from "layouts/authentication/sign-in";
 import WorkingHoursPage from "layouts/pages/WorkingHoursPage";
@@ -119,9 +120,52 @@ const routes = [
       },
       {
         type: "collapse",
-        name: "Daily Attendance",
-        key: "attendance-daily",
+        name: "Attendance Summary",
+        key: "attendance-summary",
+        route: "/attendance-summary",
+        component: <TodayAttendancePage />,
+      },
+      {
+        type: "collapse",
+        name: "Verification Reports",
+        key: "attendance-verification-reports",
         route: "#", // DEAD LINK
+      },
+      {
+        type: "collapse",
+        name: "Late/Absence Report",
+        key: "attendance-late-absence",
+        route: "#", // DEAD LINK
+      },
+    ],
+  },
+
+  // --- System Settings (Parent Link) ---
+  {
+    type: "collapse",
+    name: "System Settings",
+    key: "system-settings",
+    icon: <Icon fontSize="small">settings</Icon>,
+    collapse: [
+      {
+        type: "collapse",
+        name: "Working Hours",
+        key: "set-working-hours",
+        route: "/set-working-hours",
+        component: <WorkingHoursPage />,
+      },
+      {
+        type: "collapse",
+        name: "Verification Notifications",
+        key: "settings-notifications",
+        route: "#", // DEAD LINK
+      },
+      {
+        type: "collapse",
+        name: "Stat",
+        key: "clock-in",
+        route: "/clock-in",
+        component: <ClockPage />,
       },
       {
         type: "collapse",
