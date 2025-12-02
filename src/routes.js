@@ -151,7 +151,7 @@ const routes = [
     collapse: [
       {
         type: "collapse",
-        name: "Set Working Hours",
+        name: "Working Hours",
         key: "set-working-hours",
         route: "/set-working-hours",
         component: <WorkingHoursPage />,
