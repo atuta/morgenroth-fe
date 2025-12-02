@@ -13,6 +13,7 @@ import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import AddStaffUser from "layouts/pages/AddStaffUser";
 import ClockPage from "layouts/pages/ClockPage";
+import DeductionsPage from "layouts/pages/DeductionsPage";
 import SignIn from "layouts/authentication/sign-in";
 import WorkingHoursPage from "layouts/pages/WorkingHoursPage";
 
@@ -164,21 +165,10 @@ const routes = [
       },
       {
         type: "collapse",
-        name: "Rate & Deductions",
-        key: "settings-rate-deductions",
-        route: "#", // DEAD LINK
-      },
-      {
-        type: "collapse",
-        name: "Roles & Permissions",
-        key: "settings-roles-permissions",
-        route: "#", // DEAD LINK
-      },
-      {
-        type: "collapse",
         name: "Statutory Deductions",
-        key: "settings-statutory-deductions",
-        route: "#", // DEAD LINK
+        key: "set-statutory-deductions",
+        route: "/set-statutory-deductions",
+        component: <DeductionsPage />,
       },
     ],
   },
