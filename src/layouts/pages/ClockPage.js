@@ -4,7 +4,7 @@ import Grid from "@mui/material/Grid";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import TextField from "@mui/material/TextField"; // for notes
+import TextField from "@mui/material/TextField";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
@@ -35,7 +35,6 @@ function ClockPage() {
     setAlertOpen(true);
   };
 
-  // Load current session on page load
   useEffect(() => {
     fetchCurrentSession();
   }, []);
@@ -53,28 +52,34 @@ function ClockPage() {
     }
   };
 
-  // Real-time session timer
   useEffect(() => {
     let timer;
     if (currentSession) {
-      const updateDuration = () => {
+      const update = () => {
         const start = new Date(currentSession.clock_in_time);
         const now = new Date();
-        const diff = now - start; // milliseconds
+        const diff = now - start;
         const hrs = String(Math.floor(diff / 3600000)).padStart(2, "0");
         const mins = String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0");
         const secs = String(Math.floor((diff % 60000) / 1000)).padStart(2, "0");
         setSessionDuration(`${hrs}:${mins}:${secs}`);
       };
-      updateDuration();
-      timer = setInterval(updateDuration, 1000);
+      update();
+      timer = setInterval(update, 1000);
     } else {
       setSessionDuration("00:00:00");
     }
     return () => clearInterval(timer);
   }, [currentSession]);
 
-  // Handle camera activation
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setCameraActive(false);
+  };
+
   useEffect(() => {
     if (cameraActive) {
       navigator.mediaDevices
@@ -87,10 +92,7 @@ function ClockPage() {
         })
         .catch(() => showAlert("Camera access denied or unavailable", "error"));
     } else {
-      if (videoRef.current && videoRef.current.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
-        videoRef.current.srcObject = null;
-      }
+      stopCamera();
     }
   }, [cameraActive]);
 
@@ -102,7 +104,7 @@ function ClockPage() {
     context.drawImage(videoRef.current, 0, 0);
     const dataURL = canvasRef.current.toDataURL("image/png");
     setPhotoBase64(dataURL);
-    setCameraActive(false);
+    stopCamera();
   };
 
   const handleClockIn = async () => {
@@ -114,7 +116,7 @@ function ClockPage() {
       if ((res.status === 200 || res.status === 201) && res.data.status === "success") {
         showAlert("Clock-in recorded", "success");
         setPhotoBase64(null);
-        fetchCurrentSession(); // immediately refresh session
+        fetchCurrentSession();
       } else if (res.data.message === "active_session_exists") {
         showAlert("Already clocked in", "warning");
         fetchCurrentSession();
@@ -216,11 +218,7 @@ function ClockPage() {
                       <MDButton variant="gradient" color="success" onClick={handleCapture}>
                         Capture Photo
                       </MDButton>
-                      <MDButton
-                        variant="outlined"
-                        color="error"
-                        onClick={() => setCameraActive(false)}
-                      >
+                      <MDButton variant="outlined" color="error" onClick={stopCamera}>
                         Cancel
                       </MDButton>
                     </MDBox>
