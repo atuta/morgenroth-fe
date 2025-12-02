@@ -76,6 +76,7 @@ const Configs = {
   // System setting
   apiSetSystemSettingEp: `${BASE_URL}/api/set-system-setting/`,
   apiGetSystemSettingEp: `${BASE_URL}/api/get-system-setting/`,
+  apiSetWorkingHoursEp: `${BASE_URL}/api/set-working-hours/`,
 
   // Manuals
   apiAddUserManualEp: `${BASE_URL}/api/add-user-manual/`,

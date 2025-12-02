@@ -14,7 +14,7 @@ import Profile from "layouts/profile";
 import AddStaffUser from "layouts/pages/AddStaffUser";
 import ClockPage from "layouts/pages/ClockPage";
 import SignIn from "layouts/authentication/sign-in";
-import SignUp from "layouts/authentication/sign-up";
+import WorkingHoursPage from "layouts/pages/WorkingHoursPage";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -149,6 +149,13 @@ const routes = [
     key: "system-settings",
     icon: <Icon fontSize="small">settings</Icon>,
     collapse: [
+      {
+        type: "collapse",
+        name: "Set Working Hours",
+        key: "set-working-hours",
+        route: "/set-working-hours",
+        component: <WorkingHoursPage />,
+      },
       {
         type: "collapse",
         name: "Verification Notifications",
