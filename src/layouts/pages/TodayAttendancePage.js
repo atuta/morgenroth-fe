@@ -39,6 +39,22 @@ const formatTime = (isoString) => {
   }).format(date);
 };
 
+// Utility to compute live total hours
+const getLiveHours = (clockIn, clockOut) => {
+  if (!clockIn) return "-";
+  const start = new Date(clockIn);
+  const end = clockOut && clockOut !== "open" ? new Date(clockOut) : new Date();
+  const diffMs = end - start;
+
+  if (diffMs < 0) return "-";
+
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+  return `${hours}h ${minutes}m ${seconds}s`;
+};
+
 function TodayAttendancePage() {
   const [attendanceList, setAttendanceList] = useState([]);
   const [filteredAttendance, setFilteredAttendance] = useState([]);
@@ -54,6 +70,7 @@ function TodayAttendancePage() {
     setAlertOpen(true);
   };
 
+  // Fetch attendance data
   useEffect(() => {
     const fetchAttendance = async () => {
       setLoading(true);
@@ -61,8 +78,6 @@ function TodayAttendancePage() {
         const res = await getTodayUserTimeSummaryApi();
 
         let attendanceData = [];
-
-        // FIX: Check for the array under 'message' (based on your recent API structure)
         if (res.data?.message && Array.isArray(res.data.message)) {
           attendanceData = res.data.message;
         }
@@ -73,9 +88,9 @@ function TodayAttendancePage() {
           user_role: item.user_role || "-",
           earliest_clock_in: item.earliest_clock_in || "-",
           latest_clock_out: item.latest_clock_out || "open",
-          total_hours: item.total_hours_worked ?? "-",
           photo: item.user_photo_url || DEFAULT_AVATAR,
           status: item.status || "open", // ensure always a string
+          total_hours: "-", // will be updated in live interval
         }));
 
         setAttendanceList(normalizedData);
@@ -115,6 +130,22 @@ function TodayAttendancePage() {
     setFilteredAttendance(filtered);
   }, [searchTerm, attendanceList]);
 
+  // Update live total hours every second
+  useEffect(() => {
+    if (attendanceList.length === 0) return;
+
+    const interval = setInterval(() => {
+      setFilteredAttendance((prev) =>
+        prev.map((item) => ({
+          ...item,
+          total_hours: getLiveHours(item.earliest_clock_in, item.latest_clock_out),
+        }))
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [attendanceList]);
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -122,7 +153,7 @@ function TodayAttendancePage() {
         <MDBox sx={{ margin: "0 auto 0 0" }}>
           <MDBox p={3} mb={3} bgColor="white" borderRadius="lg" shadow="md">
             <MDTypography variant="h5" fontWeight="bold" mb={2}>
-              Today&apos;s Attendance {/* FIXED: Apostrophe escaped */}
+              Today&apos;s Attendance
             </MDTypography>
 
             {/* Search bar */}
