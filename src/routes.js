@@ -12,6 +12,7 @@ import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import AddStaffUser from "layouts/pages/AddStaffUser";
+import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
 import DeductionsPage from "layouts/pages/DeductionsPage";
 import SignIn from "layouts/authentication/sign-in";
@@ -46,17 +47,17 @@ const routes = [
     collapse: [
       {
         type: "collapse",
-        name: "Add Staff",
+        name: "Add User",
         key: "staff-add",
         route: "/add-staff-user",
         component: <AddStaffUser />,
       },
       {
         type: "collapse",
-        name: "View Staff",
-        key: "staff-view",
-        route: "#", // DEAD LINK
-        // component: <Tables />, // Component removed for dead link
+        name: "Users List",
+        key: "users-list",
+        route: "/users-list",
+        component: <StaffListPage />,
       },
       {
         type: "collapse",
