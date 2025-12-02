@@ -1,4 +1,6 @@
-import { useState } from "react";
+// File: WorkingHoursPage.js
+
+import { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 
 // Material Dashboard 2 React components
@@ -17,8 +19,9 @@ import Footer from "examples/Footer";
 // Custom components
 import CustomAlert from "../../components/CustomAlert";
 
-// API service
+// API services
 import setWorkingHoursApi from "../../api/setWorkingHoursApi";
+import getWorkingHoursApi from "../../api/getWorkingHoursApi";
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -46,6 +49,8 @@ function WorkingHoursPage() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
 
+  const [workingHoursList, setWorkingHoursList] = useState([]);
+
   const showAlert = (message, severity = "info") => {
     setAlertMessage(message);
     setAlertSeverity(severity);
@@ -72,6 +77,22 @@ function WorkingHoursPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Fetch existing working hours on page load
+  useEffect(() => {
+    const fetchWorkingHours = async () => {
+      try {
+        const res = await getWorkingHoursApi(DEFAULT_TIMEZONE);
+        if (res.data?.status === "success" && Array.isArray(res.data.data)) {
+          setWorkingHoursList(res.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch working hours:", err);
+      }
+    };
+
+    fetchWorkingHours();
+  }, []);
+
   const handleSave = async () => {
     if (!validateFields()) return;
 
@@ -90,6 +111,29 @@ function WorkingHoursPage() {
 
       if (res.data?.status === "success") {
         showAlert("Working hours saved successfully", "success");
+
+        // Update or add the record in the UI
+        setWorkingHoursList((prev) => {
+          const existingIndex = prev.findIndex((item) => item.day_of_week === payload.day_of_week);
+          const newEntry = {
+            day_of_week: payload.day_of_week,
+            day_name: dayOfWeek,
+            start_time: startTime,
+            end_time: endTime,
+            timezone: DEFAULT_TIMEZONE,
+            is_active: true,
+          };
+
+          if (existingIndex > -1) {
+            const updated = [...prev];
+            updated[existingIndex] = newEntry;
+            return updated;
+          } else {
+            return [...prev, newEntry];
+          }
+        });
+
+        // Reset form
         setDayOfWeek("");
         setStartTime("");
         setEndTime("");
@@ -114,7 +158,24 @@ function WorkingHoursPage() {
               Set Working Hours
             </MDTypography>
 
+            {/* Display existing working hours */}
+            <MDBox mb={2}>
+              {workingHoursList.length > 0 ? (
+                <>
+                  <MDTypography variant="subtitle2">Existing Working Hours:</MDTypography>
+                  {workingHoursList.map((cfg) => (
+                    <MDTypography key={cfg.day_of_week} variant="caption" display="block">
+                      {cfg.day_name}: {cfg.start_time} - {cfg.end_time}
+                    </MDTypography>
+                  ))}
+                </>
+              ) : (
+                <MDTypography variant="subtitle2">No working hours configured yet.</MDTypography>
+              )}
+            </MDBox>
+
             <Grid container spacing={3}>
+              {/* Day of Week Selector Buttons */}
               <Grid item xs={12}>
                 <MDTypography variant="caption" fontWeight="medium" color="text" sx={{ mb: 1 }}>
                   Select Day of Week:
@@ -144,12 +205,14 @@ function WorkingHoursPage() {
                 )}
               </Grid>
 
+              {/* Timezone Info */}
               <Grid item xs={12}>
                 <MDTypography variant="caption" color="text" fontWeight="medium">
                   Timezone: Africa/Nairobi (EAT)
                 </MDTypography>
               </Grid>
 
+              {/* Start Time */}
               <Grid item xs={6}>
                 <TextField
                   label="Start Time"
@@ -169,6 +232,7 @@ function WorkingHoursPage() {
                 )}
               </Grid>
 
+              {/* End Time */}
               <Grid item xs={6}>
                 <TextField
                   label="End Time"

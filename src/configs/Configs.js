@@ -74,6 +74,7 @@ const Configs = {
   apiMarkSystemMessageReadEp: `${BASE_URL}/api/mark-system-message-read/`,
 
   // System setting
+  apiGetWorkingHoursEp: `${BASE_URL}/api/get-working-hours/`,
   apiSetSystemSettingEp: `${BASE_URL}/api/set-system-setting/`,
   apiGetSystemSettingEp: `${BASE_URL}/api/get-system-setting/`,
   apiSetWorkingHoursEp: `${BASE_URL}/api/set-working-hours/`,
