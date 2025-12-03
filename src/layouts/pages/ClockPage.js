@@ -1,5 +1,9 @@
+// File: ClockPage.js
+
 import { useState, useRef, useEffect } from "react";
 import Grid from "@mui/material/Grid";
+import CircularProgress from "@mui/material/CircularProgress";
+import { styled } from "@mui/material/styles";
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -13,6 +17,27 @@ import CustomAlert from "../../components/CustomAlert";
 import clockInApi from "../../api/clockInApi";
 import clockOutApi from "../../api/clockOutApi";
 import getCurrentSessionApi from "../../api/getCurrentSessionApi";
+
+// --- Custom Styled Components (Simplified) ---
+
+// Styled video element
+const StyledVideo = styled("video")({
+  width: "100%",
+  maxHeight: "350px",
+  objectFit: "cover",
+  borderRadius: 8,
+  backgroundColor: "black",
+});
+
+// Styled image preview
+const StyledImage = styled("img")({
+  width: "100%",
+  maxHeight: "350px",
+  objectFit: "cover",
+  borderRadius: 8,
+});
+
+// --- Main Component ---
 
 function ClockPage() {
   const [loading, setLoading] = useState(false);
@@ -41,6 +66,7 @@ function ClockPage() {
 
   const fetchCurrentSession = async () => {
     try {
+      setLoading(true);
       const res = await getCurrentSessionApi();
       if (res.status === 200 && res.data.status === "success") {
         setCurrentSession(res.data.session);
@@ -49,6 +75,8 @@ function ClockPage() {
       }
     } catch {
       setCurrentSession(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,7 +111,7 @@ function ClockPage() {
   useEffect(() => {
     if (cameraActive) {
       navigator.mediaDevices
-        .getUserMedia({ video: { facingMode: "environment" } })
+        .getUserMedia({ video: { facingMode: "user" } })
         .then((stream) => {
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
@@ -99,10 +127,14 @@ function ClockPage() {
   const handleCapture = () => {
     if (!videoRef.current || !canvasRef.current) return;
     const context = canvasRef.current.getContext("2d");
+
     canvasRef.current.width = videoRef.current.videoWidth;
     canvasRef.current.height = videoRef.current.videoHeight;
-    context.drawImage(videoRef.current, 0, 0);
-    const dataURL = canvasRef.current.toDataURL("image/png");
+
+    context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    const dataURL = canvasRef.current.toDataURL("image/jpeg", 0.8);
+
     setPhotoBase64(dataURL);
     stopCamera();
   };
@@ -114,19 +146,19 @@ function ClockPage() {
       const res = await clockInApi(payload);
 
       if ((res.status === 200 || res.status === 201) && res.data.status === "success") {
-        showAlert("Clock-in recorded", "success");
+        showAlert("✅ Clock-in recorded successfully!", "success");
         setPhotoBase64(null);
         fetchCurrentSession();
       } else if (res.data.message === "active_session_exists") {
-        showAlert("Already clocked in", "warning");
+        showAlert("⚠️ Already clocked in. Fetching current session...", "warning");
         fetchCurrentSession();
       } else if (res.data.message === "invalid_photo_data") {
-        showAlert("Invalid photo uploaded", "error");
+        showAlert("❌ Invalid photo uploaded. Please retake the photo.", "error");
       } else {
-        showAlert("Clock-in failed", "error");
+        showAlert("❌ Clock-in failed. Please try again.", "error");
       }
     } catch {
-      showAlert("Server error", "error");
+      showAlert("❌ Server error. Could not connect to the API.", "error");
     } finally {
       setLoading(false);
     }
@@ -139,18 +171,157 @@ function ClockPage() {
       const res = await clockOutApi(payload);
 
       if ((res.status === 200 || res.status === 201) && res.data.status === "success") {
-        showAlert("Clock-out recorded", "success");
+        showAlert("👋 Clock-out successful! Good work.", "success");
         setNotes("");
         setCurrentSession(null);
       } else if (res.data.message === "no_active_session") {
-        showAlert("No active session found", "warning");
+        showAlert("⚠️ No active session found to clock out from.", "warning");
       } else {
-        showAlert("Clock-out failed", "error");
+        showAlert("❌ Clock-out failed. Please try again.", "error");
       }
     } catch {
-      showAlert("Server error", "error");
+      showAlert("❌ Server error. Could not connect to the API.", "error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // UI RENDERING LOGIC
+  const renderContent = () => {
+    if (loading && !currentSession) {
+      return (
+        <MDBox display="flex" flexDirection="column" alignItems="center" py={5}>
+          <CircularProgress color="info" />
+          <MDTypography variant="body2" color="text" mt={2}>
+            Loading session status...
+          </MDTypography>
+        </MDBox>
+      );
+    }
+
+    if (currentSession) {
+      // --- Clock Out UI (Minimal, No Card) ---
+      return (
+        <MDBox p={0} mb={3}>
+          {" "}
+          {/* Removed border, padding adjusted */}
+          <MDTypography variant="h5" fontWeight="bold" color="success" mb={1}>
+            Session Active
+          </MDTypography>
+          <MDTypography variant="h1" fontWeight="light" color="text" mb={2}>
+            {sessionDuration}
+          </MDTypography>
+          <MDTypography variant="body2" color="text" mb={2}>
+            Clocked in at: {new Date(currentSession.clock_in_time).toLocaleTimeString()}
+          </MDTypography>
+          <TextField
+            label="Clock-out Notes (optional)"
+            multiline
+            rows={3}
+            fullWidth
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            InputLabelProps={{ shrink: true, required: false }}
+            sx={{
+              mb: 3,
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: "white",
+              },
+            }}
+          />
+          <MDButton
+            variant="gradient"
+            color="error"
+            fullWidth // Same size as Clock In button
+            disabled={loading}
+            onClick={handleClockOut}
+          >
+            {loading ? <CircularProgress color="inherit" size={20} /> : "Clock Out"}
+          </MDButton>
+        </MDBox>
+      );
+    } else {
+      // --- Clock In UI (Minimal, Uniform Buttons) ---
+      return (
+        <MDBox>
+          <MDTypography variant="h5" fontWeight="bold" mb={3}>
+            Clock In Now
+          </MDTypography>
+
+          {/* Replaced MediaBox with simple MDBox */}
+          <MDBox mb={3}>
+            <Grid container spacing={2} justifyContent="center" alignItems="center">
+              <Grid item xs={12}>
+                {!photoBase64 && !cameraActive && (
+                  <>
+                    <MDButton
+                      variant="gradient"
+                      color="info"
+                      fullWidth // Uniform size
+                      onClick={() => setCameraActive(true)}
+                    >
+                      Start Camera for Photo
+                    </MDButton>
+                    <MDTypography variant="body2" color="text" textAlign="center" mt={1}>
+                      A photo is required for clock-in.
+                    </MDTypography>
+                  </>
+                )}
+
+                {cameraActive && (
+                  <MDBox display="flex" flexDirection="column" alignItems="center" gap={1}>
+                    <StyledVideo ref={videoRef} autoPlay playsInline />
+                    <MDButton
+                      variant="gradient"
+                      color="success"
+                      fullWidth // Uniform size
+                      onClick={handleCapture}
+                      sx={{ mt: 1 }}
+                    >
+                      Capture Photo
+                    </MDButton>
+                    <MDButton variant="text" color="error" onClick={stopCamera}>
+                      Cancel Camera
+                    </MDButton>
+                  </MDBox>
+                )}
+
+                {photoBase64 && (
+                  <MDBox display="flex" flexDirection="column" alignItems="center" gap={1}>
+                    <MDTypography variant="caption" color="text">
+                      Photo captured successfully:
+                    </MDTypography>
+                    <StyledImage src={photoBase64} alt="preview" />
+                    <MDButton
+                      variant="gradient"
+                      color="warning"
+                      fullWidth // Uniform size
+                      onClick={() => {
+                        setPhotoBase64(null);
+                        setCameraActive(true);
+                      }}
+                      sx={{ mt: 1 }}
+                    >
+                      Retake Photo
+                    </MDButton>
+                  </MDBox>
+                )}
+              </Grid>
+            </Grid>
+          </MDBox>
+
+          <MDButton
+            variant="gradient"
+            color="success"
+            fullWidth // Uniform size
+            disabled={loading || !photoBase64}
+            onClick={handleClockIn}
+            sx={{ mt: 1 }}
+          >
+            {loading ? <CircularProgress color="inherit" size={20} /> : "Clock In"}
+          </MDButton>
+        </MDBox>
+      );
     }
   };
 
@@ -158,93 +329,7 @@ function ClockPage() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        <MDBox sx={{ maxWidth: "600px", margin: "0 auto 0 0" }}>
-          {currentSession ? (
-            <MDBox p={3} mb={3} bgColor="white" borderRadius="lg" shadow="md">
-              <MDTypography variant="h5" fontWeight="bold" mb={2}>
-                Current Session
-              </MDTypography>
-              <MDTypography>
-                Clocked in at: {new Date(currentSession.clock_in_time).toLocaleTimeString()}
-              </MDTypography>
-              <MDTypography>Duration: {sessionDuration}</MDTypography>
-              <MDTypography>Notes (optional):</MDTypography>
-              <MDBox mt={1}>
-                <TextField
-                  label="Notes"
-                  multiline
-                  rows={3}
-                  fullWidth
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </MDBox>
-              <MDButton
-                variant="gradient"
-                color="error"
-                fullWidth
-                disabled={loading}
-                onClick={handleClockOut}
-                sx={{ mt: 2 }}
-              >
-                {loading ? "Clocking out..." : "Clock Out"}
-              </MDButton>
-            </MDBox>
-          ) : (
-            <MDBox p={3} mb={3} bgColor="white" borderRadius="lg" shadow="md">
-              <MDTypography variant="h5" fontWeight="bold" mb={2}>
-                Clock In
-              </MDTypography>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  {!photoBase64 && !cameraActive && (
-                    <MDButton
-                      variant="gradient"
-                      color="info"
-                      fullWidth
-                      onClick={() => setCameraActive(true)}
-                    >
-                      Open Camera
-                    </MDButton>
-                  )}
-                  {cameraActive && (
-                    <MDBox display="flex" flexDirection="column" alignItems="center" gap={1}>
-                      <video
-                        ref={videoRef}
-                        style={{ width: "100%", borderRadius: 8 }}
-                        autoPlay
-                        playsInline
-                      />
-                      <MDButton variant="gradient" color="success" onClick={handleCapture}>
-                        Capture Photo
-                      </MDButton>
-                      <MDButton variant="outlined" color="error" onClick={stopCamera}>
-                        Cancel
-                      </MDButton>
-                    </MDBox>
-                  )}
-                  {photoBase64 && (
-                    <img
-                      src={photoBase64}
-                      alt="preview"
-                      style={{ width: "100%", borderRadius: 8 }}
-                    />
-                  )}
-                </Grid>
-              </Grid>
-              <MDButton
-                variant="gradient"
-                color="info"
-                fullWidth
-                disabled={loading || !photoBase64}
-                onClick={handleClockIn}
-                sx={{ mt: 2 }}
-              >
-                {loading ? "Clocking in..." : "Clock In"}
-              </MDButton>
-            </MDBox>
-          )}
-        </MDBox>
+        <MDBox sx={{ maxWidth: "500px", margin: "0 auto 0 0" }}>{renderContent()}</MDBox>
       </MDBox>
 
       <CustomAlert

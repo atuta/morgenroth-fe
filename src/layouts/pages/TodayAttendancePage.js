@@ -23,11 +23,10 @@ import CustomAlert from "../../components/CustomAlert";
 
 import getTodayUserTimeSummaryApi from "../../api/getTodayUserTimeSummaryApi";
 
-// Default avatar image
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=40";
-const COLUMN_COUNT = 7;
+const COLUMN_COUNT = 8; // Corrected column count based on the table structure
 
-// Utility to format ISO strings to readable local time
+// Format ISO string to human-readable time
 const formatTime = (isoString) => {
   if (!isoString || isoString === "open") return isoString || "-";
   const date = new Date(isoString);
@@ -39,16 +38,16 @@ const formatTime = (isoString) => {
   }).format(date);
 };
 
-// Utility to calculate live total hours for "open" sessions
+// Live counter for open sessions
 const calculateLiveHours = (clockIn) => {
   if (!clockIn) return "-";
-  const clockInDate = new Date(clockIn);
+  const start = new Date(clockIn);
   const now = new Date();
-  const diffMs = now - clockInDate;
+  const diffMs = now - start;
   if (diffMs < 0) return "0:00:00";
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
-  const seconds = Math.floor((diffMs / 1000) % 60);
+  const hours = Math.floor(diffMs / 3600000);
+  const minutes = Math.floor((diffMs % 3600000) / 60000);
+  const seconds = Math.floor((diffMs % 60000) / 1000);
   return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 };
 
@@ -60,6 +59,7 @@ function TodayAttendancePage() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
+  const [tick, setTick] = useState(0); // trigger re-render every second
 
   const showAlert = (message, severity = "info") => {
     setAlertMessage(message);
@@ -83,9 +83,9 @@ function TodayAttendancePage() {
           user_role: item.user_role || "-",
           earliest_clock_in: item.earliest_clock_in || "-",
           latest_clock_out: item.latest_clock_out || "open",
-          total_hours: item.total_hours_worked ?? "-",
+          total_hours: item.total_hours_worked ?? 0,
           photo: item.user_photo_url || DEFAULT_AVATAR,
-          status: item.latest_session_status || "open", // <-- use the correct field
+          status: item.latest_session_status || "open",
         }));
 
         setAttendanceList(normalizedData);
@@ -101,6 +101,14 @@ function TodayAttendancePage() {
     };
 
     fetchAttendance();
+  }, []);
+
+  // Trigger live counter re-render every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   // Filter based on search term
@@ -130,30 +138,36 @@ function TodayAttendancePage() {
       <DashboardNavbar />
       <MDBox py={3}>
         <MDBox sx={{ margin: "0 auto 0 0" }}>
-          {/* Removed card background and shadow */}
           <MDBox p={3} mb={3} borderRadius="lg">
             <MDTypography variant="h5" fontWeight="bold" mb={2}>
               Today&apos;s Attendance
             </MDTypography>
 
-            {/* Search bar */}
             <MDBox mb={2}>
               <TextField
                 label="Search by name, role, or status"
                 fullWidth
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                variant="outlined"
+                InputProps={{
+                  sx: {
+                    backgroundColor: "white", // Default background
+                    borderRadius: 1, // Optional: rounded corners
+                    "& input": {
+                      backgroundColor: "white", // Ensure input area is white
+                    },
+                  },
+                }}
               />
             </MDBox>
 
-            {/* Attendance Table */}
             <TableContainer
               component={Paper}
               sx={{ maxHeight: 600, border: "1px solid #ddd", boxShadow: "none" }}
             >
               <Table stickyHeader aria-label="attendance table">
                 <TableBody>
-                  {/* Header row */}
                   <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
                     <TableCell sx={{ fontWeight: "bold", width: "5%", padding: "12px 8px" }}>
                       Photo
@@ -198,12 +212,7 @@ function TodayAttendancePage() {
                     filteredAttendance.map((item) => {
                       const isOpen = item.status === "open";
                       return (
-                        <TableRow
-                          key={item.user_id}
-                          sx={{
-                            backgroundColor: isOpen ? "#e6f4ea" : "inherit",
-                          }}
-                        >
+                        <TableRow key={item.user_id}>
                           <TableCell sx={{ padding: "8px 8px" }}>
                             <Avatar
                               src={item.photo}
@@ -215,7 +224,7 @@ function TodayAttendancePage() {
                           <TableCell>{item.user_role}</TableCell>
                           <TableCell align="center">
                             <MDTypography
-                              variant="caption"
+                              variant="body2" // match table text size
                               color={isOpen ? "success" : "text"}
                               fontWeight="bold"
                             >
@@ -228,7 +237,9 @@ function TodayAttendancePage() {
                               ? "open"
                               : formatTime(item.latest_clock_out)}
                           </TableCell>
-                          <TableCell align="center">{item.total_hours}</TableCell>
+                          <TableCell align="center">
+                            {isOpen ? calculateLiveHours(item.earliest_clock_in) : item.total_hours}
+                          </TableCell>
                           <TableCell align="center">
                             <MDButton
                               variant="gradient"
