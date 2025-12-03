@@ -315,7 +315,6 @@ function UserDetailsPage() {
               </MDBox>
 
               {/* Financial & Statutory - BOTTOM */}
-              {/* Title is back to standard MDTypography */}
               <MDTypography variant="body1" fontWeight="medium" mb={1} mt={3}>
                 Financial & Statutory
               </MDTypography>
@@ -363,13 +362,14 @@ function UserDetailsPage() {
                 sx={{ mb: 2 }}
               />
 
-              {/* SAVE CHANGES BUTTON MOVED HERE (BELOW INPUTS) */}
+              {/* SAVE CHANGES BUTTON */}
               <MDBox mt={2} display="flex" justifyContent="flex-start">
                 <MDButton
                   variant="gradient"
                   color="success"
                   onClick={handleSave}
                   disabled={saving}
+                  size="medium" // Explicitly setting size to medium
                   startIcon={saving && <CircularProgress size={20} />}
                 >
                   {saving ? "Saving..." : "Save Changes"}
@@ -432,7 +432,12 @@ function UserDetailsPage() {
 
         {/* Payslip Action Card - AT THE VERY BOTTOM */}
         <Paper elevation={0} sx={{ p: 3, borderRadius: "lg" }}>
-          <MDBox display="flex" flexDirection="column" alignItems="left" justifyContent="left">
+          <MDBox
+            display="flex"
+            flexDirection="column"
+            alignItems="flex-start"
+            justifyContent="flex-start"
+          >
             <MDTypography variant="h6" fontWeight="bold" mb={2}>
               Payroll Actions
             </MDTypography>
@@ -446,6 +451,8 @@ function UserDetailsPage() {
               onClick={handleGeneratePayslip}
               disabled={generatingPayslip}
               startIcon={generatingPayslip && <CircularProgress size={20} color="white" />}
+              size="medium" // ✅ MODIFICATION: Set size to medium (same as Save Changes)
+              sx={{ width: "auto" }}
             >
               {generatingPayslip ? "Generating..." : "Generate Payslip"}
             </MDButton>
