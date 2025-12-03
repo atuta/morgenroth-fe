@@ -194,7 +194,7 @@ function ClockPage() {
     }
 
     return (
-      <MDBox p={3} bgColor="white" borderRadius="lg" shadow="md" width="100%">
+      <MDBox p={3} bgColor="white" borderRadius="lg" width="100%">
         {currentSession ? (
           <MDBox>
             <MDTypography variant="h5" fontWeight="bold" color="success" mb={1}>

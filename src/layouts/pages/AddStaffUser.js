@@ -119,7 +119,7 @@ function AddStaffUser() {
           onSubmit={handleSubmit}
           sx={{ maxWidth: "600px", margin: "0 auto 0 0" }}
         >
-          <MDBox p={3} bgColor="white" borderRadius="lg" shadow="md">
+          <MDBox p={3} bgColor="white" borderRadius="lg">
             <MDTypography variant="h5" fontWeight="bold" mb={3}>
               New Staff User Registration
             </MDTypography>

@@ -15,6 +15,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import SearchIcon from "@mui/icons-material/Search";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -26,7 +28,7 @@ import getNonAdminUsersApi from "../../api/getNonAdminUsersApi";
 
 // Default avatar image (can be local or URL)
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=40";
-const COLUMN_COUNT = 9; // Total number of columns
+const COLUMN_COUNT = 8;
 
 function StaffListPage() {
   const [staffList, setStaffList] = useState([]);
@@ -92,18 +94,35 @@ function StaffListPage() {
       <MDBox py={3}>
         {/* MODIFICATION 1: Removed maxWidth to allow card holder to run end-to-end */}
         <MDBox sx={{ margin: "0 auto 0 0" }}>
-          <MDBox p={3} mb={3} bgColor="white" borderRadius="lg" shadow="md">
+          {/* SHADOW REMOVED: changed shadow="md" to remove the drop shadow */}
+          <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
             <MDTypography variant="h5" fontWeight="bold" mb={2}>
               Staff List
             </MDTypography>
 
-            {/* Search bar */}
+            {/* Search bar - MODIFIED FOR DYNAMIC BORDER/ICON */}
             <MDBox mb={2}>
               <TextField
                 label="Search staff by name, email, or account"
                 fullWidth
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                // 1. Use 'outlined' variant for the dynamic border behavior
+                variant="outlined"
+                InputProps={{
+                  // 2. Add the search icon as a start adornment
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon color="action" />
+                    </InputAdornment>
+                  ),
+                  // 3. Apply custom styling for background and border radius
+                  sx: {
+                    backgroundColor: "white",
+                    borderRadius: 2,
+                    "& input": { backgroundColor: "white" },
+                  },
+                }}
               />
             </MDBox>
 
@@ -116,18 +135,20 @@ function StaffListPage() {
                 <TableBody>
                   {/* --- MANUAL HEADER ROW --- */}
                   <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                    <TableCell sx={{ fontWeight: "bold", width: "5%", padding: "12px 8px" }}>
+                    {/* Width constraints added to non-name columns */}
+                    <TableCell sx={{ fontWeight: "bold", width: "8%", padding: "12px 8px" }}>
                       Photo
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "15%" }}>Name</TableCell>
+                    {/* Name column has no width specified to take up the remaining space */}
+                    <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
                     <TableCell sx={{ fontWeight: "bold", width: "20%" }}>Email</TableCell>
                     <TableCell sx={{ fontWeight: "bold", width: "10%" }}>Account</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "10%" }}>Role</TableCell>
+                    {/* Role column header REMOVED */}
                     <TableCell sx={{ fontWeight: "bold", width: "10%" }}>Status</TableCell>
                     <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "right" }}>
                       Hourly Rate
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "5%", textAlign: "center" }}>
+                    <TableCell sx={{ fontWeight: "bold", width: "7%", textAlign: "center" }}>
                       Currency
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
@@ -156,19 +177,32 @@ function StaffListPage() {
                   ) : (
                     filteredStaff.map((user) => (
                       <TableRow key={user.user_id}>
-                        <TableCell sx={{ padding: "8px 8px" }}>
+                        {/* Data cell widths constrained */}
+                        <TableCell sx={{ padding: "8px 8px", width: "8%" }}>
                           <Avatar
                             src={user.photo || DEFAULT_AVATAR}
                             alt={`${user.first_name} ${user.last_name}`}
                             sx={{ width: 36, height: 36 }}
                           />
                         </TableCell>
-                        {/* MODIFICATION 2: Removed asterisks for name bolding */}
-                        <TableCell>{`${user.first_name || ""} ${user.last_name || ""}`}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.account || "N/A"}</TableCell>
-                        <TableCell>{user.user_role}</TableCell>
+                        {/* Combined Name and Role cell */}
                         <TableCell>
+                          <MDBox display="flex" flexDirection="column" alignItems="flex-start">
+                            <MDTypography component="span" variant="body2" fontWeight="medium">
+                              {`${user.first_name || ""} ${user.last_name || ""}`}
+                            </MDTypography>
+                            {user.user_role && user.user_role !== "N/A" && (
+                              <MDTypography component="span" variant="caption" color="text">
+                                ({user.user_role})
+                              </MDTypography>
+                            )}
+                          </MDBox>
+                        </TableCell>
+
+                        <TableCell sx={{ width: "20%" }}>{user.email}</TableCell>
+                        <TableCell sx={{ width: "10%" }}>{user.account || "N/A"}</TableCell>
+
+                        <TableCell sx={{ width: "10%" }}>
                           <MDTypography
                             variant="caption"
                             color={user.status === "active" ? "success" : "error"}
@@ -177,9 +211,13 @@ function StaffListPage() {
                             {user.status || "Unknown"}
                           </MDTypography>
                         </TableCell>
-                        <TableCell align="right">{user.hourly_rate || "-"}</TableCell>
-                        <TableCell align="center">{user.hourly_rate_currency || "-"}</TableCell>
-                        <TableCell align="center">
+                        <TableCell align="right" sx={{ width: "10%" }}>
+                          {user.hourly_rate || "-"}
+                        </TableCell>
+                        <TableCell align="center" sx={{ width: "7%" }}>
+                          {user.hourly_rate_currency || "-"}
+                        </TableCell>
+                        <TableCell align="center" sx={{ width: "15%" }}>
                           <MDButton
                             variant="gradient"
                             color="info"

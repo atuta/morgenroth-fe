@@ -14,6 +14,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import SearchIcon from "@mui/icons-material/Search";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -24,7 +26,7 @@ import CustomAlert from "../../components/CustomAlert";
 import getTodayUserTimeSummaryApi from "../../api/getTodayUserTimeSummaryApi";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=40";
-const COLUMN_COUNT = 8;
+const COLUMN_COUNT = 7;
 
 const formatTime = (isoString) => {
   if (!isoString || isoString === "open") return isoString || "-";
@@ -129,7 +131,7 @@ function TodayAttendancePage() {
       <DashboardNavbar />
       <MDBox py={3}>
         {/* Full-width Card Container */}
-        <MDBox p={3} mb={3} width="100%" bgColor="white" borderRadius="lg" shadow="md">
+        <MDBox p={3} mb={3} width="100%" bgColor="white" borderRadius="lg">
           <MDTypography variant="h5" fontWeight="bold" mb={2}>
             Today&apos;s Attendance
           </MDTypography>
@@ -137,18 +139,28 @@ function TodayAttendancePage() {
           {/* Search Field */}
           <MDBox mb={2}>
             <TextField
+              // Keep the label as a simple string; MU will handle shrinking/disappearing
               label="Search by name, role, or status"
               fullWidth
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              // Use 'outlined' variant. The border appears on focus (click) and disappears when blurred.
               variant="outlined"
               InputProps={{
+                // Add the search icon as an adornment inside the input border
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+                // Keep the styling for background and border radius
                 sx: {
                   backgroundColor: "white",
-                  borderRadius: 1,
+                  borderRadius: 2,
                   "& input": { backgroundColor: "white" },
                 },
               }}
+              // Removed custom InputLabelProps to let MUI handle the label shrink/float animation
             />
           </MDBox>
 
@@ -160,12 +172,12 @@ function TodayAttendancePage() {
             <Table stickyHeader aria-label="attendance table">
               <TableBody>
                 <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                  <TableCell sx={{ fontWeight: "bold", width: "5%", padding: "12px 8px" }}>
+                  <TableCell sx={{ fontWeight: "bold", width: "8%", padding: "12px 8px" }}>
                     Photo
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", width: "25%" }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", width: "15%" }}>Role</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "center" }}>
+                  <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>{" "}
+                  {/* Removed fixed width to allow natural expansion */}
+                  <TableCell sx={{ fontWeight: "bold", width: "12%", textAlign: "center" }}>
                     Status
                   </TableCell>
                   <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
@@ -177,7 +189,7 @@ function TodayAttendancePage() {
                   <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
                     Total Hours
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "center" }}>
+                  <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
                     Actions
                   </TableCell>
                 </TableRow>
@@ -204,16 +216,27 @@ function TodayAttendancePage() {
                     const isOpen = item.status === "open";
                     return (
                       <TableRow key={item.user_id}>
-                        <TableCell sx={{ padding: "8px 8px" }}>
+                        <TableCell sx={{ padding: "8px 8px", width: "8%" }}>
                           <Avatar
                             src={item.photo}
                             alt={item.full_name}
                             sx={{ width: 36, height: 36 }}
                           />
                         </TableCell>
-                        <TableCell>{item.full_name}</TableCell>
-                        <TableCell>{item.user_role}</TableCell>
-                        <TableCell align="center">
+                        <TableCell>
+                          {/* Name content remains the same */}
+                          <MDBox display="flex" flexDirection="column" alignItems="flex-start">
+                            <MDTypography component="span" variant="body2">
+                              {item.full_name}
+                            </MDTypography>
+                            {item.user_role && item.user_role !== "-" && (
+                              <MDTypography component="span" variant="caption" color="text">
+                                ({item.user_role})
+                              </MDTypography>
+                            )}
+                          </MDBox>
+                        </TableCell>
+                        <TableCell align="center" sx={{ width: "12%" }}>
                           <MDTypography
                             variant="body2"
                             color={isOpen ? "success" : "text"}
@@ -222,16 +245,18 @@ function TodayAttendancePage() {
                             {item.status}
                           </MDTypography>
                         </TableCell>
-                        <TableCell align="center">{formatTime(item.earliest_clock_in)}</TableCell>
-                        <TableCell align="center">
+                        <TableCell align="center" sx={{ width: "15%" }}>
+                          {formatTime(item.earliest_clock_in)}
+                        </TableCell>
+                        <TableCell align="center" sx={{ width: "15%" }}>
                           {item.latest_clock_out === "open"
                             ? "open"
                             : formatTime(item.latest_clock_out)}
                         </TableCell>
-                        <TableCell align="center">
+                        <TableCell align="center" sx={{ width: "15%" }}>
                           {isOpen ? calculateLiveHours(item.earliest_clock_in) : item.total_hours}
                         </TableCell>
-                        <TableCell align="center">
+                        <TableCell align="center" sx={{ width: "15%" }}>
                           <MDButton
                             variant="gradient"
                             color="info"
