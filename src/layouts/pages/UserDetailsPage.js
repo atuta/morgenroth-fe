@@ -6,6 +6,8 @@ import Avatar from "@mui/material/Avatar";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import Paper from "@mui/material/Paper";
+import Switch from "@mui/material/Switch";
+import FormControlLabel from "@mui/material/FormControlLabel";
 
 // Icons
 import EmailIcon from "@mui/icons-material/EmailOutlined";
@@ -17,6 +19,7 @@ import PaidIcon from "@mui/icons-material/PaidOutlined";
 import EventAvailableIcon from "@mui/icons-material/EventAvailableOutlined";
 import EventBusyIcon from "@mui/icons-material/EventBusyOutlined";
 import PermIdentityIcon from "@mui/icons-material/PermIdentityOutlined";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLongOutlined"; // Icon for Payslip
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -43,6 +46,8 @@ function UserDetailsPage() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [togglingLeave, setTogglingLeave] = useState(false);
+  const [generatingPayslip, setGeneratingPayslip] = useState(false);
 
   const [editRate, setEditRate] = useState("");
   const [editNssf, setEditNssf] = useState("");
@@ -100,7 +105,6 @@ function UserDetailsPage() {
     setSaving(true);
 
     try {
-      // Log captured values
       console.log("Captured values before API call:", {
         user_id,
         hourly_rate: editRate,
@@ -115,7 +119,6 @@ function UserDetailsPage() {
         ...(editSha !== "" && { sha: editSha }),
       };
 
-      // Log payload being sent
       console.log("Payload sent to API:", payload);
 
       const res = await updateUserFieldsApi(payload);
@@ -141,6 +144,49 @@ function UserDetailsPage() {
     }
   };
 
+  const handleLeaveToggle = async (event) => {
+    if (!user_id) return;
+    const newLeaveStatus = event.target.checked;
+
+    // Optimistically update the UI
+    setUserData((prev) => ({ ...prev, is_on_leave: newLeaveStatus }));
+    setTogglingLeave(true);
+
+    try {
+      // NOTE: Replace this with your actual API call to update the leave status
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      showAlert(
+        `User leave status updated to: ${newLeaveStatus ? "On Leave" : "Working"}`,
+        "success"
+      );
+    } catch (err) {
+      console.error(err);
+      showAlert("Server error while updating leave status", "error");
+      setUserData((prev) => ({ ...prev, is_on_leave: !newLeaveStatus })); // Revert
+    } finally {
+      setTogglingLeave(false);
+    }
+  };
+
+  const handleGeneratePayslip = async () => {
+    if (!user_id) return;
+    setGeneratingPayslip(true);
+    showAlert("Generating payslip...", "info");
+    try {
+      // NOTE: Replace this with your actual API call to trigger payslip generation/download
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      showAlert(`Payslip for ${userData.first_name} generated successfully!`, "success");
+      // Add logic here to handle the file download, if applicable.
+    } catch (err) {
+      console.error(err);
+      showAlert("Failed to generate payslip. Server error.", "error");
+    } finally {
+      setGeneratingPayslip(false);
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -153,6 +199,20 @@ function UserDetailsPage() {
   }
 
   if (!userData) return null;
+
+  const {
+    email,
+    first_name,
+    last_name,
+    user_role,
+    status,
+    photo,
+    account,
+    phone_number,
+    id_number,
+    is_present_today,
+    is_on_leave,
+  } = userData;
 
   return (
     <DashboardLayout>
@@ -176,29 +236,31 @@ function UserDetailsPage() {
           borderRadius="lg"
           boxShadow="sm"
         >
-          <Avatar src={userData.photo || DEFAULT_AVATAR} sx={{ width: 80, height: 80 }} />
+          <Avatar src={photo || DEFAULT_AVATAR} sx={{ width: 80, height: 80 }} />
           <MDBox>
             <MDTypography variant="h5" fontWeight="bold">
-              {userData.first_name} {userData.last_name}
+              {first_name} {last_name}
             </MDTypography>
             <MDTypography variant="body2" color="text">
-              {userData.email}
+              {email}
             </MDTypography>
             <MDTypography variant="body2" color="text">
-              {userData.user_role} • {userData.status}
+              {user_role} • {status}
             </MDTypography>
           </MDBox>
         </MDBox>
 
-        {/* Staff Details Card */}
-        <Paper elevation={0} sx={{ p: 3, borderRadius: "lg" }}>
+        {/* Staff Details Card (Single Column) */}
+        <Paper elevation={0} sx={{ p: 3, borderRadius: "lg", mb: 3 }}>
           <MDTypography variant="h6" fontWeight="bold" mb={3}>
             Staff Information
           </MDTypography>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <MDTypography variant="body1" fontWeight="medium" mb={1}>
+            {/* Main Content Column (Full width, or set to a desired column size like md={8}) */}
+            <Grid item xs={12} md={8}>
+              {/* General Details - TOP */}
+              <MDTypography variant="body1" fontWeight="medium" mb={2}>
                 General Details
               </MDTypography>
 
@@ -208,7 +270,7 @@ function UserDetailsPage() {
                   Email:
                 </MDTypography>
                 <MDTypography component="span" variant="body2" ml={0.5}>
-                  {userData.email}
+                  {email}
                 </MDTypography>
               </MDBox>
 
@@ -218,7 +280,7 @@ function UserDetailsPage() {
                   Account:
                 </MDTypography>
                 <MDTypography component="span" variant="body2" ml={0.5}>
-                  {userData.account || "N/A"}
+                  {account || "N/A"}
                 </MDTypography>
               </MDBox>
 
@@ -228,7 +290,7 @@ function UserDetailsPage() {
                   Phone:
                 </MDTypography>
                 <MDTypography component="span" variant="body2" ml={0.5}>
-                  {userData.phone_number || "-"}
+                  {phone_number || "-"}
                 </MDTypography>
               </MDBox>
 
@@ -238,33 +300,23 @@ function UserDetailsPage() {
                   ID Number:
                 </MDTypography>
                 <MDTypography component="span" variant="body2" ml={0.5}>
-                  {userData.id_number || "-"}
+                  {id_number || "-"}
                 </MDTypography>
               </MDBox>
 
-              <MDBox display="flex" alignItems="center" mb={1}>
+              <MDBox display="flex" alignItems="center" mb={3}>
                 <EventAvailableIcon fontSize="small" sx={{ mr: 1, color: "success.main" }} />
                 <MDTypography component="span" variant="body2" fontWeight="bold">
                   Present Today:
                 </MDTypography>
                 <MDTypography component="span" variant="body2" ml={0.5}>
-                  {userData.is_present_today ? "Yes" : "No"}
+                  {is_present_today ? "Yes" : "No"}
                 </MDTypography>
               </MDBox>
 
-              <MDBox display="flex" alignItems="center" mb={1}>
-                <EventBusyIcon fontSize="small" sx={{ mr: 1, color: "error.main" }} />
-                <MDTypography component="span" variant="body2" fontWeight="bold">
-                  On Leave:
-                </MDTypography>
-                <MDTypography component="span" variant="body2" ml={0.5}>
-                  {userData.is_on_leave ? "Yes" : "No"}
-                </MDTypography>
-              </MDBox>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <MDTypography variant="body1" fontWeight="medium" mb={1}>
+              {/* Financial & Statutory - BOTTOM */}
+              {/* Title is back to standard MDTypography */}
+              <MDTypography variant="body1" fontWeight="medium" mb={1} mt={3}>
                 Financial & Statutory
               </MDTypography>
 
@@ -311,7 +363,8 @@ function UserDetailsPage() {
                 sx={{ mb: 2 }}
               />
 
-              <MDBox mt={2} display="flex" justifyContent="flex-end">
+              {/* SAVE CHANGES BUTTON MOVED HERE (BELOW INPUTS) */}
+              <MDBox mt={2} display="flex" justifyContent="flex-start">
                 <MDButton
                   variant="gradient"
                   color="success"
@@ -324,6 +377,79 @@ function UserDetailsPage() {
               </MDBox>
             </Grid>
           </Grid>
+        </Paper>
+
+        {/* Leave Status Management Card */}
+        <Paper elevation={0} sx={{ p: 3, borderRadius: "lg", mb: 3 }}>
+          <MDTypography variant="h6" fontWeight="bold" mb={2}>
+            Leave Status Management
+          </MDTypography>
+
+          <MDBox display="flex" alignItems="center" justifyContent="space-between">
+            <MDBox display="flex" alignItems="center">
+              <EventBusyIcon
+                fontSize="large"
+                sx={{ mr: 1, color: is_on_leave ? "error.main" : "text.secondary" }}
+              />
+              <MDTypography variant="body1">
+                Current Status:
+                <MDTypography
+                  component="span"
+                  variant="body1"
+                  fontWeight="bold"
+                  color={is_on_leave ? "error" : "success"}
+                  ml={1}
+                >
+                  {is_on_leave ? "ON LEAVE" : "WORKING"}
+                </MDTypography>
+              </MDTypography>
+            </MDBox>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={is_on_leave}
+                  onChange={handleLeaveToggle}
+                  disabled={togglingLeave}
+                />
+              }
+              label={
+                togglingLeave ? (
+                  <CircularProgress size={20} />
+                ) : is_on_leave ? (
+                  "Set to Working"
+                ) : (
+                  "Set to On Leave"
+                )
+              }
+              labelPlacement="start"
+            />
+          </MDBox>
+          <MDTypography variant="caption" color="text.secondary" mt={1}>
+            Use this switch to manually set the employee&apos;s current leave status.
+          </MDTypography>
+        </Paper>
+
+        {/* Payslip Action Card - AT THE VERY BOTTOM */}
+        <Paper elevation={0} sx={{ p: 3, borderRadius: "lg" }}>
+          <MDBox display="flex" flexDirection="column" alignItems="left" justifyContent="left">
+            <MDTypography variant="h6" fontWeight="bold" mb={2}>
+              Payroll Actions
+            </MDTypography>
+            <ReceiptLongIcon sx={{ fontSize: 80, color: "info.main", mb: 2 }} />
+            <MDTypography variant="body1" color="text" textAlign="left" mb={2}>
+              Generate the employee&apos;s monthly payslip based on current rates.
+            </MDTypography>
+            <MDButton
+              variant="gradient"
+              color="info"
+              onClick={handleGeneratePayslip}
+              disabled={generatingPayslip}
+              startIcon={generatingPayslip && <CircularProgress size={20} color="white" />}
+            >
+              {generatingPayslip ? "Generating..." : "Generate Payslip"}
+            </MDButton>
+          </MDBox>
         </Paper>
       </MDBox>
 
