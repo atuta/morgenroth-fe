@@ -12,6 +12,7 @@ import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import AddStaffUser from "layouts/pages/AddStaffUser";
+import UserDetailsPage from "layouts/pages/UserDetailsPage";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
 import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
@@ -59,6 +60,11 @@ const routes = [
         key: "users-list",
         route: "/users-list",
         component: <StaffListPage />,
+      },
+      {
+        key: "user-details",
+        route: "/user-details",
+        component: <UserDetailsPage />,
       },
       {
         type: "collapse",

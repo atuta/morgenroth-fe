@@ -6,6 +6,8 @@ const getNonAdminUsersApi = async () => {
   try {
     const response = await axiosInstance.get(Configs.apiGetNonAdminUsersEp);
 
+    console.log("Response: ", response);
+
     return {
       data: response.data,
       status: response.status, // HTTP status code

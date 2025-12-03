@@ -1,6 +1,7 @@
 // File: StaffListPage.js
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -11,12 +12,12 @@ import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Avatar from "@mui/material/Avatar";
 import CircularProgress from "@mui/material/CircularProgress";
+import InputAdornment from "@mui/material/InputAdornment";
+import SearchIcon from "@mui/icons-material/Search";
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import InputAdornment from "@mui/material/InputAdornment";
-import SearchIcon from "@mui/icons-material/Search";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -26,11 +27,13 @@ import CustomAlert from "../../components/CustomAlert";
 
 import getNonAdminUsersApi from "../../api/getNonAdminUsersApi";
 
-// Default avatar image (can be local or URL)
+// Default avatar image
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=40";
 const COLUMN_COUNT = 8;
 
 function StaffListPage() {
+  const navigate = useNavigate();
+
   const [staffList, setStaffList] = useState([]);
   const [filteredStaff, setFilteredStaff] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -92,31 +95,27 @@ function StaffListPage() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        {/* MODIFICATION 1: Removed maxWidth to allow card holder to run end-to-end */}
         <MDBox sx={{ margin: "0 auto 0 0" }}>
-          {/* SHADOW REMOVED: changed shadow="md" to remove the drop shadow */}
+          {/* Shadow removed */}
           <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
             <MDTypography variant="h5" fontWeight="bold" mb={2}>
               Staff List
             </MDTypography>
 
-            {/* Search bar - MODIFIED FOR DYNAMIC BORDER/ICON */}
+            {/* Search Bar - Dynamic Outline/Icon */}
             <MDBox mb={2}>
               <TextField
                 label="Search staff by name, email, or account"
                 fullWidth
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                // 1. Use 'outlined' variant for the dynamic border behavior
                 variant="outlined"
                 InputProps={{
-                  // 2. Add the search icon as a start adornment
                   startAdornment: (
                     <InputAdornment position="start">
                       <SearchIcon color="action" />
                     </InputAdornment>
                   ),
-                  // 3. Apply custom styling for background and border radius
                   sx: {
                     backgroundColor: "white",
                     borderRadius: 2,
@@ -133,17 +132,14 @@ function StaffListPage() {
             >
               <Table stickyHeader aria-label="staff table">
                 <TableBody>
-                  {/* --- MANUAL HEADER ROW --- */}
+                  {/* Header Row */}
                   <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                    {/* Width constraints added to non-name columns */}
                     <TableCell sx={{ fontWeight: "bold", width: "8%", padding: "12px 8px" }}>
                       Photo
                     </TableCell>
-                    {/* Name column has no width specified to take up the remaining space */}
                     <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
                     <TableCell sx={{ fontWeight: "bold", width: "20%" }}>Email</TableCell>
                     <TableCell sx={{ fontWeight: "bold", width: "10%" }}>Account</TableCell>
-                    {/* Role column header REMOVED */}
                     <TableCell sx={{ fontWeight: "bold", width: "10%" }}>Status</TableCell>
                     <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "right" }}>
                       Hourly Rate
@@ -155,8 +151,8 @@ function StaffListPage() {
                       Actions
                     </TableCell>
                   </TableRow>
-                  {/* --- END MANUAL HEADER ROW --- */}
 
+                  {/* Table Body */}
                   {loading ? (
                     <TableRow>
                       <TableCell colSpan={COLUMN_COUNT} align="center" sx={{ py: 3 }}>
@@ -177,7 +173,6 @@ function StaffListPage() {
                   ) : (
                     filteredStaff.map((user) => (
                       <TableRow key={user.user_id}>
-                        {/* Data cell widths constrained */}
                         <TableCell sx={{ padding: "8px 8px", width: "8%" }}>
                           <Avatar
                             src={user.photo || DEFAULT_AVATAR}
@@ -185,7 +180,7 @@ function StaffListPage() {
                             sx={{ width: 36, height: 36 }}
                           />
                         </TableCell>
-                        {/* Combined Name and Role cell */}
+                        {/* Name and Role combined, with temporary user_id display */}
                         <TableCell>
                           <MDBox display="flex" flexDirection="column" alignItems="flex-start">
                             <MDTypography component="span" variant="body2" fontWeight="medium">
@@ -198,10 +193,8 @@ function StaffListPage() {
                             )}
                           </MDBox>
                         </TableCell>
-
                         <TableCell sx={{ width: "20%" }}>{user.email}</TableCell>
                         <TableCell sx={{ width: "10%" }}>{user.account || "N/A"}</TableCell>
-
                         <TableCell sx={{ width: "10%" }}>
                           <MDTypography
                             variant="caption"
@@ -223,7 +216,10 @@ function StaffListPage() {
                             color="info"
                             size="small"
                             sx={{ minWidth: 100 }}
-                            href={`/user-details?user_id=${user.user_id}`}
+                            // Navigation uses the navigate function to pass state
+                            onClick={() =>
+                              navigate("/user-details", { state: { user_id: user.user_id } })
+                            }
                           >
                             View Details
                           </MDButton>
