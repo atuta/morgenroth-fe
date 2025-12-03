@@ -16,6 +16,7 @@ const Configs = {
 
   // User
   apiGetUserDetailsEp: `${BASE_URL}/api/get-user-details/`,
+  apiUpdateUserFieldsEp: `${BASE_URL}/api/update-user-fields/`,
   apiGetNonAdminUsersEp: `${BASE_URL}/api/get-non-admin-users/`,
   apiTopUpSubscriptionEp: `${BASE_URL}/api/top-up-subscription/`,
   apiUserFullNameEp: `${BASE_URL}/api/user-full-name/`,

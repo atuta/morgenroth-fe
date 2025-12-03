@@ -1,14 +1,13 @@
 // File: UserDetailsPage.js
-
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
-import Grid from "@mui/material/Grid"; // For layout
-import TextField from "@mui/material/TextField"; // For editable fields
-import Paper from "@mui/material/Paper"; // For card structure
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
+import Paper from "@mui/material/Paper";
 
-// Icons for the details section
+// Icons
 import EmailIcon from "@mui/icons-material/EmailOutlined";
 import AccountCircleIcon from "@mui/icons-material/AccountCircleOutlined";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoneyOutlined";
@@ -28,6 +27,7 @@ import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 
 import getUserDetailsApi from "../../api/getUserDetailsApi";
+import updateUserFieldsApi from "../../api/updateUserFieldsApi";
 import CustomAlert from "../../components/CustomAlert";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
@@ -38,13 +38,12 @@ function UserDetailsPage() {
   const searchParams = new URLSearchParams(window.location.search);
   const userIdFromUrl = searchParams.get("user_id");
 
-  // Prefer state.user_id, fallback to URL param
   const user_id = state?.user_id || userIdFromUrl;
 
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  // State for editable fields
   const [editRate, setEditRate] = useState("");
   const [editNssf, setEditNssf] = useState("");
   const [editSha, setEditSha] = useState("");
@@ -59,15 +58,13 @@ function UserDetailsPage() {
     setAlertOpen(true);
   };
 
-  // Helper function to set editable states after data fetch
   const initializeEditStates = (data) => {
-    // Ensure numerical rate is stringified for input field
-    setEditRate(String(data.hourly_rate || ""));
+    setEditRate(data.hourly_rate !== null ? String(data.hourly_rate) : "");
     setEditNssf(data.nssf_number || "");
     setEditSha(data.shif_sha_number || "");
   };
 
-  // Fetch user details and initialize edit states
+  // Fetch user details on mount
   useEffect(() => {
     if (!user_id) {
       showAlert("No user selected", "error");
@@ -79,11 +76,10 @@ function UserDetailsPage() {
       setLoading(true);
       try {
         const res = await getUserDetailsApi({ user_id });
-
         if (res.data.status === "success") {
           const fetchedData = res.data.data;
           setUserData(fetchedData);
-          initializeEditStates(fetchedData); // Initialize editable fields
+          initializeEditStates(fetchedData);
         } else {
           showAlert(res.data.message || "Failed to fetch user details", "error");
         }
@@ -98,20 +94,51 @@ function UserDetailsPage() {
     fetchUserDetails();
   }, [user_id]);
 
-  // Save button logic placeholder
-  const handleSave = () => {
-    showAlert("Attempting to save changes...", "info");
+  const handleSave = async () => {
+    if (!user_id) return;
 
-    const changes = {
-      hourly_rate: editRate,
-      nssf_number: editNssf,
-      shif_sha_number: editSha,
-      // user_id is implicit for the API call
-    };
+    setSaving(true);
 
-    console.log("Saving changes:", changes);
+    try {
+      // Log captured values
+      console.log("Captured values before API call:", {
+        user_id,
+        hourly_rate: editRate,
+        nssf: editNssf,
+        sha: editSha,
+      });
 
-    // TODO: Implement the API call to save user details (e.g., saveUserDetailsApi(user_id, changes))
+      const payload = {
+        user_id,
+        ...(editRate !== "" && { hourly_rate: editRate }),
+        ...(editNssf !== "" && { nssf: editNssf }),
+        ...(editSha !== "" && { sha: editSha }),
+      };
+
+      // Log payload being sent
+      console.log("Payload sent to API:", payload);
+
+      const res = await updateUserFieldsApi(payload);
+
+      if (res.status === "success") {
+        showAlert("User details updated successfully!", "success");
+
+        // Update displayed data to reflect last saved values
+        setUserData((prev) => ({
+          ...prev,
+          hourly_rate: editRate,
+          nssf_number: editNssf,
+          shif_sha_number: editSha,
+        }));
+      } else {
+        showAlert(res.message || "Failed to update user details", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert("Server error while updating user details", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -125,26 +152,7 @@ function UserDetailsPage() {
     );
   }
 
-  // If userData is not set after loading, this avoids crashes (e.g., if API failed)
-  if (!userData) {
-    return (
-      <DashboardLayout>
-        <DashboardNavbar />
-        <MDBox display="flex" justifyContent="center" alignItems="center" height="70vh">
-          <MDTypography variant="h6" color="error">
-            Could not load user data.
-          </MDTypography>
-        </MDBox>
-        <CustomAlert
-          message={alertMessage}
-          severity={alertSeverity}
-          open={alertOpen}
-          onClose={() => setAlertOpen(false)}
-        />
-        <Footer />
-      </DashboardLayout>
-    );
-  }
+  if (!userData) return null;
 
   return (
     <DashboardLayout>
@@ -189,7 +197,6 @@ function UserDetailsPage() {
           </MDTypography>
 
           <Grid container spacing={3}>
-            {/* Column 1: Read-Only Info (Reduced Font Size & Icons) */}
             <Grid item xs={12} md={6}>
               <MDTypography variant="body1" fontWeight="medium" mb={1}>
                 General Details
@@ -256,18 +263,15 @@ function UserDetailsPage() {
               </MDBox>
             </Grid>
 
-            {/* Column 2: Editable Info (Icons in Labels) */}
             <Grid item xs={12} md={6}>
               <MDTypography variant="body1" fontWeight="medium" mb={1}>
                 Financial & Statutory
               </MDTypography>
 
-              {/* Hourly Rate */}
               <TextField
                 label={
                   <MDBox display="flex" alignItems="center">
-                    <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} /> Hourly Rate (
-                    {userData.hourly_rate_currency})
+                    <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} /> Hourly Rate
                   </MDBox>
                 }
                 fullWidth
@@ -279,7 +283,6 @@ function UserDetailsPage() {
                 sx={{ mb: 2 }}
               />
 
-              {/* NSSF */}
               <TextField
                 label={
                   <MDBox display="flex" alignItems="center">
@@ -294,7 +297,6 @@ function UserDetailsPage() {
                 sx={{ mb: 2 }}
               />
 
-              {/* SHA Number */}
               <TextField
                 label={
                   <MDBox display="flex" alignItems="center">
@@ -309,10 +311,15 @@ function UserDetailsPage() {
                 sx={{ mb: 2 }}
               />
 
-              {/* Save Button */}
               <MDBox mt={2} display="flex" justifyContent="flex-end">
-                <MDButton variant="gradient" color="success" onClick={handleSave}>
-                  Save Changes
+                <MDButton
+                  variant="gradient"
+                  color="success"
+                  onClick={handleSave}
+                  disabled={saving}
+                  startIcon={saving && <CircularProgress size={20} />}
+                >
+                  {saving ? "Saving..." : "Save Changes"}
                 </MDButton>
               </MDBox>
             </Grid>
