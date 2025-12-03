@@ -24,9 +24,8 @@ import CustomAlert from "../../components/CustomAlert";
 import getTodayUserTimeSummaryApi from "../../api/getTodayUserTimeSummaryApi";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=40";
-const COLUMN_COUNT = 8; // Corrected column count based on the table structure
+const COLUMN_COUNT = 8;
 
-// Format ISO string to human-readable time
 const formatTime = (isoString) => {
   if (!isoString || isoString === "open") return isoString || "-";
   const date = new Date(isoString);
@@ -38,7 +37,6 @@ const formatTime = (isoString) => {
   }).format(date);
 };
 
-// Live counter for open sessions
 const calculateLiveHours = (clockIn) => {
   if (!clockIn) return "-";
   const start = new Date(clockIn);
@@ -59,7 +57,7 @@ function TodayAttendancePage() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
-  const [tick, setTick] = useState(0); // trigger re-render every second
+  const [tick, setTick] = useState(0);
 
   const showAlert = (message, severity = "info") => {
     setAlertMessage(message);
@@ -103,7 +101,6 @@ function TodayAttendancePage() {
     fetchAttendance();
   }, []);
 
-  // Trigger live counter re-render every second
   useEffect(() => {
     const interval = setInterval(() => {
       setTick((prev) => prev + 1);
@@ -111,25 +108,19 @@ function TodayAttendancePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Filter based on search term
   useEffect(() => {
     if (!searchTerm) {
       setFilteredAttendance(attendanceList);
       return;
     }
-
     const term = searchTerm.toLowerCase();
     const filtered = attendanceList.filter((item) => {
-      const fullName = item.full_name || "";
-      const userRole = item.user_role || "";
-      const status = item.status || "";
       return (
-        fullName.toLowerCase().includes(term) ||
-        userRole.toLowerCase().includes(term) ||
-        status.toLowerCase().includes(term)
+        (item.full_name || "").toLowerCase().includes(term) ||
+        (item.user_role || "").toLowerCase().includes(term) ||
+        (item.status || "").toLowerCase().includes(term)
       );
     });
-
     setFilteredAttendance(filtered);
   }, [searchTerm, attendanceList]);
 
@@ -137,128 +128,127 @@ function TodayAttendancePage() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        <MDBox sx={{ margin: "0 auto 0 0" }}>
-          <MDBox p={3} mb={3} borderRadius="lg">
-            <MDTypography variant="h5" fontWeight="bold" mb={2}>
-              Today&apos;s Attendance
-            </MDTypography>
+        {/* Full-width Card Container */}
+        <MDBox p={3} mb={3} width="100%" bgColor="white" borderRadius="lg" shadow="md">
+          <MDTypography variant="h5" fontWeight="bold" mb={2}>
+            Today&apos;s Attendance
+          </MDTypography>
 
-            <MDBox mb={2}>
-              <TextField
-                label="Search by name, role, or status"
-                fullWidth
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  sx: {
-                    backgroundColor: "white", // Default background
-                    borderRadius: 1, // Optional: rounded corners
-                    "& input": {
-                      backgroundColor: "white", // Ensure input area is white
-                    },
-                  },
-                }}
-              />
-            </MDBox>
+          {/* Search Field */}
+          <MDBox mb={2}>
+            <TextField
+              label="Search by name, role, or status"
+              fullWidth
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              variant="outlined"
+              InputProps={{
+                sx: {
+                  backgroundColor: "white",
+                  borderRadius: 1,
+                  "& input": { backgroundColor: "white" },
+                },
+              }}
+            />
+          </MDBox>
 
-            <TableContainer
-              component={Paper}
-              sx={{ maxHeight: 600, border: "1px solid #ddd", boxShadow: "none" }}
-            >
-              <Table stickyHeader aria-label="attendance table">
-                <TableBody>
-                  <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                    <TableCell sx={{ fontWeight: "bold", width: "5%", padding: "12px 8px" }}>
-                      Photo
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "25%" }}>Name</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "15%" }}>Role</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "center" }}>
-                      Status
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
-                      Clock In
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
-                      Clock Out
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
-                      Total Hours
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "center" }}>
-                      Actions
+          {/* Attendance Table */}
+          <TableContainer
+            component={Paper}
+            sx={{ maxHeight: 600, border: "1px solid #ddd", boxShadow: "none" }}
+          >
+            <Table stickyHeader aria-label="attendance table">
+              <TableBody>
+                <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
+                  <TableCell sx={{ fontWeight: "bold", width: "5%", padding: "12px 8px" }}>
+                    Photo
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", width: "25%" }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", width: "15%" }}>Role</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "center" }}>
+                    Status
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
+                    Clock In
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
+                    Clock Out
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
+                    Total Hours
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "center" }}>
+                    Actions
+                  </TableCell>
+                </TableRow>
+
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={COLUMN_COUNT} align="center" sx={{ py: 3 }}>
+                      <CircularProgress size={24} />
+                      <MDTypography variant="body2" color="text" mt={1}>
+                        Loading attendance data...
+                      </MDTypography>
                     </TableCell>
                   </TableRow>
-
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={COLUMN_COUNT} align="center" sx={{ py: 3 }}>
-                        <CircularProgress size={24} />
-                        <MDTypography variant="body2" color="text" mt={1}>
-                          Loading attendance data...
-                        </MDTypography>
-                      </TableCell>
-                    </TableRow>
-                  ) : filteredAttendance.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={COLUMN_COUNT} align="center" sx={{ py: 3 }}>
-                        <MDTypography variant="body2" color="text">
-                          No attendance records found.
-                        </MDTypography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredAttendance.map((item) => {
-                      const isOpen = item.status === "open";
-                      return (
-                        <TableRow key={item.user_id}>
-                          <TableCell sx={{ padding: "8px 8px" }}>
-                            <Avatar
-                              src={item.photo}
-                              alt={item.full_name}
-                              sx={{ width: 36, height: 36 }}
-                            />
-                          </TableCell>
-                          <TableCell>{item.full_name}</TableCell>
-                          <TableCell>{item.user_role}</TableCell>
-                          <TableCell align="center">
-                            <MDTypography
-                              variant="body2" // match table text size
-                              color={isOpen ? "success" : "text"}
-                              fontWeight="bold"
-                            >
-                              {item.status}
-                            </MDTypography>
-                          </TableCell>
-                          <TableCell align="center">{formatTime(item.earliest_clock_in)}</TableCell>
-                          <TableCell align="center">
-                            {item.latest_clock_out === "open"
-                              ? "open"
-                              : formatTime(item.latest_clock_out)}
-                          </TableCell>
-                          <TableCell align="center">
-                            {isOpen ? calculateLiveHours(item.earliest_clock_in) : item.total_hours}
-                          </TableCell>
-                          <TableCell align="center">
-                            <MDButton
-                              variant="gradient"
-                              color="info"
-                              size="small"
-                              sx={{ minWidth: 100 }}
-                              href={`/user-details?user_id=${item.user_id}`}
-                            >
-                              View Details
-                            </MDButton>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </MDBox>
+                ) : filteredAttendance.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={COLUMN_COUNT} align="center" sx={{ py: 3 }}>
+                      <MDTypography variant="body2" color="text">
+                        No attendance records found.
+                      </MDTypography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredAttendance.map((item) => {
+                    const isOpen = item.status === "open";
+                    return (
+                      <TableRow key={item.user_id}>
+                        <TableCell sx={{ padding: "8px 8px" }}>
+                          <Avatar
+                            src={item.photo}
+                            alt={item.full_name}
+                            sx={{ width: 36, height: 36 }}
+                          />
+                        </TableCell>
+                        <TableCell>{item.full_name}</TableCell>
+                        <TableCell>{item.user_role}</TableCell>
+                        <TableCell align="center">
+                          <MDTypography
+                            variant="body2"
+                            color={isOpen ? "success" : "text"}
+                            fontWeight="bold"
+                          >
+                            {item.status}
+                          </MDTypography>
+                        </TableCell>
+                        <TableCell align="center">{formatTime(item.earliest_clock_in)}</TableCell>
+                        <TableCell align="center">
+                          {item.latest_clock_out === "open"
+                            ? "open"
+                            : formatTime(item.latest_clock_out)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {isOpen ? calculateLiveHours(item.earliest_clock_in) : item.total_hours}
+                        </TableCell>
+                        <TableCell align="center">
+                          <MDButton
+                            variant="gradient"
+                            color="info"
+                            size="small"
+                            sx={{ minWidth: 100 }}
+                            href={`/user-details?user_id=${item.user_id}`}
+                          >
+                            View Details
+                          </MDButton>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </MDBox>
       </MDBox>
 

@@ -1,3 +1,5 @@
+// File: AddStaffUser.js
+
 import { useState } from "react";
 import Grid from "@mui/material/Grid";
 
@@ -35,10 +37,7 @@ function AddStaffUser() {
   const [shifShaNumber, setShifShaNumber] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Field errors
   const [errors, setErrors] = useState({});
-
-  // Server alert
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
@@ -114,19 +113,22 @@ function AddStaffUser() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        {/* We can limit the form width here if necessary, but keep it left-aligned */}
+        {/* Single Card Container */}
         <MDBox
           component="form"
           onSubmit={handleSubmit}
           sx={{ maxWidth: "600px", margin: "0 auto 0 0" }}
         >
-          {/* Personal Information Card */}
-          <MDBox p={3} mb={3} bgColor="white" borderRadius="lg" shadow="md">
-            <MDTypography variant="h6" fontWeight="bold" mb={2}>
-              Personal Information
+          <MDBox p={3} bgColor="white" borderRadius="lg" shadow="md">
+            <MDTypography variant="h5" fontWeight="bold" mb={3}>
+              New Staff User Registration
             </MDTypography>
-            <Grid container spacing={3}>
-              {/* Change md={6} to xs={12} to force stacking */}
+
+            {/* Personal & Contact Information */}
+            <MDTypography variant="h6" fontWeight="medium" mb={2}>
+              Personal & Contact Information
+            </MDTypography>
+            <Grid container spacing={2}>
               <Grid item xs={12}>
                 <MDInput
                   label="First Name"
@@ -143,7 +145,6 @@ function AddStaffUser() {
                   </MDBox>
                 )}
               </Grid>
-              {/* Change md={6} to xs={12} to force stacking */}
               <Grid item xs={12}>
                 <MDInput
                   label="Last Name"
@@ -160,16 +161,6 @@ function AddStaffUser() {
                   </MDBox>
                 )}
               </Grid>
-            </Grid>
-          </MDBox>
-
-          {/* Contact Information Card */}
-          <MDBox p={3} mb={3} bgColor="white" borderRadius="lg" shadow="md">
-            <MDTypography variant="h6" fontWeight="bold" mb={2}>
-              Contact Information
-            </MDTypography>
-            <Grid container spacing={3}>
-              {/* Change md={6} to xs={12} to force stacking */}
               <Grid item xs={12}>
                 <MDInput
                   label="Email"
@@ -187,7 +178,6 @@ function AddStaffUser() {
                   </MDBox>
                 )}
               </Grid>
-              {/* Change md={6} to xs={12} to force stacking */}
               <Grid item xs={12}>
                 <MDInput
                   label="Phone Number"
@@ -205,15 +195,14 @@ function AddStaffUser() {
                 )}
               </Grid>
             </Grid>
-          </MDBox>
 
-          {/* Identification Card */}
-          <MDBox p={3} mb={3} bgColor="white" borderRadius="lg" shadow="md">
-            <MDTypography variant="h6" fontWeight="bold" mb={2}>
-              Identification
-            </MDTypography>
-            <Grid container spacing={3}>
-              {/* Change md={6} to xs={12} to force stacking */}
+            {/* Identification & Employment */}
+            <MDBox mt={4} mb={2}>
+              <MDTypography variant="h6" fontWeight="medium">
+                Identification & Employment
+              </MDTypography>
+            </MDBox>
+            <Grid container spacing={2}>
               <Grid item xs={12}>
                 <MDInput
                   label="ID Number"
@@ -230,7 +219,6 @@ function AddStaffUser() {
                   </MDBox>
                 )}
               </Grid>
-              {/* Change md={6} to xs={12} to force stacking */}
               <Grid item xs={12}>
                 <MDInput
                   label="NSSF Number (optional)"
@@ -239,7 +227,6 @@ function AddStaffUser() {
                   onChange={(e) => setNssfNumber(e.target.value)}
                 />
               </Grid>
-              {/* Change md={6} to xs={12} to force stacking */}
               <Grid item xs={12}>
                 <MDInput
                   label="SHIF/SHA Number (optional)"
@@ -249,15 +236,13 @@ function AddStaffUser() {
                 />
               </Grid>
             </Grid>
-          </MDBox>
 
-          {/* User Role Card */}
-          <MDBox p={3} mb={3} bgColor="white" borderRadius="lg" shadow="md">
-            <MDTypography variant="h6" fontWeight="bold" mb={2}>
-              User Role
-            </MDTypography>
-
-            {/* Role Buttons */}
+            {/* User Role */}
+            <MDBox mt={4} mb={2}>
+              <MDTypography variant="h6" fontWeight="medium">
+                User Role
+              </MDTypography>
+            </MDBox>
             <MDBox display="flex" flexWrap="wrap" gap={1} mb={errors.role ? 0 : 2}>
               {USER_ROLE_CHOICES.map((r) => (
                 <MDButton
@@ -270,8 +255,6 @@ function AddStaffUser() {
                 </MDButton>
               ))}
             </MDBox>
-
-            {/* Error Message Below Buttons */}
             {errors.role && (
               <MDBox mt={0.5}>
                 <MDTypography variant="caption" color="error">
@@ -279,16 +262,22 @@ function AddStaffUser() {
                 </MDTypography>
               </MDBox>
             )}
-          </MDBox>
 
-          {/* Submit Button is now full width again to match the stacked fields */}
-          <MDButton type="submit" variant="gradient" color="info" fullWidth disabled={loading}>
-            {loading ? "Adding..." : "Add Staff User"}
-          </MDButton>
+            {/* Submit Button */}
+            <MDButton
+              type="submit"
+              variant="gradient"
+              color="info"
+              fullWidth
+              disabled={loading}
+              sx={{ mt: 3 }}
+            >
+              {loading ? "Adding..." : "Add Staff User"}
+            </MDButton>
+          </MDBox>
         </MDBox>
       </MDBox>
 
-      {/* Server Response Alert */}
       <CustomAlert
         message={alertMessage}
         severity={alertSeverity}

@@ -18,9 +18,7 @@ import clockInApi from "../../api/clockInApi";
 import clockOutApi from "../../api/clockOutApi";
 import getCurrentSessionApi from "../../api/getCurrentSessionApi";
 
-// --- Custom Styled Components (Simplified) ---
-
-// Styled video element
+// --- Styled Components ---
 const StyledVideo = styled("video")({
   width: "100%",
   maxHeight: "350px",
@@ -29,15 +27,12 @@ const StyledVideo = styled("video")({
   backgroundColor: "black",
 });
 
-// Styled image preview
 const StyledImage = styled("img")({
   width: "100%",
   maxHeight: "350px",
   objectFit: "cover",
   borderRadius: 8,
 });
-
-// --- Main Component ---
 
 function ClockPage() {
   const [loading, setLoading] = useState(false);
@@ -186,7 +181,6 @@ function ClockPage() {
     }
   };
 
-  // UI RENDERING LOGIC
   const renderContent = () => {
     if (loading && !currentSession) {
       return (
@@ -199,137 +193,136 @@ function ClockPage() {
       );
     }
 
-    if (currentSession) {
-      // --- Clock Out UI (Minimal, No Card) ---
-      return (
-        <MDBox p={0} mb={3}>
-          {" "}
-          {/* Removed border, padding adjusted */}
-          <MDTypography variant="h5" fontWeight="bold" color="success" mb={1}>
-            Session Active
-          </MDTypography>
-          <MDTypography variant="h1" fontWeight="light" color="text" mb={2}>
-            {sessionDuration}
-          </MDTypography>
-          <MDTypography variant="body2" color="text" mb={2}>
-            Clocked in at: {new Date(currentSession.clock_in_time).toLocaleTimeString()}
-          </MDTypography>
-          <TextField
-            label="Clock-out Notes (optional)"
-            multiline
-            rows={3}
-            fullWidth
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            InputLabelProps={{ shrink: true, required: false }}
-            sx={{
-              mb: 3,
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: "white",
-              },
-            }}
-          />
-          <MDButton
-            variant="gradient"
-            color="error"
-            fullWidth // Same size as Clock In button
-            disabled={loading}
-            onClick={handleClockOut}
-          >
-            {loading ? <CircularProgress color="inherit" size={20} /> : "Clock Out"}
-          </MDButton>
-        </MDBox>
-      );
-    } else {
-      // --- Clock In UI (Minimal, Uniform Buttons) ---
-      return (
-        <MDBox>
-          <MDTypography variant="h5" fontWeight="bold" mb={3}>
-            Clock In Now
-          </MDTypography>
-
-          {/* Replaced MediaBox with simple MDBox */}
-          <MDBox mb={3}>
-            <Grid container spacing={2} justifyContent="center" alignItems="center">
-              <Grid item xs={12}>
-                {!photoBase64 && !cameraActive && (
-                  <>
-                    <MDButton
-                      variant="gradient"
-                      color="info"
-                      fullWidth // Uniform size
-                      onClick={() => setCameraActive(true)}
-                    >
-                      Start Camera for Photo
-                    </MDButton>
-                    <MDTypography variant="body2" color="text" textAlign="center" mt={1}>
-                      A photo is required for clock-in.
-                    </MDTypography>
-                  </>
-                )}
-
-                {cameraActive && (
-                  <MDBox display="flex" flexDirection="column" alignItems="center" gap={1}>
-                    <StyledVideo ref={videoRef} autoPlay playsInline />
-                    <MDButton
-                      variant="gradient"
-                      color="success"
-                      fullWidth // Uniform size
-                      onClick={handleCapture}
-                      sx={{ mt: 1 }}
-                    >
-                      Capture Photo
-                    </MDButton>
-                    <MDButton variant="text" color="error" onClick={stopCamera}>
-                      Cancel Camera
-                    </MDButton>
-                  </MDBox>
-                )}
-
-                {photoBase64 && (
-                  <MDBox display="flex" flexDirection="column" alignItems="center" gap={1}>
-                    <MDTypography variant="caption" color="text">
-                      Photo captured successfully:
-                    </MDTypography>
-                    <StyledImage src={photoBase64} alt="preview" />
-                    <MDButton
-                      variant="gradient"
-                      color="warning"
-                      fullWidth // Uniform size
-                      onClick={() => {
-                        setPhotoBase64(null);
-                        setCameraActive(true);
-                      }}
-                      sx={{ mt: 1 }}
-                    >
-                      Retake Photo
-                    </MDButton>
-                  </MDBox>
-                )}
-              </Grid>
-            </Grid>
+    return (
+      <MDBox p={3} bgColor="white" borderRadius="lg" shadow="md" width="100%">
+        {currentSession ? (
+          <MDBox>
+            <MDTypography variant="h5" fontWeight="bold" color="success" mb={1}>
+              Session Active
+            </MDTypography>
+            <MDTypography variant="h1" fontWeight="light" color="text" mb={2}>
+              {sessionDuration}
+            </MDTypography>
+            <MDTypography variant="body2" color="text" mb={2}>
+              Clocked in at: {new Date(currentSession.clock_in_time).toLocaleTimeString()}
+            </MDTypography>
+            <TextField
+              label="Clock-out Notes (optional)"
+              multiline
+              rows={3}
+              fullWidth
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              InputLabelProps={{ shrink: true, required: false }}
+              sx={{
+                mb: 3,
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "white",
+                },
+              }}
+            />
+            <MDButton
+              variant="gradient"
+              color="error"
+              fullWidth
+              disabled={loading}
+              onClick={handleClockOut}
+            >
+              {loading ? <CircularProgress color="inherit" size={20} /> : "Clock Out"}
+            </MDButton>
           </MDBox>
+        ) : (
+          <MDBox>
+            <MDTypography variant="h5" fontWeight="bold" mb={3}>
+              Clock In Now
+            </MDTypography>
 
-          <MDButton
-            variant="gradient"
-            color="success"
-            fullWidth // Uniform size
-            disabled={loading || !photoBase64}
-            onClick={handleClockIn}
-            sx={{ mt: 1 }}
-          >
-            {loading ? <CircularProgress color="inherit" size={20} /> : "Clock In"}
-          </MDButton>
-        </MDBox>
-      );
-    }
+            <MDBox mb={3}>
+              <Grid container spacing={2} justifyContent="center" alignItems="center">
+                <Grid item xs={12}>
+                  {!photoBase64 && !cameraActive && (
+                    <>
+                      <MDButton
+                        variant="gradient"
+                        color="info"
+                        fullWidth
+                        onClick={() => setCameraActive(true)}
+                      >
+                        Start Camera for Photo
+                      </MDButton>
+                      <MDTypography variant="body2" color="text" textAlign="center" mt={1}>
+                        A photo is required for clock-in.
+                      </MDTypography>
+                    </>
+                  )}
+
+                  {cameraActive && (
+                    <MDBox display="flex" flexDirection="column" alignItems="center" gap={1}>
+                      <StyledVideo ref={videoRef} autoPlay playsInline />
+                      <MDButton
+                        variant="gradient"
+                        color="success"
+                        fullWidth
+                        onClick={handleCapture}
+                        sx={{ mt: 1 }}
+                      >
+                        Capture Photo
+                      </MDButton>
+                      <MDButton variant="text" color="error" onClick={stopCamera}>
+                        Cancel Camera
+                      </MDButton>
+                    </MDBox>
+                  )}
+
+                  {photoBase64 && (
+                    <MDBox display="flex" flexDirection="column" alignItems="center" gap={1}>
+                      <MDTypography variant="caption" color="text">
+                        Photo captured successfully:
+                      </MDTypography>
+                      <StyledImage src={photoBase64} alt="preview" />
+                      <MDButton
+                        variant="gradient"
+                        color="warning"
+                        fullWidth
+                        onClick={() => {
+                          setPhotoBase64(null);
+                          setCameraActive(true);
+                        }}
+                        sx={{ mt: 1 }}
+                      >
+                        Retake Photo
+                      </MDButton>
+                    </MDBox>
+                  )}
+                </Grid>
+              </Grid>
+            </MDBox>
+
+            <MDButton
+              variant="gradient"
+              color="success"
+              fullWidth
+              disabled={loading || !photoBase64}
+              onClick={handleClockIn}
+              sx={{ mt: 1 }}
+            >
+              {loading ? <CircularProgress color="inherit" size={20} /> : "Clock In"}
+            </MDButton>
+          </MDBox>
+        )}
+      </MDBox>
+    );
   };
 
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        <MDBox sx={{ maxWidth: "500px", margin: "0 auto 0 0" }}>{renderContent()}</MDBox>
+        <MDBox width="100%" sx={{ maxWidth: "600px" }}>
+          {" "}
+          {/* aligned left */}
+          {renderContent()}
+        </MDBox>
       </MDBox>
 
       <CustomAlert
@@ -340,7 +333,6 @@ function ClockPage() {
       />
 
       <Footer />
-
       <canvas ref={canvasRef} style={{ display: "none" }} />
     </DashboardLayout>
   );

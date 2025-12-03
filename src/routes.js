@@ -162,54 +162,6 @@ const routes = [
       },
       {
         type: "collapse",
-        name: "Stat",
-        key: "clock-in",
-        route: "/clock-in",
-        component: <ClockPage />,
-      },
-      {
-        type: "collapse",
-        name: "Attendance Summary",
-        key: "attendance-summary",
-        route: "#", // DEAD LINK
-      },
-      {
-        type: "collapse",
-        name: "Verification Reports",
-        key: "attendance-verification-reports",
-        route: "#", // DEAD LINK
-      },
-      {
-        type: "collapse",
-        name: "Late/Absence Report",
-        key: "attendance-late-absence",
-        route: "#", // DEAD LINK
-      },
-    ],
-  },
-
-  // --- System Settings (Parent Link) ---
-  {
-    type: "collapse",
-    name: "System Settings",
-    key: "system-settings",
-    icon: <Icon fontSize="small">settings</Icon>,
-    collapse: [
-      {
-        type: "collapse",
-        name: "Working Hours",
-        key: "set-working-hours",
-        route: "/set-working-hours",
-        component: <WorkingHoursPage />,
-      },
-      {
-        type: "collapse",
-        name: "Verification Notifications",
-        key: "settings-notifications",
-        route: "#", // DEAD LINK
-      },
-      {
-        type: "collapse",
         name: "Statutory Deductions",
         key: "set-statutory-deductions",
         route: "/set-statutory-deductions",
