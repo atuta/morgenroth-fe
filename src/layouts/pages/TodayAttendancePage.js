@@ -22,6 +22,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 
 import CustomAlert from "../../components/CustomAlert";
+import Configs from "../../configs/Configs";
 
 import getTodayUserTimeSummaryApi from "../../api/getTodayUserTimeSummaryApi";
 
@@ -218,7 +219,7 @@ function TodayAttendancePage() {
                       <TableRow key={item.user_id}>
                         <TableCell sx={{ padding: "8px 8px", width: "8%" }}>
                           <Avatar
-                            src={item.photo}
+                            src={item.photo ? `${Configs.baseUrl}${item.photo}` : DEFAULT_AVATAR}
                             alt={item.full_name}
                             sx={{ width: 36, height: 36 }}
                           />
