@@ -245,7 +245,7 @@ function UserProfilePage() {
             <MDTypography variant="h6" fontWeight="bold" mb={2}>
               Payslip
             </MDTypography>
-            <MDBox display="flex" alignItems="center" gap={2}>
+            <MDBox display="flex" alignItems="center" gap={2} mb={1}>
               <ReceiptLongIcon sx={{ fontSize: 50, color: "info.main" }} />
               <MDButton
                 variant="gradient"
@@ -257,6 +257,9 @@ function UserProfilePage() {
                 {generatingPayslip ? "Generating..." : "Download Payslip"}
               </MDButton>
             </MDBox>
+            <MDTypography variant="caption" color="text.secondary">
+              You can only download the payslip for the current month.
+            </MDTypography>
           </Paper>
         </MDBox>
       </MDBox>
