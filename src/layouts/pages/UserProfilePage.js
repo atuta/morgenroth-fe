@@ -1,10 +1,12 @@
 // File: UserProfilePage.js
+
 import { useEffect, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
+// Removed unused Modal and Box imports
 
 // Icons
 import EmailIcon from "@mui/icons-material/EmailOutlined";
@@ -28,8 +30,14 @@ import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import CustomAlert from "../../components/CustomAlert";
 
+// API Imports (Assuming these paths are correct for your project structure)
 import getLoggedInUserDetailsApi from "../../api/getLoggedInUserDetailsApi";
 import uploadUserPhotoApi from "../../api/uploadUserPhotoApi";
+
+// --- IMPORT YOUR NEWLY CREATED MODAL HERE ---
+// Make sure this path is correct relative to UserProfilePage.js
+import CroppingModal from "./CroppingModal";
+// -------------------------------------------
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
 
@@ -42,6 +50,15 @@ function UserProfilePage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [generatingPayslip, setGeneratingPayslip] = useState(false);
 
+  // Cropping Modal State
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [fileToCrop, setFileToCrop] = useState(null); // File object for the modal
+
+  // State for the photo URL shown in the Avatar (stable preview)
+  const [currentPhotoUrl, setCurrentPhotoUrl] = useState(DEFAULT_AVATAR);
+  // State for the last good server URL (used to revert on failure)
+  const [serverPhotoUrl, setServerPhotoUrl] = useState(DEFAULT_AVATAR);
+
   const showAlert = (msg, severity = "info") => {
     setAlertMessage(msg);
     setAlertSeverity(severity);
@@ -53,7 +70,11 @@ function UserProfilePage() {
       try {
         const res = await getLoggedInUserDetailsApi();
         if (res.data.status === "success") {
+          const photoUrl = res.data.data.photo || DEFAULT_AVATAR;
           setUserData(res.data.data);
+          // Initialize photo states
+          setCurrentPhotoUrl(photoUrl);
+          setServerPhotoUrl(photoUrl);
         } else {
           showAlert(res.data.message || "Failed to fetch user details", "error");
         }
@@ -67,58 +88,56 @@ function UserProfilePage() {
     fetchUserDetails();
   }, []);
 
-  const resizeImage = (file, maxWidth = 300, maxHeight = 300) =>
-    new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxWidth) {
-            height *= maxWidth / width;
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width *= maxHeight / height;
-            height = maxHeight;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => {
-          if (blob) resolve(new File([blob], file.name, { type: file.type }));
-          else reject(new Error("Image resize failed"));
-        }, file.type);
-      };
-      img.onerror = reject;
-      img.src = URL.createObjectURL(file);
-    });
-
-  const handlePhotoChange = async (e) => {
+  // 1. Handler: Opens Modal
+  const handlePhotoChange = (e) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
+
+    // Set file object and open modal
+    setFileToCrop(file);
+    setCropModalOpen(true);
+
+    // Clear the input field immediately
+    e.target.value = null;
+  };
+
+  // 2. Handler: Called from CroppingModal on user confirmation
+  const handleCropConfirmAndUpload = async (croppedFile) => {
+    setCropModalOpen(false); // Close the modal
     setUploadingPhoto(true);
+
+    // Show a temporary local preview of the cropped image while uploading
+    const tempUrl = URL.createObjectURL(croppedFile);
+    setCurrentPhotoUrl(tempUrl);
+
     try {
-      const resizedFile = await resizeImage(file, 300, 300);
-      const res = await uploadUserPhotoApi(resizedFile);
+      const res = await uploadUserPhotoApi(croppedFile);
+
       if (res.status === "success") {
         showAlert("Photo uploaded successfully!", "success");
-        setUserData((prev) => ({ ...prev, photo: res.data.photo_url }));
+        const finalPhotoUrl = res.data.photo_url;
+
+        // Update user data and persist the final URL in states
+        setUserData((prev) => ({ ...prev, photo: finalPhotoUrl }));
+        setCurrentPhotoUrl(finalPhotoUrl);
+        setServerPhotoUrl(finalPhotoUrl);
+
+        // Revoke temporary URL after successful update
+        URL.revokeObjectURL(tempUrl);
       } else {
         showAlert(res.message || "Failed to upload photo", "error");
+        // Revert to the last good server URL on failure
+        setCurrentPhotoUrl(serverPhotoUrl);
+        URL.revokeObjectURL(tempUrl);
       }
     } catch (err) {
       console.error(err);
-      showAlert("Error uploading photo", "error");
+      showAlert("Error processing or uploading photo", "error");
+      // Revert to the last good server URL on error
+      setCurrentPhotoUrl(serverPhotoUrl);
+      URL.revokeObjectURL(tempUrl);
     } finally {
       setUploadingPhoto(false);
-      e.target.value = "";
     }
   };
 
@@ -156,7 +175,6 @@ function UserProfilePage() {
     last_name,
     user_role,
     status,
-    photo,
     account,
     phone_number,
     id_number,
@@ -177,9 +195,26 @@ function UserProfilePage() {
         <Paper elevation={0} sx={{ p: 3, mb: 3, position: "relative" }}>
           <MDBox display="flex" alignItems="center" gap={3}>
             <MDBox sx={{ position: "relative" }}>
-              <Avatar src={photo || DEFAULT_AVATAR} sx={{ width: 80, height: 80 }} />
+              {/* Use the stable currentPhotoUrl for the Avatar */}
+              <Avatar src={currentPhotoUrl} sx={{ width: 80, height: 80 }} />
+
+              {/* Show loading indicator over the avatar while uploading */}
+              {uploadingPhoto && (
+                <CircularProgress
+                  size={80}
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    color: "info.main",
+                    zIndex: 2,
+                  }}
+                />
+              )}
+
               <IconButton
                 component="label"
+                disabled={uploadingPhoto || cropModalOpen} // Disable while loading or modal is open
                 sx={{
                   position: "absolute",
                   bottom: 0,
@@ -191,6 +226,9 @@ function UserProfilePage() {
                   width: 28,
                   height: 28,
                   p: 0,
+                  zIndex: 3,
+                  opacity: uploadingPhoto ? 0 : 1,
+                  transition: "opacity 0.2s",
                 }}
               >
                 <PhotoCameraIcon fontSize="small" />
@@ -354,6 +392,16 @@ function UserProfilePage() {
       />
 
       <Footer />
+
+      {/* Cropping Modal Integration */}
+      {cropModalOpen && (
+        <CroppingModal
+          open={cropModalOpen}
+          onClose={() => setCropModalOpen(false)}
+          file={fileToCrop}
+          onCropConfirm={handleCropConfirmAndUpload}
+        />
+      )}
     </DashboardLayout>
   );
 }
