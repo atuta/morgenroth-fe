@@ -12,6 +12,7 @@ import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import AddStaffUser from "layouts/pages/AddStaffUser";
+import UserProfilePage from "layouts/pages/UserProfilePage";
 import UserDetailsPage from "layouts/pages/UserDetailsPage";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
@@ -186,8 +187,9 @@ const routes = [
       {
         type: "collapse",
         name: "My Profile",
-        key: "profile-view",
-        route: "#", // DEAD LINK
+        key: "my-profile",
+        route: "/my-profile",
+        component: <UserProfilePage />,
       },
       {
         type: "collapse",
