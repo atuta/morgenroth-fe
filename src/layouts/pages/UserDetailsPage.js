@@ -19,7 +19,7 @@ import PaidIcon from "@mui/icons-material/PaidOutlined";
 import EventAvailableIcon from "@mui/icons-material/EventAvailableOutlined";
 import EventBusyIcon from "@mui/icons-material/EventBusyOutlined";
 import PermIdentityIcon from "@mui/icons-material/PermIdentityOutlined";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLongOutlined"; // Icon for Payslip
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLongOutlined";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -218,246 +218,241 @@ function UserDetailsPage() {
     <DashboardLayout>
       <DashboardNavbar />
 
-      <MDBox p={3}>
-        {/* Back Button */}
-        <MDButton variant="outlined" color="info" onClick={() => navigate(-1)} sx={{ mb: 2 }}>
-          Back
-        </MDButton>
+      <MDBox py={3}>
+        <MDBox sx={{ margin: "0 auto 0 0" }}>
+          {/* Back Button */}
+          <MDButton variant="outlined" color="info" onClick={() => navigate(-1)} sx={{ mb: 2 }}>
+            Back
+          </MDButton>
 
-        {/* User Header */}
-        <MDBox
-          display="flex"
-          alignItems="center"
-          gap={3}
-          bgColor="#fff"
-          px={3}
-          py={2}
-          mb={3}
-          borderRadius="lg"
-          boxShadow="sm"
-        >
-          <Avatar src={photo || DEFAULT_AVATAR} sx={{ width: 80, height: 80 }} />
-          <MDBox>
-            <MDTypography variant="h5" fontWeight="bold">
-              {first_name} {last_name}
-            </MDTypography>
-            <MDTypography variant="body2" color="text">
-              {email}
-            </MDTypography>
-            <MDTypography variant="body2" color="text">
-              {user_role} • {status}
-            </MDTypography>
-          </MDBox>
-        </MDBox>
-
-        {/* Staff Details Card (Single Column) */}
-        <Paper elevation={0} sx={{ p: 3, borderRadius: "lg", mb: 3 }}>
-          <MDTypography variant="h6" fontWeight="bold" mb={3}>
-            Staff Information
-          </MDTypography>
-
-          <Grid container spacing={3}>
-            {/* Main Content Column (Full width, or set to a desired column size like md={8}) */}
-            <Grid item xs={12} md={8}>
-              {/* General Details - TOP */}
-              <MDTypography variant="body1" fontWeight="medium" mb={2}>
-                General Details
-              </MDTypography>
-
-              <MDBox display="flex" alignItems="center" mb={1}>
-                <EmailIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
-                <MDTypography component="span" variant="body2" fontWeight="bold">
-                  Email:
+          {/* User Header */}
+          <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
+            <MDBox display="flex" alignItems="center" gap={3}>
+              <Avatar src={photo || DEFAULT_AVATAR} sx={{ width: 80, height: 80 }} />
+              <MDBox>
+                <MDTypography variant="h5" fontWeight="bold">
+                  {first_name} {last_name}
                 </MDTypography>
-                <MDTypography component="span" variant="body2" ml={0.5}>
+                <MDTypography variant="body2" color="text">
                   {email}
                 </MDTypography>
-              </MDBox>
-
-              <MDBox display="flex" alignItems="center" mb={1}>
-                <AccountCircleIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
-                <MDTypography component="span" variant="body2" fontWeight="bold">
-                  Account:
-                </MDTypography>
-                <MDTypography component="span" variant="body2" ml={0.5}>
-                  {account || "N/A"}
+                <MDTypography variant="body2" color="text">
+                  {user_role} • {status}
                 </MDTypography>
               </MDBox>
-
-              <MDBox display="flex" alignItems="center" mb={1}>
-                <PhoneIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
-                <MDTypography component="span" variant="body2" fontWeight="bold">
-                  Phone:
-                </MDTypography>
-                <MDTypography component="span" variant="body2" ml={0.5}>
-                  {phone_number || "-"}
-                </MDTypography>
-              </MDBox>
-
-              <MDBox display="flex" alignItems="center" mb={1}>
-                <FingerprintIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
-                <MDTypography component="span" variant="body2" fontWeight="bold">
-                  ID Number:
-                </MDTypography>
-                <MDTypography component="span" variant="body2" ml={0.5}>
-                  {id_number || "-"}
-                </MDTypography>
-              </MDBox>
-
-              <MDBox display="flex" alignItems="center" mb={3}>
-                <EventAvailableIcon fontSize="small" sx={{ mr: 1, color: "success.main" }} />
-                <MDTypography component="span" variant="body2" fontWeight="bold">
-                  Present Today:
-                </MDTypography>
-                <MDTypography component="span" variant="body2" ml={0.5}>
-                  {is_present_today ? "Yes" : "No"}
-                </MDTypography>
-              </MDBox>
-
-              {/* Financial & Statutory - BOTTOM */}
-              <MDTypography variant="body1" fontWeight="medium" mb={1} mt={3}>
-                Financial & Statutory
-              </MDTypography>
-
-              <TextField
-                label={
-                  <MDBox display="flex" alignItems="center">
-                    <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} /> Hourly Rate
-                  </MDBox>
-                }
-                fullWidth
-                margin="normal"
-                variant="outlined"
-                value={editRate}
-                onChange={(e) => setEditRate(e.target.value)}
-                type="number"
-                sx={{ mb: 2 }}
-              />
-
-              <TextField
-                label={
-                  <MDBox display="flex" alignItems="center">
-                    <PaidIcon fontSize="small" sx={{ mr: 1 }} /> NSSF Number
-                  </MDBox>
-                }
-                fullWidth
-                margin="normal"
-                variant="outlined"
-                value={editNssf}
-                onChange={(e) => setEditNssf(e.target.value)}
-                sx={{ mb: 2 }}
-              />
-
-              <TextField
-                label={
-                  <MDBox display="flex" alignItems="center">
-                    <PermIdentityIcon fontSize="small" sx={{ mr: 1 }} /> SHA Number
-                  </MDBox>
-                }
-                fullWidth
-                margin="normal"
-                variant="outlined"
-                value={editSha}
-                onChange={(e) => setEditSha(e.target.value)}
-                sx={{ mb: 2 }}
-              />
-
-              {/* SAVE CHANGES BUTTON */}
-              <MDBox mt={2} display="flex" justifyContent="flex-start">
-                <MDButton
-                  variant="gradient"
-                  color="success"
-                  onClick={handleSave}
-                  disabled={saving}
-                  size="medium" // Explicitly setting size to medium
-                  startIcon={saving && <CircularProgress size={20} />}
-                >
-                  {saving ? "Saving..." : "Save Changes"}
-                </MDButton>
-              </MDBox>
-            </Grid>
-          </Grid>
-        </Paper>
-
-        {/* Leave Status Management Card */}
-        <Paper elevation={0} sx={{ p: 3, borderRadius: "lg", mb: 3 }}>
-          <MDTypography variant="h6" fontWeight="bold" mb={2}>
-            Leave Status Management
-          </MDTypography>
-
-          <MDBox display="flex" alignItems="center" justifyContent="space-between">
-            <MDBox display="flex" alignItems="center">
-              <EventBusyIcon
-                fontSize="large"
-                sx={{ mr: 1, color: is_on_leave ? "error.main" : "text.secondary" }}
-              />
-              <MDTypography variant="body1">
-                Current Status:
-                <MDTypography
-                  component="span"
-                  variant="body1"
-                  fontWeight="bold"
-                  color={is_on_leave ? "error" : "success"}
-                  ml={1}
-                >
-                  {is_on_leave ? "ON LEAVE" : "WORKING"}
-                </MDTypography>
-              </MDTypography>
             </MDBox>
+          </Paper>
 
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={is_on_leave}
-                  onChange={handleLeaveToggle}
-                  disabled={togglingLeave}
+          {/* Staff Details Card (Form/Info) */}
+          <Paper elevation={0} sx={{ p: 3, borderRadius: "lg", mb: 3 }}>
+            {/* Grid container: Removed justifyContent="center" */}
+            <Grid container spacing={3}>
+              {/* Main Content Column: Changed md={8} to xs={12} to ensure full width/left alignment */}
+              <Grid item xs={12}>
+                {/* General Details - TOP */}
+                <MDTypography variant="body1" fontWeight="medium" mb={2}>
+                  General Details
+                </MDTypography>
+
+                <MDBox display="flex" alignItems="center" mb={1}>
+                  <EmailIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
+                  <MDTypography component="span" variant="body2" fontWeight="bold">
+                    Email:
+                  </MDTypography>
+                  <MDTypography component="span" variant="body2" ml={0.5}>
+                    {email}
+                  </MDTypography>
+                </MDBox>
+
+                <MDBox display="flex" alignItems="center" mb={1}>
+                  <AccountCircleIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
+                  <MDTypography component="span" variant="body2" fontWeight="bold">
+                    Account:
+                  </MDTypography>
+                  <MDTypography component="span" variant="body2" ml={0.5}>
+                    {account || "N/A"}
+                  </MDTypography>
+                </MDBox>
+
+                <MDBox display="flex" alignItems="center" mb={1}>
+                  <PhoneIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
+                  <MDTypography component="span" variant="body2" fontWeight="bold">
+                    Phone:
+                  </MDTypography>
+                  <MDTypography component="span" variant="body2" ml={0.5}>
+                    {phone_number || "-"}
+                  </MDTypography>
+                </MDBox>
+
+                <MDBox display="flex" alignItems="center" mb={1}>
+                  <FingerprintIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
+                  <MDTypography component="span" variant="body2" fontWeight="bold">
+                    ID Number:
+                  </MDTypography>
+                  <MDTypography component="span" variant="body2" ml={0.5}>
+                    {id_number || "-"}
+                  </MDTypography>
+                </MDBox>
+
+                <MDBox display="flex" alignItems="center" mb={3}>
+                  <EventAvailableIcon fontSize="small" sx={{ mr: 1, color: "success.main" }} />
+                  <MDTypography component="span" variant="body2" fontWeight="bold">
+                    Present Today:
+                  </MDTypography>
+                  <MDTypography component="span" variant="body2" ml={0.5}>
+                    {is_present_today ? "Yes" : "No"}
+                  </MDTypography>
+                </MDBox>
+
+                {/* Financial & Statutory - BOTTOM */}
+                <MDTypography variant="body1" fontWeight="medium" mb={1} mt={3}>
+                  Financial & Statutory (Editable)
+                </MDTypography>
+
+                <TextField
+                  label={
+                    <MDBox display="flex" alignItems="center">
+                      <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} /> Hourly Rate
+                    </MDBox>
+                  }
+                  fullWidth
+                  margin="normal"
+                  variant="outlined"
+                  value={editRate}
+                  onChange={(e) => setEditRate(e.target.value)}
+                  type="number"
+                  sx={{ mb: 2 }}
                 />
-              }
-              label={
-                togglingLeave ? (
-                  <CircularProgress size={20} />
-                ) : is_on_leave ? (
-                  "Set to Working"
-                ) : (
-                  "Set to On Leave"
-                )
-              }
-              labelPlacement="start"
-            />
-          </MDBox>
-          <MDTypography variant="caption" color="text.secondary" mt={1}>
-            Use this switch to manually set the employee&apos;s current leave status.
-          </MDTypography>
-        </Paper>
 
-        {/* Payslip Action Card - AT THE VERY BOTTOM */}
-        <Paper elevation={0} sx={{ p: 3, borderRadius: "lg" }}>
-          <MDBox
-            display="flex"
-            flexDirection="column"
-            alignItems="flex-start"
-            justifyContent="flex-start"
-          >
+                <TextField
+                  label={
+                    <MDBox display="flex" alignItems="center">
+                      <PaidIcon fontSize="small" sx={{ mr: 1 }} /> NSSF Number
+                    </MDBox>
+                  }
+                  fullWidth
+                  margin="normal"
+                  variant="outlined"
+                  value={editNssf}
+                  onChange={(e) => setEditNssf(e.target.value)}
+                  sx={{ mb: 2 }}
+                />
+
+                <TextField
+                  label={
+                    <MDBox display="flex" alignItems="center">
+                      <PermIdentityIcon fontSize="small" sx={{ mr: 1 }} /> SHA Number
+                    </MDBox>
+                  }
+                  fullWidth
+                  margin="normal"
+                  variant="outlined"
+                  value={editSha}
+                  onChange={(e) => setEditSha(e.target.value)}
+                  sx={{ mb: 2 }}
+                />
+
+                {/* SAVE CHANGES BUTTON */}
+                <MDBox mt={2} display="flex" justifyContent="flex-start">
+                  <MDButton
+                    variant="gradient"
+                    color="success"
+                    onClick={handleSave}
+                    disabled={saving}
+                    size="medium"
+                    startIcon={saving && <CircularProgress size={20} />}
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </MDButton>
+                </MDBox>
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* Leave Status Management Card */}
+          <Paper elevation={0} sx={{ p: 3, borderRadius: "lg", mb: 3 }}>
             <MDTypography variant="h6" fontWeight="bold" mb={2}>
-              Payroll Actions
+              Leave Status Management
             </MDTypography>
-            <ReceiptLongIcon sx={{ fontSize: 80, color: "info.main", mb: 2 }} />
-            <MDTypography variant="body1" color="text" textAlign="left" mb={2}>
-              Generate the employee&apos;s monthly payslip based on current rates.
+
+            <Grid container alignItems="center" justifyContent="space-between" spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <MDBox display="flex" alignItems="center">
+                  <EventBusyIcon
+                    fontSize="large"
+                    sx={{ mr: 1, color: is_on_leave ? "error.main" : "text.secondary" }}
+                  />
+                  <MDTypography variant="body1">
+                    Current Status:
+                    <MDTypography
+                      component="span"
+                      variant="body1"
+                      fontWeight="bold"
+                      color={is_on_leave ? "error" : "success"}
+                      ml={1}
+                    >
+                      {is_on_leave ? "ON LEAVE" : "WORKING"}
+                    </MDTypography>
+                  </MDTypography>
+                </MDBox>
+              </Grid>
+              <Grid item xs={12} sm={6} sx={{ textAlign: { xs: "left", sm: "right" } }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={is_on_leave}
+                      onChange={handleLeaveToggle}
+                      disabled={togglingLeave}
+                    />
+                  }
+                  label={
+                    togglingLeave ? (
+                      <CircularProgress size={20} />
+                    ) : is_on_leave ? (
+                      "Set to Working"
+                    ) : (
+                      "Set to On Leave"
+                    )
+                  }
+                  labelPlacement="start"
+                />
+              </Grid>
+            </Grid>
+
+            <MDTypography variant="caption" color="text.secondary" mt={1}>
+              Use this switch to manually set the employee&apos;s current leave status.
             </MDTypography>
-            <MDButton
-              variant="gradient"
-              color="info"
-              onClick={handleGeneratePayslip}
-              disabled={generatingPayslip}
-              startIcon={generatingPayslip && <CircularProgress size={20} color="white" />}
-              size="medium" // ✅ MODIFICATION: Set size to medium (same as Save Changes)
-              sx={{ width: "auto" }}
+          </Paper>
+
+          {/* Payslip Action Card - AT THE VERY BOTTOM */}
+          <Paper elevation={0} sx={{ p: 3, borderRadius: "lg" }}>
+            <MDBox
+              display="flex"
+              flexDirection="column"
+              alignItems="flex-start"
+              justifyContent="flex-start"
             >
-              {generatingPayslip ? "Generating..." : "Generate Payslip"}
-            </MDButton>
-          </MDBox>
-        </Paper>
+              <MDTypography variant="h6" fontWeight="bold" mb={2}>
+                Payroll Actions
+              </MDTypography>
+              <ReceiptLongIcon sx={{ fontSize: 80, color: "info.main", mb: 2 }} />
+              <MDTypography variant="body1" color="text" textAlign="left" mb={2}>
+                Generate the employee&apos;s monthly payslip based on current rates.
+              </MDTypography>
+              <MDButton
+                variant="gradient"
+                color="info"
+                onClick={handleGeneratePayslip}
+                disabled={generatingPayslip}
+                startIcon={generatingPayslip && <CircularProgress size={20} color="white" />}
+                size="medium"
+                sx={{ width: "auto" }}
+              >
+                {generatingPayslip ? "Generating..." : "Generate Payslip"}
+              </MDButton>
+            </MDBox>
+          </Paper>
+        </MDBox>
       </MDBox>
 
       <CustomAlert

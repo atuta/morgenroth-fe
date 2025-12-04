@@ -29,6 +29,7 @@ import getNonAdminUsersApi from "../../api/getNonAdminUsersApi";
 
 // Default avatar image
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=40";
+// COLUMN_COUNT is 8 (max) but will be 5 on mobile
 const COLUMN_COUNT = 8;
 
 function StaffListPage() {
@@ -132,19 +133,44 @@ function StaffListPage() {
             >
               <Table stickyHeader aria-label="staff table">
                 <TableBody>
-                  {/* Header Row */}
+                  {/* Header Row - RESPONSIVENESS APPLIED */}
                   <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
                     <TableCell sx={{ fontWeight: "bold", width: "8%", padding: "12px 8px" }}>
                       Photo
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
                     <TableCell sx={{ fontWeight: "bold", width: "20%" }}>Email</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "10%" }}>Account</TableCell>
+                    {/* Account Column: Hidden on extra-small/small screens */}
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        width: "10%",
+                        display: { xs: "none", sm: "table-cell" },
+                      }}
+                    >
+                      Account
+                    </TableCell>
                     <TableCell sx={{ fontWeight: "bold", width: "10%" }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "right" }}>
+                    {/* Hourly Rate Column: Hidden on extra-small/small screens */}
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        width: "10%",
+                        textAlign: "right",
+                        display: { xs: "none", sm: "table-cell" },
+                      }}
+                    >
                       Hourly Rate
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "7%", textAlign: "center" }}>
+                    {/* Currency Column: Hidden on extra-small/small screens */}
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        width: "7%",
+                        textAlign: "center",
+                        display: { xs: "none", sm: "table-cell" },
+                      }}
+                    >
                       Currency
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
@@ -155,7 +181,12 @@ function StaffListPage() {
                   {/* Table Body */}
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={COLUMN_COUNT} align="center" sx={{ py: 3 }}>
+                      {/* colSpan is dynamically adjusted for mobile (5 columns visible) */}
+                      <TableCell
+                        colSpan={COLUMN_COUNT}
+                        align="center"
+                        sx={{ py: 3, "&.MuiTableCell-root": { colSpan: { xs: 5, sm: 8 } } }}
+                      >
                         <CircularProgress size={24} />
                         <MDTypography variant="body2" color="text" mt={1}>
                           Loading staff data...
@@ -164,7 +195,12 @@ function StaffListPage() {
                     </TableRow>
                   ) : filteredStaff.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={COLUMN_COUNT} align="center" sx={{ py: 3 }}>
+                      {/* colSpan is dynamically adjusted for mobile (5 columns visible) */}
+                      <TableCell
+                        colSpan={COLUMN_COUNT}
+                        align="center"
+                        sx={{ py: 3, "&.MuiTableCell-root": { colSpan: { xs: 5, sm: 8 } } }}
+                      >
                         <MDTypography variant="body2" color="text">
                           No staff found.
                         </MDTypography>
@@ -173,6 +209,7 @@ function StaffListPage() {
                   ) : (
                     filteredStaff.map((user) => (
                       <TableRow key={user.user_id}>
+                        {/* Photo */}
                         <TableCell sx={{ padding: "8px 8px", width: "8%" }}>
                           <Avatar
                             src={user.photo || DEFAULT_AVATAR}
@@ -180,7 +217,7 @@ function StaffListPage() {
                             sx={{ width: 36, height: 36 }}
                           />
                         </TableCell>
-                        {/* Name and Role combined, with temporary user_id display */}
+                        {/* Name and Role combined */}
                         <TableCell>
                           <MDBox display="flex" flexDirection="column" alignItems="flex-start">
                             <MDTypography component="span" variant="body2" fontWeight="medium">
@@ -193,8 +230,15 @@ function StaffListPage() {
                             )}
                           </MDBox>
                         </TableCell>
+                        {/* Email */}
                         <TableCell sx={{ width: "20%" }}>{user.email}</TableCell>
-                        <TableCell sx={{ width: "10%" }}>{user.account || "N/A"}</TableCell>
+
+                        {/* Account - Hidden on mobile */}
+                        <TableCell sx={{ width: "10%", display: { xs: "none", sm: "table-cell" } }}>
+                          {user.account || "N/A"}
+                        </TableCell>
+
+                        {/* Status */}
                         <TableCell sx={{ width: "10%" }}>
                           <MDTypography
                             variant="caption"
@@ -204,12 +248,24 @@ function StaffListPage() {
                             {user.status || "Unknown"}
                           </MDTypography>
                         </TableCell>
-                        <TableCell align="right" sx={{ width: "10%" }}>
+
+                        {/* Hourly Rate - Hidden on mobile */}
+                        <TableCell
+                          align="right"
+                          sx={{ width: "10%", display: { xs: "none", sm: "table-cell" } }}
+                        >
                           {user.hourly_rate || "-"}
                         </TableCell>
-                        <TableCell align="center" sx={{ width: "7%" }}>
+
+                        {/* Currency - Hidden on mobile */}
+                        <TableCell
+                          align="center"
+                          sx={{ width: "7%", display: { xs: "none", sm: "table-cell" } }}
+                        >
                           {user.hourly_rate_currency || "-"}
                         </TableCell>
+
+                        {/* Actions */}
                         <TableCell align="center" sx={{ width: "15%" }}>
                           <MDButton
                             variant="gradient"

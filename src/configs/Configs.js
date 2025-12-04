@@ -15,6 +15,7 @@ const Configs = {
   loginEp: `${BASE_URL}/api/login/`,
 
   // User
+  apiUploadUserPhotoEp: `${BASE_URL}/api/upload-user-photo/`,
   apiGetLoggedInUserDetailsEp: `${BASE_URL}/api/get-logged-in-user-details/`,
   apiGetUserDetailsEp: `${BASE_URL}/api/get-user-details/`,
   apiUpdateUserFieldsEp: `${BASE_URL}/api/update-user-fields/`,
