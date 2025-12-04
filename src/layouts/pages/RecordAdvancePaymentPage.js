@@ -113,13 +113,14 @@ function RecordAdvancePaymentPage() {
         <MDBox sx={{ maxWidth: "600px", margin: "0 auto 0 0" }}>
           <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
             <MDBox display="flex" alignItems="center" gap={3} flexWrap="wrap">
+              {/* Avatar */}
               <Avatar
                 src={photo ? `${Configs.baseUrl}${photo}` : DEFAULT_AVATAR}
                 sx={{ width: 80, height: 80 }}
               />
               <MDBox flexGrow={1} minWidth={200}>
                 <MDTypography variant="h5" fontWeight="bold" mb={1}>
-                  Record Advance Payment
+                  Advance Payment to {state?.full_name || "User"}
                 </MDTypography>
                 <MDTypography variant="body2" color="text">
                   Enter advance details for the selected user
