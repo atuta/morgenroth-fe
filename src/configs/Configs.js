@@ -43,16 +43,22 @@ const Configs = {
   apiCurrentSessionEp: `${BASE_URL}/api/attendance/current-session/`,
 
   // Advance
-  apiCreateAdvanceEp: `${BASE_URL}/api/create-advance/`,
-  apiGetUserAdvancesEp: `${BASE_URL}/api/get-user-advances/`,
+  apiAdminCreateAdvanceEp: `${BASE_URL}/api/admin/advance/create/`,
+  apiGetUserAdvancesByMonthEp: `${BASE_URL}/api/advance/get-by-month/`,
+  apiGetAllUserAdvancesEp: `${BASE_URL}/api/advance/get-all/`,
+  apiAdminGetUserAdvancesByMonthEp: `${BASE_URL}/api/admin/advance/get-by-month/`,
+  apiAdminGetAllUserAdvancesEp: `${BASE_URL}/api/admin/advance/get-all/`,
+
+  // Overtime
+  apiAdminRecordOvertimeEp: `${BASE_URL}/api/admin/overtime/record/`,
+  apiGetUserOvertimeByMonthEp: `${BASE_URL}/api/overtime/get-by-month/`,
+  apiGetAllUserOvertimeEp: `${BASE_URL}/api/overtime/get-all/`,
+  apiAdminGetUserOvertimeByMonthEp: `${BASE_URL}/api/admin/overtime/get-by-month/`,
+  apiAdminGetAllUserOvertimeEp: `${BASE_URL}/api/admin/overtime/get-all/`,
 
   // Deduction
   apiSetDeductionEp: `${BASE_URL}/api/set-deduction/`,
   apiGetDeductionEp: `${BASE_URL}/api/get-deduction/`,
-
-  // Overtime
-  apiAuthorizeOvertimeEp: `${BASE_URL}/api/authorize-overtime/`,
-  apiGetUserOvertimeEp: `${BASE_URL}/api/get-user-overtime/`,
 
   // Payroll
   apiGenerateMonthlySalaryEp: `${BASE_URL}/api/generate-monthly-salary/`,

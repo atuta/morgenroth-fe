@@ -19,6 +19,8 @@ import ClockPage from "layouts/pages/ClockPage";
 import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
 import DeductionsPage from "layouts/pages/DeductionsPage";
 import SignIn from "layouts/authentication/sign-in";
+
+import RecordAdvancePaymentPage from "layouts/pages/RecordAdvancePaymentPage";
 import WorkingHoursPage from "layouts/pages/WorkingHoursPage";
 
 // @mui icons
@@ -67,13 +69,6 @@ const routes = [
         route: "/user-details",
         component: <UserDetailsPage />,
       },
-      {
-        type: "collapse",
-        name: "Reset Staff Password",
-        key: "staff-reset-password",
-        route: "#", // DEAD LINK
-        // component: <Tables />, // Component removed for dead link
-      },
     ],
   },
 
@@ -85,28 +80,28 @@ const routes = [
     icon: <Icon fontSize="small">payments</Icon>,
     collapse: [
       {
-        type: "collapse",
-        name: "Monthly Salaries",
-        key: "salary-monthly",
-        route: "#", // DEAD LINK
+        key: "record-advance-payments",
+        route: "/record-advance-payments",
+        component: <RecordAdvancePaymentPage />,
+      },
+      {
+        key: "record-overtime-payments",
+        route: "/record-overtime-payments",
+        component: <UserDetailsPage />,
       },
       {
         type: "collapse",
-        name: "Overtime Summary",
-        key: "salary-overtime",
-        route: "#", // DEAD LINK
+        name: "Advance Payments",
+        key: "advance-payments",
+        route: "/advance-payments",
+        component: <ClockPage />,
       },
       {
         type: "collapse",
-        name: "View Salary Slips",
-        key: "salary-slips",
-        route: "#", // DEAD LINK
-      },
-      {
-        type: "collapse",
-        name: "Payment Reports",
-        key: "salary-reports",
-        route: "#", // DEAD LINK
+        name: "Overtime Payments",
+        key: "overtime-payments",
+        route: "/overtime-payments",
+        component: <ClockPage />,
       },
     ],
   },

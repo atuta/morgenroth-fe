@@ -228,13 +228,15 @@ function UserDetailsPage() {
 
           {/* User Header */}
           <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
-            <MDBox display="flex" alignItems="center" gap={3}>
+            <MDBox display="flex" alignItems="center" gap={3} flexWrap="wrap">
+              {/* Avatar */}
               <Avatar
                 src={photo ? `${Configs.baseUrl}${photo}` : DEFAULT_AVATAR}
                 sx={{ width: 80, height: 80 }}
               />
 
-              <MDBox>
+              {/* User Info */}
+              <MDBox flexGrow={1} minWidth={200}>
                 <MDTypography variant="h5" fontWeight="bold">
                   {first_name} {last_name}
                 </MDTypography>
@@ -244,6 +246,37 @@ function UserDetailsPage() {
                 <MDTypography variant="body2" color="text">
                   {user_role} • {status}
                 </MDTypography>
+
+                {/* Action Buttons */}
+                <MDBox mt={2} display="flex" gap={2} flexWrap="wrap">
+                  <MDButton
+                    variant="outlined"
+                    color="warning"
+                    startIcon={<AttachMoneyIcon />}
+                    onClick={() =>
+                      navigate("/record-advance-payments", {
+                        state: { user_id, photo }, // pass photo here
+                      })
+                    }
+                    size="medium"
+                  >
+                    Record Advance Payment
+                  </MDButton>
+
+                  <MDButton
+                    variant="outlined"
+                    color="info"
+                    startIcon={<EventAvailableIcon />}
+                    onClick={() =>
+                      navigate("/record-overtime-payments", {
+                        state: { user_id, photo }, // pass photo here
+                      })
+                    }
+                    size="medium"
+                  >
+                    Record Overtime Payment
+                  </MDButton>
+                </MDBox>
               </MDBox>
             </MDBox>
           </Paper>
