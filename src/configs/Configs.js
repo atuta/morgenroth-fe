@@ -50,7 +50,7 @@ const Configs = {
   apiAdminGetAllUserAdvancesEp: `${BASE_URL}/api/admin/advance/get-all/`,
 
   // Overtime
-  apiAdminRecordOvertimeEp: `${BASE_URL}/api/admin/overtime/record/`,
+  apiAdminRecordOvertimeEp: `${BASE_URL}/api/overtime/record/`,
   apiGetUserOvertimeByMonthEp: `${BASE_URL}/api/overtime/get-by-month/`,
   apiGetAllUserOvertimeEp: `${BASE_URL}/api/overtime/get-all/`,
   apiAdminGetUserOvertimeByMonthEp: `${BASE_URL}/api/admin/overtime/get-by-month/`,

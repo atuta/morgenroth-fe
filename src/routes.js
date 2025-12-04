@@ -20,6 +20,7 @@ import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
 import DeductionsPage from "layouts/pages/DeductionsPage";
 import SignIn from "layouts/authentication/sign-in";
 
+import RecordOvertimePaymentPage from "layouts/pages/RecordOvertimePaymentPage";
 import RecordAdvancePaymentPage from "layouts/pages/RecordAdvancePaymentPage";
 import WorkingHoursPage from "layouts/pages/WorkingHoursPage";
 
@@ -87,7 +88,7 @@ const routes = [
       {
         key: "record-overtime-payments",
         route: "/record-overtime-payments",
-        component: <UserDetailsPage />,
+        component: <RecordOvertimePaymentPage />,
       },
       {
         type: "collapse",
