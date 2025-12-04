@@ -32,6 +32,7 @@ import MDButton from "components/MDButton";
 import getUserDetailsApi from "../../api/getUserDetailsApi";
 import updateUserFieldsApi from "../../api/updateUserFieldsApi";
 import CustomAlert from "../../components/CustomAlert";
+import Configs from "../../configs/Configs";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
 
@@ -228,7 +229,11 @@ function UserDetailsPage() {
           {/* User Header */}
           <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
             <MDBox display="flex" alignItems="center" gap={3}>
-              <Avatar src={photo || DEFAULT_AVATAR} sx={{ width: 80, height: 80 }} />
+              <Avatar
+                src={photo ? `${Configs.baseUrl}${photo}` : DEFAULT_AVATAR}
+                sx={{ width: 80, height: 80 }}
+              />
+
               <MDBox>
                 <MDTypography variant="h5" fontWeight="bold">
                   {first_name} {last_name}

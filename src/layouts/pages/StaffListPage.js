@@ -24,12 +24,13 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 
 import CustomAlert from "../../components/CustomAlert";
-
 import getNonAdminUsersApi from "../../api/getNonAdminUsersApi";
+import Configs from "../../configs/Configs"; // << IMPORTANT
 
-// Default avatar image
-const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=40";
-// COLUMN_COUNT is 8 (max) but will be 5 on mobile
+// Default avatar
+const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=60";
+
+// Column count for loading/empty structure
 const COLUMN_COUNT = 8;
 
 function StaffListPage() {
@@ -49,7 +50,7 @@ function StaffListPage() {
     setAlertOpen(true);
   };
 
-  // Fetch staff on page load
+  // Fetch staff
   useEffect(() => {
     const fetchStaff = async () => {
       setLoading(true);
@@ -58,9 +59,7 @@ function StaffListPage() {
         if (res.data?.status === "success") {
           setStaffList(res.data.data);
           setFilteredStaff(res.data.data);
-        } else {
-          showAlert(res.data?.message || "Failed to fetch staff.", "error");
-        }
+        } else showAlert(res.data?.message || "Failed to load staff.", "error");
       } catch (err) {
         console.error(err);
         showAlert("Server error. Could not fetch staff.", "error");
@@ -72,24 +71,21 @@ function StaffListPage() {
     fetchStaff();
   }, []);
 
-  // Filter staff based on search term
+  // Search filter
   useEffect(() => {
-    if (!searchTerm) {
-      setFilteredStaff(staffList);
-      return;
-    }
+    if (!searchTerm) return setFilteredStaff(staffList);
 
     const term = searchTerm.toLowerCase();
-    const filtered = staffList.filter(
-      (user) =>
-        user.first_name?.toLowerCase().includes(term) ||
-        user.last_name?.toLowerCase().includes(term) ||
-        user.email?.toLowerCase().includes(term) ||
-        user.account?.toLowerCase().includes(term) ||
-        user.user_role?.toLowerCase().includes(term) ||
-        user.status?.toLowerCase().includes(term)
+    const result = staffList.filter(
+      (u) =>
+        u.first_name?.toLowerCase().includes(term) ||
+        u.last_name?.toLowerCase().includes(term) ||
+        u.email?.toLowerCase().includes(term) ||
+        u.account?.toLowerCase().includes(term) ||
+        u.user_role?.toLowerCase().includes(term) ||
+        u.status?.toLowerCase().includes(term)
     );
-    setFilteredStaff(filtered);
+    setFilteredStaff(result);
   }, [searchTerm, staffList]);
 
   return (
@@ -97,16 +93,15 @@ function StaffListPage() {
       <DashboardNavbar />
       <MDBox py={3}>
         <MDBox sx={{ margin: "0 auto 0 0" }}>
-          {/* Shadow removed */}
           <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
             <MDTypography variant="h5" fontWeight="bold" mb={2}>
               Staff List
             </MDTypography>
 
-            {/* Search Bar - Dynamic Outline/Icon */}
+            {/* Search */}
             <MDBox mb={2}>
               <TextField
-                label="Search staff by name, email, or account"
+                label="Search staff by name, email or account"
                 fullWidth
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -117,171 +112,140 @@ function StaffListPage() {
                       <SearchIcon color="action" />
                     </InputAdornment>
                   ),
-                  sx: {
-                    backgroundColor: "white",
-                    borderRadius: 2,
-                    "& input": { backgroundColor: "white" },
-                  },
+                  sx: { backgroundColor: "white", borderRadius: 2 },
                 }}
               />
             </MDBox>
 
-            {/* Staff Table */}
-            <TableContainer
-              component={Paper}
-              sx={{ maxHeight: 600, border: "1px solid #ddd", boxShadow: "none" }}
-            >
+            {/* Table */}
+            <TableContainer component={Paper} sx={{ maxHeight: 600, boxShadow: "none" }}>
               <Table stickyHeader aria-label="staff table">
                 <TableBody>
-                  {/* Header Row - RESPONSIVENESS APPLIED */}
+                  {/* Headers */}
                   <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                    <TableCell sx={{ fontWeight: "bold", width: "8%", padding: "12px 8px" }}>
-                      Photo
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Photo</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "20%" }}>Email</TableCell>
-                    {/* Account Column: Hidden on extra-small/small screens */}
+                    <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
                     <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        width: "10%",
-                        display: { xs: "none", sm: "table-cell" },
-                      }}
+                      sx={{ fontWeight: "bold", display: { xs: "none", sm: "table-cell" } }}
                     >
                       Account
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "10%" }}>Status</TableCell>
-                    {/* Hourly Rate Column: Hidden on extra-small/small screens */}
+                    <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
                     <TableCell
                       sx={{
                         fontWeight: "bold",
-                        width: "10%",
-                        textAlign: "right",
                         display: { xs: "none", sm: "table-cell" },
+                        textAlign: "right",
                       }}
                     >
                       Hourly Rate
                     </TableCell>
-                    {/* Currency Column: Hidden on extra-small/small screens */}
                     <TableCell
                       sx={{
                         fontWeight: "bold",
-                        width: "7%",
-                        textAlign: "center",
                         display: { xs: "none", sm: "table-cell" },
+                        textAlign: "center",
                       }}
                     >
                       Currency
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
-                      Actions
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Actions</TableCell>
                   </TableRow>
 
-                  {/* Table Body */}
                   {loading ? (
                     <TableRow>
-                      {/* colSpan is dynamically adjusted for mobile (5 columns visible) */}
-                      <TableCell
-                        colSpan={COLUMN_COUNT}
-                        align="center"
-                        sx={{ py: 3, "&.MuiTableCell-root": { colSpan: { xs: 5, sm: 8 } } }}
-                      >
+                      <TableCell colSpan={COLUMN_COUNT} align="center">
                         <CircularProgress size={24} />
-                        <MDTypography variant="body2" color="text" mt={1}>
-                          Loading staff data...
-                        </MDTypography>
+                        <MDTypography mt={1}>Loading...</MDTypography>
                       </TableCell>
                     </TableRow>
                   ) : filteredStaff.length === 0 ? (
                     <TableRow>
-                      {/* colSpan is dynamically adjusted for mobile (5 columns visible) */}
-                      <TableCell
-                        colSpan={COLUMN_COUNT}
-                        align="center"
-                        sx={{ py: 3, "&.MuiTableCell-root": { colSpan: { xs: 5, sm: 8 } } }}
-                      >
-                        <MDTypography variant="body2" color="text">
-                          No staff found.
-                        </MDTypography>
+                      <TableCell colSpan={COLUMN_COUNT} align="center">
+                        <MDTypography>No staff found.</MDTypography>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredStaff.map((user) => (
-                      <TableRow key={user.user_id}>
-                        {/* Photo */}
-                        <TableCell sx={{ padding: "8px 8px", width: "8%" }}>
-                          <Avatar
-                            src={user.photo || DEFAULT_AVATAR}
-                            alt={`${user.first_name} ${user.last_name}`}
-                            sx={{ width: 36, height: 36 }}
-                          />
-                        </TableCell>
-                        {/* Name and Role combined */}
-                        <TableCell>
-                          <MDBox display="flex" flexDirection="column" alignItems="flex-start">
-                            <MDTypography component="span" variant="body2" fontWeight="medium">
-                              {`${user.first_name || ""} ${user.last_name || ""}`}
+                    filteredStaff.map((user) => {
+                      const photoUrl = user.photo
+                        ? `${Configs.baseUrl}${user.photo}?t=${Date.now()}` // Cache busting
+                        : DEFAULT_AVATAR;
+
+                      return (
+                        <TableRow key={user.user_id}>
+                          {/* Avatar */}
+                          <TableCell>
+                            <Avatar
+                              src={photoUrl}
+                              alt="User Photo"
+                              onError={(e) => (e.currentTarget.src = DEFAULT_AVATAR)}
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                cursor: "pointer",
+                                transition: "0.2s",
+                                "&:hover": { transform: "scale(1.1)" },
+                              }}
+                              onClick={() =>
+                                navigate("/user-details", { state: { user_id: user.user_id } })
+                              }
+                            />
+                          </TableCell>
+
+                          <TableCell>
+                            <MDTypography fontWeight="bold">
+                              {user.first_name} {user.last_name}
                             </MDTypography>
-                            {user.user_role && user.user_role !== "N/A" && (
-                              <MDTypography component="span" variant="caption" color="text">
-                                ({user.user_role})
-                              </MDTypography>
-                            )}
-                          </MDBox>
-                        </TableCell>
-                        {/* Email */}
-                        <TableCell sx={{ width: "20%" }}>{user.email}</TableCell>
+                            <MDTypography variant="caption" color="text">
+                              ({user.user_role})
+                            </MDTypography>
+                          </TableCell>
 
-                        {/* Account - Hidden on mobile */}
-                        <TableCell sx={{ width: "10%", display: { xs: "none", sm: "table-cell" } }}>
-                          {user.account || "N/A"}
-                        </TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                            {user.account || "N/A"}
+                          </TableCell>
 
-                        {/* Status */}
-                        <TableCell sx={{ width: "10%" }}>
-                          <MDTypography
-                            variant="caption"
-                            color={user.status === "active" ? "success" : "error"}
-                            fontWeight="bold"
+                          <TableCell>
+                            <MDTypography
+                              variant="caption"
+                              fontWeight="bold"
+                              color={user.status === "active" ? "success" : "error"}
+                            >
+                              {user.status}
+                            </MDTypography>
+                          </TableCell>
+
+                          <TableCell
+                            align="right"
+                            sx={{ display: { xs: "none", sm: "table-cell" } }}
                           >
-                            {user.status || "Unknown"}
-                          </MDTypography>
-                        </TableCell>
+                            {user.hourly_rate}
+                          </TableCell>
 
-                        {/* Hourly Rate - Hidden on mobile */}
-                        <TableCell
-                          align="right"
-                          sx={{ width: "10%", display: { xs: "none", sm: "table-cell" } }}
-                        >
-                          {user.hourly_rate || "-"}
-                        </TableCell>
-
-                        {/* Currency - Hidden on mobile */}
-                        <TableCell
-                          align="center"
-                          sx={{ width: "7%", display: { xs: "none", sm: "table-cell" } }}
-                        >
-                          {user.hourly_rate_currency || "-"}
-                        </TableCell>
-
-                        {/* Actions */}
-                        <TableCell align="center" sx={{ width: "15%" }}>
-                          <MDButton
-                            variant="gradient"
-                            color="info"
-                            size="small"
-                            sx={{ minWidth: 100 }}
-                            // Navigation uses the navigate function to pass state
-                            onClick={() =>
-                              navigate("/user-details", { state: { user_id: user.user_id } })
-                            }
+                          <TableCell
+                            align="center"
+                            sx={{ display: { xs: "none", sm: "table-cell" } }}
                           >
-                            View Details
-                          </MDButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                            {user.hourly_rate_currency}
+                          </TableCell>
+
+                          <TableCell align="center">
+                            <MDButton
+                              variant="gradient"
+                              color="info"
+                              size="small"
+                              onClick={() =>
+                                navigate("/user-details", { state: { user_id: user.user_id } })
+                              }
+                            >
+                              View Details
+                            </MDButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
