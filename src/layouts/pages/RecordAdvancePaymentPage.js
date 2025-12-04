@@ -172,6 +172,13 @@ function RecordAdvancePaymentPage() {
                     fullWidth
                     value={month}
                     onChange={(e) => setMonth(Number(e.target.value))}
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        minHeight: 40, // adjust height as needed
+                        paddingTop: 1,
+                        paddingBottom: 1,
+                      },
+                    }}
                   >
                     {months.map((m) => (
                       <MenuItem key={m} value={m}>
@@ -189,6 +196,13 @@ function RecordAdvancePaymentPage() {
                     fullWidth
                     value={year}
                     onChange={(e) => setYear(Number(e.target.value))}
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        minHeight: 40, // adjust height as needed
+                        paddingTop: 1,
+                        paddingBottom: 1,
+                      },
+                    }}
                   >
                     {years.map((y) => (
                       <MenuItem key={y} value={y}>

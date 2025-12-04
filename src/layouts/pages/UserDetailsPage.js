@@ -255,7 +255,7 @@ function UserDetailsPage() {
                     startIcon={<AttachMoneyIcon />}
                     onClick={() =>
                       navigate("/record-advance-payments", {
-                        state: { user_id, photo }, // pass photo here
+                        state: { user_id, photo, full_name: `${first_name} ${last_name}` },
                       })
                     }
                     size="medium"
@@ -269,7 +269,7 @@ function UserDetailsPage() {
                     startIcon={<EventAvailableIcon />}
                     onClick={() =>
                       navigate("/record-overtime-payments", {
-                        state: { user_id, photo }, // pass photo here
+                        state: { user_id, photo, full_name: `${first_name} ${last_name}` },
                       })
                     }
                     size="medium"
