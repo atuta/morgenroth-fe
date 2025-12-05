@@ -6,6 +6,8 @@ import Avatar from "@mui/material/Avatar";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
 
 // Icons
 import EmailIcon from "@mui/icons-material/EmailOutlined";
@@ -31,6 +33,7 @@ import CustomAlert from "../../components/CustomAlert";
 
 import getLoggedInUserDetailsApi from "../../api/getLoggedInUserDetailsApi";
 import uploadUserPhotoApi from "../../api/uploadUserPhotoApi";
+import { generateUserPayslipPdfApi } from "../../api/payrollAndCompensationApi";
 import Configs from "../../configs/Configs";
 
 import CroppingModal from "./CroppingModal";
@@ -53,6 +56,16 @@ function UserProfilePage() {
   // Avatar state
   const [currentPhotoUrl, setCurrentPhotoUrl] = useState(DEFAULT_AVATAR);
   const [serverPhotoUrl, setServerPhotoUrl] = useState(DEFAULT_AVATAR);
+
+  // Payslip dropdown state
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+  const allowedMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+  const years = Array.from({ length: 10 }, (_, i) => currentYear - i).reverse();
+
+  const [month, setMonth] = useState(currentMonth);
+  const [year, setYear] = useState(currentYear);
 
   const showAlert = (msg, severity = "info") => {
     setAlertMessage(msg);
@@ -110,7 +123,6 @@ function UserProfilePage() {
 
       if (res.status === "success") {
         const finalPhotoUrl = `${Configs.baseUrl}${res.data.photo}`;
-        console.log("Final uploaded photo URL:", finalPhotoUrl);
 
         setUserData((prev) => ({ ...prev, photo: finalPhotoUrl }));
         setCurrentPhotoUrl(finalPhotoUrl);
@@ -135,14 +147,36 @@ function UserProfilePage() {
 
   const handleGeneratePayslip = async () => {
     if (!userData) return;
+
+    const todayDate = new Date();
+    if (
+      year > todayDate.getFullYear() ||
+      (year === todayDate.getFullYear() && month > todayDate.getMonth() + 1)
+    ) {
+      showAlert("Cannot generate payslip for a future month/year", "error");
+      return;
+    }
+
     setGeneratingPayslip(true);
     showAlert("Generating payslip...", "info");
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      showAlert(`Payslip for ${userData.first_name} generated successfully!`, "success");
+      const res = await generateUserPayslipPdfApi({ month, year });
+      if (res.ok) {
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `Payslip_${month}_${year}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        showAlert(`Payslip for ${month}/${year} generated successfully!`, "success");
+      } else {
+        showAlert(res.data.message || "Failed to generate payslip", "error");
+      }
     } catch (err) {
       console.error(err);
-      showAlert("Failed to generate payslip. Server error.", "error");
+      showAlert("Server error while generating payslip", "error");
     } finally {
       setGeneratingPayslip(false);
     }
@@ -191,13 +225,7 @@ function UserProfilePage() {
               {uploadingPhoto && (
                 <CircularProgress
                   size={80}
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    color: "info.main",
-                    zIndex: 2,
-                  }}
+                  sx={{ position: "absolute", top: 0, left: 0, color: "info.main", zIndex: 2 }}
                 />
               )}
               <IconButton
@@ -345,12 +373,55 @@ function UserProfilePage() {
           </Paper>
         </MDBox>
 
-        {/* Payslip */}
+        {/* Payslip Card */}
         <MDBox mt={3}>
           <Paper elevation={0} sx={{ p: 2 }}>
             <MDTypography variant="h6" fontWeight="bold" mb={2}>
               Payslip
             </MDTypography>
+
+            <Grid container spacing={2} mb={2}>
+              {/* Month */}
+              <Grid item xs={6}>
+                <TextField
+                  select
+                  label="Month"
+                  fullWidth
+                  value={month}
+                  onChange={(e) => setMonth(Number(e.target.value))}
+                  sx={{
+                    "& .MuiInputBase-root": { minHeight: 40, paddingTop: 1, paddingBottom: 1 },
+                  }}
+                >
+                  {allowedMonths.map((m) => (
+                    <MenuItem key={m} value={m}>
+                      {m}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+
+              {/* Year */}
+              <Grid item xs={6}>
+                <TextField
+                  select
+                  label="Year"
+                  fullWidth
+                  value={year}
+                  onChange={(e) => setYear(Number(e.target.value))}
+                  sx={{
+                    "& .MuiInputBase-root": { minHeight: 40, paddingTop: 1, paddingBottom: 1 },
+                  }}
+                >
+                  {years.map((y) => (
+                    <MenuItem key={y} value={y}>
+                      {y}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            </Grid>
+
             <MDBox display="flex" alignItems="center" gap={2} mb={1}>
               <ReceiptLongIcon sx={{ fontSize: 50, color: "info.main" }} />
               <MDButton
@@ -364,7 +435,8 @@ function UserProfilePage() {
               </MDButton>
             </MDBox>
             <MDTypography variant="caption" color="text.secondary">
-              You can only download the payslip for the current month.
+              You can only download the payslip for the current or previous months. Future months
+              are disabled.
             </MDTypography>
           </Paper>
         </MDBox>
