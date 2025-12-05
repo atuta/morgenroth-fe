@@ -61,12 +61,10 @@ const Configs = {
   apiGetDeductionEp: `${BASE_URL}/api/get-deduction/`,
 
   // Payroll
-  apiGenerateMonthlySalaryEp: `${BASE_URL}/api/generate-monthly-salary/`,
-  apiCalculateNetSalaryEp: `${BASE_URL}/api/calculate-net-salary/`,
-  apiGenerateSalarySlipEp: `${BASE_URL}/api/generate-salary-slip/`,
-  apiGetSalarySlipEp: `${BASE_URL}/api/get-salary-slip/`,
-  apiGeneratePaymentReportEp: `${BASE_URL}/api/generate-payment-report/`,
-  apiGetPaymentSummaryEp: `${BASE_URL}/api/get-payment-summary/`,
+  apiGenerateUserPayslipEp: `${BASE_URL}/api/generate-user-payslip/`,
+  apiGenerateUserPayslipPdfEp: `${BASE_URL}/api/generate-user-payslip-pdf/`,
+  apiAdminGenerateUserPayslipEp: `${BASE_URL}/api/admin/generate-user-payslip/`,
+  apiAdminGenerateUserPayslipPdfEp: `${BASE_URL}/api/admin/generate-user-payslip-pdf/`,
 
   // Rate
   apiSetRateEp: `${BASE_URL}/api/set-rate/`,
