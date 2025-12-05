@@ -166,7 +166,19 @@ function UserProfilePage() {
         const url = window.URL.createObjectURL(new Blob([res.data]));
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `Payslip_${month}_${year}.pdf`);
+
+        // --- FIX STARTS HERE ---
+
+        // 1. Construct the full name, replacing spaces with underscores (for clean filename)
+        const userFullName = `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
+        const sanitizedName = userFullName.replace(/\s+/g, "_");
+
+        // 2. Use the sanitized name in the download attribute
+        // Example: Payslip_John_Doe_12_2025.pdf
+        link.setAttribute("download", `Payslip_${sanitizedName}_${month}_${year}.pdf`);
+
+        // --- FIX ENDS HERE ---
+
         document.body.appendChild(link);
         link.click();
         link.remove();
