@@ -8,6 +8,7 @@ import TextField from "@mui/material/TextField";
 import Paper from "@mui/material/Paper";
 import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import MenuItem from "@mui/material/MenuItem"; // ADDED: Required for dropdowns
 
 // Icons
 import EmailIcon from "@mui/icons-material/EmailOutlined";
@@ -33,6 +34,8 @@ import getUserDetailsApi from "../../api/getUserDetailsApi";
 import updateUserFieldsApi from "../../api/updateUserFieldsApi";
 import CustomAlert from "../../components/CustomAlert";
 import Configs from "../../configs/Configs";
+// UPDATED IMPORT: Use the admin version of the payslip API
+import { adminGenerateUserPayslipPdfApi } from "../../api/payrollAndCompensationApi";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
 
@@ -57,6 +60,16 @@ function UserDetailsPage() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
+
+  // Payslip dropdown state (NEW STATE)
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+  const allowedMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+  const years = Array.from({ length: 10 }, (_, i) => currentYear - i).reverse();
+
+  const [month, setMonth] = useState(currentMonth);
+  const [year, setYear] = useState(currentYear);
 
   const showAlert = (msg, severity = "info") => {
     setAlertMessage(msg);
@@ -171,29 +184,62 @@ function UserDetailsPage() {
   };
 
   const handleGeneratePayslip = async () => {
-    if (!userData) return;
+    if (!userData || !user_id) return;
+
+    const todayDate = new Date();
+    // Prevent generating for future months
+    if (
+      year > todayDate.getFullYear() ||
+      (year === todayDate.getFullYear() && month > todayDate.getMonth() + 1)
+    ) {
+      showAlert("Cannot generate payslip for a future month/year", "error");
+      return;
+    }
 
     setGeneratingPayslip(true);
     showAlert("Generating payslip...", "info");
 
     try {
-      const params = { month, year }; // from dropdown selections
-      const res = await generateUserPayslipPdfApi(params);
+      // 1. Pass user_id, month, and year
+      const params = { user_id, month, year };
+
+      // 2. Use the Admin API endpoint
+      const res = await adminGenerateUserPayslipPdfApi(params);
 
       if (res.ok) {
-        // Create a temporary link to download the blob
-        const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+        const pdfBlob = new Blob([res.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(pdfBlob);
+
+        // 3. Construct filename including the employee's name (for admin clarity)
+        const userFullName = `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
+        const sanitizedName = userFullName.replace(/\s+/g, "_");
+
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `Payslip_${month}_${year}.pdf`);
+
+        // Use the download attribute to force download and set the file name
+        link.setAttribute("download", `Payslip_${sanitizedName}_${month}_${year}.pdf`);
+
         document.body.appendChild(link);
         link.click();
         link.remove();
         window.URL.revokeObjectURL(url);
 
-        showAlert(`Payslip for ${month}/${year} downloaded successfully!`, "success");
+        showAlert(
+          `Payslip for ${userData.first_name} ${userData.last_name} (${month}/${year}) downloaded successfully!`,
+          "success"
+        );
       } else {
-        showAlert(res.data.message || "Failed to generate payslip", "error");
+        // Error handling: need to read the blob error response (assuming server sends text/json on error)
+        const errorText = await res.data.text();
+        let errorMessage = "Failed to generate payslip";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorMessage;
+        } catch (e) {
+          errorMessage = errorText || errorMessage;
+        }
+        showAlert(errorMessage, "error");
       }
     } catch (err) {
       console.error(err);
@@ -486,12 +532,62 @@ function UserDetailsPage() {
               justifyContent="flex-start"
             >
               <MDTypography variant="h6" fontWeight="bold" mb={2}>
-                Payroll Actions
+                Generate Payslip
               </MDTypography>
-              <ReceiptLongIcon sx={{ fontSize: 80, color: "info.main", mb: 2 }} />
-              <MDTypography variant="body1" color="text" textAlign="left" mb={2}>
-                Generate the employee&apos;s monthly payslip based on current rates.
-              </MDTypography>
+
+              {/* MONTH/YEAR DROPDOWN UI (NEW) */}
+              <Grid container spacing={2} mb={2} sx={{ maxWidth: 400, width: "100%" }}>
+                <Grid item xs={6}>
+                  <TextField
+                    select
+                    label="Month"
+                    fullWidth
+                    value={month}
+                    onChange={(e) => setMonth(Number(e.target.value))}
+                    size="small"
+                    // ADDED: Custom styling to increase input height
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        minHeight: 48, // A common comfortable height for form fields
+                        paddingTop: 0,
+                        paddingBottom: 0,
+                      },
+                    }}
+                  >
+                    {allowedMonths.map((m) => (
+                      <MenuItem key={m} value={m}>
+                        {m}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    select
+                    label="Year"
+                    fullWidth
+                    value={year}
+                    onChange={(e) => setYear(Number(e.target.value))}
+                    size="small"
+                    // ADDED: Custom styling to increase input height
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        minHeight: 48, // Match the Month field height
+                        paddingTop: 0,
+                        paddingBottom: 0,
+                      },
+                    }}
+                  >
+                    {years.map((y) => (
+                      <MenuItem key={y} value={y}>
+                        {y}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+              </Grid>
+              {/* END MONTH/YEAR DROPDOWN UI */}
+
               <MDButton
                 variant="gradient"
                 color="info"
@@ -503,6 +599,9 @@ function UserDetailsPage() {
               >
                 {generatingPayslip ? "Generating..." : "Generate Payslip"}
               </MDButton>
+              <MDTypography variant="caption" color="text.secondary" mt={1}>
+                Only current or previous months can be selected.
+              </MDTypography>
             </MDBox>
           </Paper>
         </MDBox>

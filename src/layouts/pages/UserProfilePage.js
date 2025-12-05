@@ -392,7 +392,8 @@ function UserProfilePage() {
               Payslip
             </MDTypography>
 
-            <Grid container spacing={2} mb={2}>
+            {/* ADDED: sx prop to limit the overall width of the dropdown container */}
+            <Grid container spacing={2} mb={2} sx={{ maxWidth: 400, width: "100%" }}>
               {/* Month */}
               <Grid item xs={6}>
                 <TextField
@@ -402,7 +403,11 @@ function UserProfilePage() {
                   value={month}
                   onChange={(e) => setMonth(Number(e.target.value))}
                   sx={{
-                    "& .MuiInputBase-root": { minHeight: 40, paddingTop: 1, paddingBottom: 1 },
+                    "& .MuiInputBase-root": {
+                      minHeight: 48, // Taller size retained
+                      paddingTop: 0,
+                      paddingBottom: 0,
+                    },
                   }}
                 >
                   {allowedMonths.map((m) => (
@@ -422,7 +427,11 @@ function UserProfilePage() {
                   value={year}
                   onChange={(e) => setYear(Number(e.target.value))}
                   sx={{
-                    "& .MuiInputBase-root": { minHeight: 40, paddingTop: 1, paddingBottom: 1 },
+                    "& .MuiInputBase-root": {
+                      minHeight: 48, // Taller size retained
+                      paddingTop: 0,
+                      paddingBottom: 0,
+                    },
                   }}
                 >
                   {years.map((y) => (
@@ -435,7 +444,6 @@ function UserProfilePage() {
             </Grid>
 
             <MDBox display="flex" alignItems="center" gap={2} mb={1}>
-              <ReceiptLongIcon sx={{ fontSize: 50, color: "info.main" }} />
               <MDButton
                 variant="gradient"
                 color="info"
