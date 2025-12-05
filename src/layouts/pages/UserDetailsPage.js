@@ -171,18 +171,33 @@ function UserDetailsPage() {
   };
 
   const handleGeneratePayslip = async () => {
-    if (!user_id) return;
+    if (!userData) return;
+
     setGeneratingPayslip(true);
     showAlert("Generating payslip...", "info");
-    try {
-      // NOTE: Replace this with your actual API call to trigger payslip generation/download
-      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      showAlert(`Payslip for ${userData.first_name} generated successfully!`, "success");
-      // Add logic here to handle the file download, if applicable.
+    try {
+      const params = { month, year }; // from dropdown selections
+      const res = await generateUserPayslipPdfApi(params);
+
+      if (res.ok) {
+        // Create a temporary link to download the blob
+        const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `Payslip_${month}_${year}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        showAlert(`Payslip for ${month}/${year} downloaded successfully!`, "success");
+      } else {
+        showAlert(res.data.message || "Failed to generate payslip", "error");
+      }
     } catch (err) {
       console.error(err);
-      showAlert("Failed to generate payslip. Server error.", "error");
+      showAlert("Server error while generating payslip", "error");
     } finally {
       setGeneratingPayslip(false);
     }
