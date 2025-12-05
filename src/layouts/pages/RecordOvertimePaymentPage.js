@@ -81,6 +81,12 @@ function RecordOvertimePaymentPage() {
       return;
     }
 
+    // Prevent future month/year
+    if (year > currentYear || (year === currentYear && month > currentMonth)) {
+      showAlert("Cannot record overtime for future months.", "warning");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -113,8 +119,14 @@ function RecordOvertimePaymentPage() {
     }
   };
 
+  // Month options dynamically based on selected year
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
+  const allowedMonths = year === currentYear ? months.filter((m) => m <= currentMonth) : months;
+
+  // Year options (cannot select future years)
+  const years = Array.from({ length: 6 }, (_, i) => currentYear - 5 + i).filter(
+    (y) => y <= currentYear
+  );
 
   return (
     <DashboardLayout>
@@ -209,7 +221,7 @@ function RecordOvertimePaymentPage() {
                       },
                     }}
                   >
-                    {months.map((m) => (
+                    {allowedMonths.map((m) => (
                       <MenuItem key={m} value={m}>
                         {m}
                       </MenuItem>

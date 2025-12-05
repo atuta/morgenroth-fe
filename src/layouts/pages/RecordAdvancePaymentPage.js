@@ -36,7 +36,7 @@ function RecordAdvancePaymentPage() {
   const navigate = useNavigate();
 
   const user_id = state?.user_id;
-  const photo = state?.photo; // Get photo from state
+  const photo = state?.photo;
 
   const now = new Date();
   const currentMonth = now.getMonth() + 1; // JS months 0-11
@@ -67,8 +67,15 @@ function RecordAdvancePaymentPage() {
 
   const handleSave = async () => {
     if (!user_id) return;
+
     if (!amount || isNaN(amount) || Number(amount) <= 0) {
       showAlert("Please enter a valid amount.", "warning");
+      return;
+    }
+
+    // Prevent future month/year
+    if (year > currentYear || (year === currentYear && month > currentMonth)) {
+      showAlert("Cannot record advance payment for future months.", "warning");
       return;
     }
 
@@ -102,8 +109,14 @@ function RecordAdvancePaymentPage() {
     }
   };
 
+  // Month options dynamically based on selected year
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i); // 5 years back + 5 years forward
+  const allowedMonths = year === currentYear ? months.filter((m) => m <= currentMonth) : months;
+
+  // Year options (cannot select future years)
+  const years = Array.from({ length: 6 }, (_, i) => currentYear - 5 + i).filter(
+    (y) => y <= currentYear
+  );
 
   return (
     <DashboardLayout>
@@ -113,7 +126,6 @@ function RecordAdvancePaymentPage() {
         <MDBox sx={{ maxWidth: "600px", margin: "0 auto 0 0" }}>
           <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
             <MDBox display="flex" alignItems="center" gap={3} flexWrap="wrap">
-              {/* Avatar */}
               <Avatar
                 src={photo ? `${Configs.baseUrl}${photo}` : DEFAULT_AVATAR}
                 sx={{ width: 80, height: 80 }}
@@ -175,13 +187,13 @@ function RecordAdvancePaymentPage() {
                     onChange={(e) => setMonth(Number(e.target.value))}
                     sx={{
                       "& .MuiInputBase-root": {
-                        minHeight: 40, // adjust height as needed
+                        minHeight: 40,
                         paddingTop: 1,
                         paddingBottom: 1,
                       },
                     }}
                   >
-                    {months.map((m) => (
+                    {allowedMonths.map((m) => (
                       <MenuItem key={m} value={m}>
                         {m}
                       </MenuItem>
@@ -199,7 +211,7 @@ function RecordAdvancePaymentPage() {
                     onChange={(e) => setYear(Number(e.target.value))}
                     sx={{
                       "& .MuiInputBase-root": {
-                        minHeight: 40, // adjust height as needed
+                        minHeight: 40,
                         paddingTop: 1,
                         paddingBottom: 1,
                       },
