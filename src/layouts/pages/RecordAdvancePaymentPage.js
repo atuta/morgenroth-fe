@@ -9,7 +9,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
 
 // Icons
-import AttachMoneyIcon from "@mui/icons-material/AttachMoneyOutlined";
+import PaymentsIcon from "@mui/icons-material/Payments";
 import EventNoteIcon from "@mui/icons-material/EventNoteOutlined";
 
 // Material Dashboard 2 React components
@@ -149,8 +149,8 @@ function RecordAdvancePaymentPage() {
                   <TextField
                     label={
                       <MDBox display="flex" alignItems="center">
-                        <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
-                        Amount
+                        <PaymentsIcon fontSize="small" sx={{ mr: 1 }} />
+                        Amount (KES)
                       </MDBox>
                     }
                     fullWidth
