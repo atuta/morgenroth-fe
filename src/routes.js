@@ -17,6 +17,7 @@ import UserDetailsPage from "layouts/pages/UserDetailsPage";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
 
+import UserAdvancesPage from "layouts/pages/UserAdvancesPage";
 import AllOvertimesPage from "layouts/pages/AllOvertimesPage";
 import AllAdvancesPage from "layouts/pages/AllAdvancesPage";
 import AdminUserAttendanceDetails from "layouts/pages/AdminUserAttendanceDetails";
@@ -203,6 +204,13 @@ const routes = [
         key: "my-attendance",
         route: "/my-attendance",
         component: <UserAttendanceHistory />,
+      },
+      {
+        type: "collapse",
+        name: "My Advance Payments",
+        key: "my-advance-payments",
+        route: "/my-advance-payments",
+        component: <UserAdvancesPage />,
       },
       {
         type: "collapse",
