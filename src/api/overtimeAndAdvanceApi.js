@@ -227,6 +227,7 @@ export const getAllAdvancesUserApi = async (params) => {
 export const getAllAdvancesAdminApi = async (params) => {
   try {
     const response = await axiosInstance.get(Configs.apiAllAdvancesEp, { params });
+    console.log("Api Response: ", response);
     return { ok: true, status: response.status, data: response.data };
   } catch (error) {
     if (error.response)

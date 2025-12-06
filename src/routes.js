@@ -17,6 +17,7 @@ import UserDetailsPage from "layouts/pages/UserDetailsPage";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
 
+import AllAdvancesPage from "layouts/pages/AllAdvancesPage";
 import AdminUserAttendanceDetails from "layouts/pages/AdminUserAttendanceDetails";
 import UserAttendanceHistory from "layouts/pages/UserAttendanceHistory";
 import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
@@ -98,7 +99,7 @@ const routes = [
         name: "Advance Payments",
         key: "advance-payments",
         route: "/advance-payments",
-        component: <ClockPage />,
+        component: <AllAdvancesPage />,
       },
       {
         type: "collapse",
