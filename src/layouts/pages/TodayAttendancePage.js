@@ -1,6 +1,7 @@
 // File: TodayAttendancePage.js
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -10,12 +11,12 @@ import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Avatar from "@mui/material/Avatar";
 import CircularProgress from "@mui/material/CircularProgress";
+import InputAdornment from "@mui/material/InputAdornment";
+import SearchIcon from "@mui/icons-material/Search";
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import InputAdornment from "@mui/material/InputAdornment";
-import SearchIcon from "@mui/icons-material/Search";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -53,6 +54,8 @@ const calculateLiveHours = (clockIn) => {
 };
 
 function TodayAttendancePage() {
+  const navigate = useNavigate();
+
   const [attendanceList, setAttendanceList] = useState([]);
   const [filteredAttendance, setFilteredAttendance] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -131,7 +134,6 @@ function TodayAttendancePage() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        {/* Full-width Card Container */}
         <MDBox p={3} mb={3} width="100%" bgColor="white" borderRadius="lg">
           <MDTypography variant="h5" fontWeight="bold" mb={2}>
             Today&apos;s Attendance
@@ -140,28 +142,23 @@ function TodayAttendancePage() {
           {/* Search Field */}
           <MDBox mb={2}>
             <TextField
-              // Keep the label as a simple string; MU will handle shrinking/disappearing
               label="Search by name, role, or status"
               fullWidth
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              // Use 'outlined' variant. The border appears on focus (click) and disappears when blurred.
               variant="outlined"
               InputProps={{
-                // Add the search icon as an adornment inside the input border
                 startAdornment: (
                   <InputAdornment position="start">
                     <SearchIcon color="action" />
                   </InputAdornment>
                 ),
-                // Keep the styling for background and border radius
                 sx: {
                   backgroundColor: "white",
                   borderRadius: 2,
                   "& input": { backgroundColor: "white" },
                 },
               }}
-              // Removed custom InputLabelProps to let MUI handle the label shrink/float animation
             />
           </MDBox>
 
@@ -176,8 +173,7 @@ function TodayAttendancePage() {
                   <TableCell sx={{ fontWeight: "bold", width: "8%", padding: "12px 8px" }}>
                     Photo
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>{" "}
-                  {/* Removed fixed width to allow natural expansion */}
+                  <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
                   <TableCell sx={{ fontWeight: "bold", width: "12%", textAlign: "center" }}>
                     Status
                   </TableCell>
@@ -225,7 +221,6 @@ function TodayAttendancePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          {/* Name content remains the same */}
                           <MDBox display="flex" flexDirection="column" alignItems="flex-start">
                             <MDTypography component="span" variant="body2">
                               {item.full_name}
@@ -263,7 +258,11 @@ function TodayAttendancePage() {
                             color="info"
                             size="small"
                             sx={{ minWidth: 100 }}
-                            href={`/user-details?user_id=${item.user_id}`}
+                            onClick={() =>
+                              navigate("/admin-user-attendance-details", {
+                                state: { user_id: item.user_id, full_name: item.full_name },
+                              })
+                            }
                           >
                             View Details
                           </MDButton>

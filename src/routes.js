@@ -17,6 +17,7 @@ import UserDetailsPage from "layouts/pages/UserDetailsPage";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
 
+import AdminUserAttendanceDetails from "layouts/pages/AdminUserAttendanceDetails";
 import UserAttendanceHistory from "layouts/pages/UserAttendanceHistory";
 import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
 import DeductionsPage from "layouts/pages/DeductionsPage";
@@ -122,6 +123,11 @@ const routes = [
         key: "clock-in",
         route: "/clock-in",
         component: <ClockPage />,
+      },
+      {
+        key: "admin-user-attendance-details",
+        route: "/admin-user-attendance-details",
+        component: <AdminUserAttendanceDetails />,
       },
       {
         type: "collapse",
