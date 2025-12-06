@@ -97,7 +97,7 @@ function UserAttendanceHistory() {
                 fullWidth
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
-                sx={{ "& .MuiInputBase-root": { minHeight: 48 } }}
+                sx={{ "& .MuiInputBase-root": { minHeight: 40 } }}
               >
                 {months.map((m) => (
                   <MenuItem key={m} value={m}>
@@ -114,7 +114,7 @@ function UserAttendanceHistory() {
                 fullWidth
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                sx={{ "& .MuiInputBase-root": { minHeight: 48 } }}
+                sx={{ "& .MuiInputBase-root": { minHeight: 40 } }}
               >
                 {years.map((y) => (
                   <MenuItem key={y} value={y}>
@@ -130,6 +130,7 @@ function UserAttendanceHistory() {
                 color="info"
                 onClick={fetchAttendance}
                 disabled={loading}
+                sx={{ minHeight: 40 }}
               >
                 {loading ? <CircularProgress size={20} color="white" /> : "Refresh"}
               </MDButton>
@@ -142,24 +143,36 @@ function UserAttendanceHistory() {
               <TableBody>
                 {/* Header Row */}
                 <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                  <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Check-In</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Check-Out</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", textAlign: "right" }}>Hours</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>
+                    <MDTypography variant="body2">Date</MDTypography>
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>
+                    <MDTypography variant="body2">Status</MDTypography>
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>
+                    <MDTypography variant="body2">Check-In</MDTypography>
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>
+                    <MDTypography variant="body2">Check-Out</MDTypography>
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "right" }}>
+                    <MDTypography variant="body2">Hours</MDTypography>
+                  </TableCell>
                 </TableRow>
 
                 {loading ? (
                   <TableRow>
                     <TableCell colSpan={COLUMN_COUNT} align="center">
                       <CircularProgress size={24} />
-                      <MDTypography mt={1}>Loading...</MDTypography>
+                      <MDTypography mt={1} variant="body2">
+                        Loading...
+                      </MDTypography>
                     </TableCell>
                   </TableRow>
                 ) : attendanceData.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={COLUMN_COUNT} align="center">
-                      <MDTypography>
+                      <MDTypography variant="body2">
                         No attendance records found for {month}/{year}.
                       </MDTypography>
                     </TableCell>
@@ -174,7 +187,9 @@ function UserAttendanceHistory() {
                       }}
                     >
                       <TableCell>
-                        <MDTypography>{format(new Date(record.date), "yyyy-MM-dd")}</MDTypography>
+                        <MDTypography variant="body2">
+                          {format(new Date(record.date), "yyyy-MM-dd")}
+                        </MDTypography>
                       </TableCell>
                       <TableCell>
                         <MDTypography
@@ -186,10 +201,14 @@ function UserAttendanceHistory() {
                         </MDTypography>
                       </TableCell>
                       <TableCell>
-                        <MDTypography>{formatTime(record.clock_in_time)}</MDTypography>
+                        <MDTypography variant="body2">
+                          {formatTime(record.clock_in_time)}
+                        </MDTypography>
                       </TableCell>
                       <TableCell>
-                        <MDTypography>{formatTime(record.clock_out_time)}</MDTypography>
+                        <MDTypography variant="body2">
+                          {formatTime(record.clock_out_time)}
+                        </MDTypography>
                       </TableCell>
                       <TableCell align="right">
                         <MDTypography variant="body2" fontWeight="bold" color="info">
