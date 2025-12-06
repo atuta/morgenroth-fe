@@ -162,3 +162,89 @@ export const getAllUserAdvancesAdminApi = async (data) => {
     return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
   }
 };
+
+// ==============
+
+// ---------------------------
+// Admin: Get All Overtime records
+// Expected optional params: { start_date: "YYYY-MM-DD", end_date: "YYYY-MM-DD" }
+export const getAllOvertimesAdminApi = async (params) => {
+  try {
+    const response = await axiosInstance.get(Configs.apiAllOvertimesEp, { params });
+    return { ok: true, status: response.status, data: response.data };
+  } catch (error) {
+    if (error.response)
+      return { ok: false, status: error.response.status, data: error.response.data };
+    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
+  }
+};
+
+// ---------------------------
+// User: Get own Overtime records
+// Expected optional params: { start_date: "YYYY-MM-DD", end_date: "YYYY-MM-DD" }
+export const getUserOvertimesApi = async (params) => {
+  try {
+    const response = await axiosInstance.get(Configs.apiUserOvertimesEp, { params });
+    return { ok: true, status: response.status, data: response.data };
+  } catch (error) {
+    if (error.response)
+      return { ok: false, status: error.response.status, data: error.response.data };
+    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
+  }
+};
+
+// ---------------------------
+// Admin: Get Overtime records for any user
+// Expected params: { user_id: "<uuid>", start_date: "YYYY-MM-DD", end_date: "YYYY-MM-DD" }
+export const getUserOvertimesAdminApi = async (params) => {
+  try {
+    const response = await axiosInstance.get(Configs.apiAdminUserOvertimesEp, { params });
+    return { ok: true, status: response.status, data: response.data };
+  } catch (error) {
+    if (error.response)
+      return { ok: false, status: error.response.status, data: error.response.data };
+    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
+  }
+};
+
+// ---------------------------
+// User: Get all advance payments
+// Expected optional params: { start_date: "YYYY-MM-DD", end_date: "YYYY-MM-DD" }
+export const getAllAdvancesUserApi = async (params) => {
+  try {
+    const response = await axiosInstance.get(Configs.apiUserAdvancesEp, { params });
+    return { ok: true, status: response.status, data: response.data };
+  } catch (error) {
+    if (error.response)
+      return { ok: false, status: error.response.status, data: error.response.data };
+    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
+  }
+};
+
+// ---------------------------
+// Admin: Get all advance payments
+// Expected optional params: { start_date: "YYYY-MM-DD", end_date: "YYYY-MM-DD" }
+export const getAllAdvancesAdminApi = async (params) => {
+  try {
+    const response = await axiosInstance.get(Configs.apiAllAdvancesEp, { params });
+    return { ok: true, status: response.status, data: response.data };
+  } catch (error) {
+    if (error.response)
+      return { ok: false, status: error.response.status, data: error.response.data };
+    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
+  }
+};
+
+// ---------------------------
+// Admin: Get advance payments for any user
+// Expected params: { user_id: "<uuid>", start_date: "YYYY-MM-DD", end_date: "YYYY-MM-DD" }
+export const getUserAdvancesAdminApi = async (params) => {
+  try {
+    const response = await axiosInstance.get(Configs.apiAdminUserAdvancesEp, { params });
+    return { ok: true, status: response.status, data: response.data };
+  } catch (error) {
+    if (error.response)
+      return { ok: false, status: error.response.status, data: error.response.data };
+    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
+  }
+};
