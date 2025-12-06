@@ -1,5 +1,6 @@
 // File: AllAdvancesPage.js
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -24,9 +25,10 @@ import CustomAlert from "../../components/CustomAlert";
 
 import { getAllAdvancesAdminApi } from "../../api/overtimeAndAdvanceApi";
 
-const COLUMN_COUNT = 5;
+const COLUMN_COUNT = 6; // incremented for Actions column
 
 function AllAdvancesPage() {
+  const navigate = useNavigate();
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
   const currentYear = today.getFullYear();
@@ -174,12 +176,14 @@ function AllAdvancesPage() {
           <TableContainer component={Paper} sx={{ maxHeight: 600, boxShadow: "none" }}>
             <Table stickyHeader aria-label="all advances table">
               <TableBody>
+                {/* Header */}
                 <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
                   <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Amount (KES)</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Month</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Year</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Remarks</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
                 </TableRow>
 
                 {loading ? (
@@ -214,6 +218,23 @@ function AllAdvancesPage() {
                       <TableCell>{advance.month}</TableCell>
                       <TableCell>{advance.year}</TableCell>
                       <TableCell>{advance.remarks || "-"}</TableCell>
+                      <TableCell>
+                        <MDButton
+                          variant="gradient"
+                          color="info"
+                          size="small"
+                          onClick={() =>
+                            navigate("/admin-user-advance-payments", {
+                              state: {
+                                user_id: advance.user_id,
+                                user_full_name: advance.user_full_name,
+                              },
+                            })
+                          }
+                        >
+                          View Details
+                        </MDButton>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

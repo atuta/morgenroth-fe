@@ -17,6 +17,8 @@ import UserDetailsPage from "layouts/pages/UserDetailsPage";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
 
+import AdminUserAdvancePaymentsPage from "layouts/pages/AdminUserAdvancePaymentsPage";
+import AdminUserOvertimesPage from "layouts/pages/AdminUserOvertimesPage";
 import UserOvertimesPage from "layouts/pages/UserOvertimesPage";
 import UserAdvancesPage from "layouts/pages/UserAdvancesPage";
 import AllOvertimesPage from "layouts/pages/AllOvertimesPage";
@@ -96,6 +98,16 @@ const routes = [
         key: "record-overtime-payments",
         route: "/record-overtime-payments",
         component: <RecordOvertimePaymentPage />,
+      },
+      {
+        key: "admin-user-advance-payments",
+        route: "/admin-user-advance-payments",
+        component: <AdminUserAdvancePaymentsPage />,
+      },
+      {
+        key: "admin-user-overtime-payments",
+        route: "/admin-user-overtime-payments",
+        component: <AdminUserOvertimesPage />,
       },
       {
         type: "collapse",

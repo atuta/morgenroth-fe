@@ -1,6 +1,6 @@
-// File: AllOvertimesPage.js
+// File: AdminUserAdvancePaymentsPage.js
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -23,12 +23,13 @@ import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import CustomAlert from "../../components/CustomAlert";
 
-import { getAllOvertimesAdminApi } from "../../api/overtimeAndAdvanceApi";
+import { getUserAdvancesAdminApi } from "../../api/overtimeAndAdvanceApi";
 
-const COLUMN_COUNT = 6; // incremented for Actions column
+const COLUMN_COUNT = 5;
 
-function AllOvertimesPage() {
-  const navigate = useNavigate();
+function AdminUserAdvancePaymentsPage() {
+  const location = useLocation();
+  const { user_id, user_full_name } = location.state || {};
 
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
@@ -39,8 +40,8 @@ function AllOvertimesPage() {
 
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(currentYear);
-  const [overtimes, setOvertimes] = useState([]);
-  const [filteredOvertimes, setFilteredOvertimes] = useState([]);
+  const [advances, setAdvances] = useState([]);
+  const [filteredAdvances, setFilteredAdvances] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -53,49 +54,51 @@ function AllOvertimesPage() {
     setAlertOpen(true);
   };
 
-  const fetchOvertimes = async () => {
+  const fetchAdvances = async () => {
+    if (!user_id) {
+      showAlert("No user specified", "error");
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await getAllOvertimesAdminApi({
+      const res = await getUserAdvancesAdminApi({
+        user_id,
         start_date: `${year}-${String(month).padStart(2, "0")}-01`,
         end_date: `${year}-${String(month).padStart(2, "0")}-31`,
       });
+
       if (res.ok && Array.isArray(res.data?.message)) {
-        setOvertimes(res.data.message);
-        setFilteredOvertimes(res.data.message);
+        setAdvances(res.data.message);
+        setFilteredAdvances(res.data.message);
       } else {
-        showAlert(res.data?.message || "Failed to load overtimes.", "error");
-        setOvertimes([]);
-        setFilteredOvertimes([]);
+        showAlert(res.data?.message || "Failed to load advances.", "error");
+        setAdvances([]);
+        setFilteredAdvances([]);
       }
     } catch (err) {
       console.error(err);
-      showAlert("Server error. Could not fetch overtimes.", "error");
-      setOvertimes([]);
-      setFilteredOvertimes([]);
+      showAlert("Server error. Could not fetch advances.", "error");
+      setAdvances([]);
+      setFilteredAdvances([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOvertimes();
-  }, [month, year]);
+    fetchAdvances();
+  }, [month, year, user_id]);
 
   useEffect(() => {
     if (!searchTerm) {
-      setFilteredOvertimes(overtimes);
+      setFilteredAdvances(advances);
       return;
     }
     const term = searchTerm.toLowerCase();
-    const result = overtimes.filter(
-      (o) =>
-        (o.user_full_name || "").toLowerCase().includes(term) ||
-        (o.user_email || "").toLowerCase().includes(term) ||
-        (o.remarks || "").toLowerCase().includes(term)
-    );
-    setFilteredOvertimes(result);
-  }, [searchTerm, overtimes]);
+    const result = advances.filter((a) => (a.remarks || "").toLowerCase().includes(term));
+    setFilteredAdvances(result);
+  }, [searchTerm, advances]);
 
   return (
     <DashboardLayout>
@@ -103,7 +106,7 @@ function AllOvertimesPage() {
       <MDBox py={3}>
         <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
           <MDTypography variant="h5" fontWeight="bold" mb={2}>
-            All Overtimes
+            Advances for {user_full_name || "User"}
           </MDTypography>
 
           {/* Filters */}
@@ -144,7 +147,7 @@ function AllOvertimesPage() {
 
             <Grid item xs={12} md={4}>
               <TextField
-                label="Search by employee, email, or remarks"
+                label="Search by remarks"
                 fullWidth
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -164,7 +167,7 @@ function AllOvertimesPage() {
               <MDButton
                 variant="gradient"
                 color="info"
-                onClick={fetchOvertimes}
+                onClick={fetchAdvances}
                 disabled={loading}
                 sx={{ minHeight: 48 }}
               >
@@ -175,16 +178,13 @@ function AllOvertimesPage() {
 
           {/* Table */}
           <TableContainer component={Paper} sx={{ maxHeight: 600, boxShadow: "none" }}>
-            <Table stickyHeader aria-label="all overtimes table">
+            <Table stickyHeader aria-label="user advances table">
               <TableBody>
-                {/* Header */}
                 <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                  <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Hours</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Amount (KES)</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Month</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Year</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Remarks</TableCell>
                 </TableRow>
 
                 {loading ? (
@@ -192,47 +192,32 @@ function AllOvertimesPage() {
                     <TableCell colSpan={COLUMN_COUNT} align="center">
                       <CircularProgress size={24} />
                       <MDTypography mt={1} variant="body2">
-                        Loading overtimes...
+                        Loading advances...
                       </MDTypography>
                     </TableCell>
                   </TableRow>
-                ) : filteredOvertimes.length === 0 ? (
+                ) : filteredAdvances.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={COLUMN_COUNT} align="center">
                       <MDTypography variant="body2">
-                        No overtimes found for {month}/{year}.
+                        No advances found for {month}/{year}.
                       </MDTypography>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredOvertimes.map((ot) => (
+                  filteredAdvances.map((advance) => (
                     <TableRow
-                      key={ot.overtime_id}
+                      key={advance.advance_id}
                       sx={{ "&:hover": { backgroundColor: "#f9f9f9" } }}
                     >
-                      <TableCell>{ot.user_full_name || "N/A"}</TableCell>
-                      <TableCell>{ot.hours ?? 0}</TableCell>
                       <TableCell>
                         <MDTypography variant="body2" fontWeight="bold" color="info">
-                          KES {ot.amount ?? 0}
+                          KES {advance.amount ?? 0}
                         </MDTypography>
                       </TableCell>
-                      <TableCell>{ot.month}</TableCell>
-                      <TableCell>{ot.year}</TableCell>
-                      <TableCell>
-                        <MDButton
-                          variant="gradient"
-                          color="info"
-                          size="small"
-                          onClick={() =>
-                            navigate("/admin-user-overtime-payments", {
-                              state: { user_id: ot.user_id, user_full_name: ot.user_full_name },
-                            })
-                          }
-                        >
-                          View Details
-                        </MDButton>
-                      </TableCell>
+                      <TableCell>{advance.month}</TableCell>
+                      <TableCell>{advance.year}</TableCell>
+                      <TableCell>{advance.remarks || "-"}</TableCell>
                     </TableRow>
                   ))
                 )}
@@ -253,4 +238,4 @@ function AllOvertimesPage() {
   );
 }
 
-export default AllOvertimesPage;
+export default AdminUserAdvancePaymentsPage;
