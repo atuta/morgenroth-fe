@@ -1,6 +1,6 @@
 // File: RecordOvertimePaymentPage.js
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
@@ -34,14 +34,12 @@ const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
 
 function RecordOvertimePaymentPage() {
   const { state } = useLocation();
-  const navigate = useNavigate();
-
   const user_id = state?.user_id;
   const photo = state?.photo;
-  const fullName = state?.fullName || "";
+  const fullName = state?.full_name || "";
 
   const now = new Date();
-  const currentMonth = now.getMonth() + 1; // JS months 0-11
+  const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
   const [hours, setHours] = useState("");
@@ -50,6 +48,7 @@ function RecordOvertimePaymentPage() {
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(currentYear);
 
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const [alertOpen, setAlertOpen] = useState(false);
@@ -68,35 +67,42 @@ function RecordOvertimePaymentPage() {
     }
   }, [user_id]);
 
-  const handleSave = async () => {
-    if (!user_id) return;
+  const validateFields = () => {
+    const newErrors = {};
 
     if (!hours || isNaN(hours) || Number(hours) <= 0) {
-      showAlert("Please enter valid hours.", "warning");
-      return;
+      newErrors.hours = "Please enter valid hours.";
     }
 
     if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      showAlert("Please enter a valid amount.", "warning");
-      return;
+      newErrors.amount = "Please enter a valid amount.";
     }
 
-    // Prevent future month/year
-    if (year > currentYear || (year === currentYear && month > currentMonth)) {
-      showAlert("Cannot record overtime for future months.", "warning");
-      return;
+    if (!remarks || remarks.trim() === "") {
+      newErrors.remarks = "Remarks are required.";
     }
+
+    if (year > currentYear || (year === currentYear && month > currentMonth)) {
+      newErrors.date = "Cannot record overtime for future months.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = async () => {
+    if (!user_id) return;
+    if (!validateFields()) return;
 
     setLoading(true);
-
     try {
       const payload = {
         user_id,
         hours: Number(hours),
         amount: Number(amount),
-        remarks: remarks || "",
-        month: month ? Number(month) : undefined,
-        year: year ? Number(year) : undefined,
+        remarks: remarks.trim(),
+        month,
+        year,
       };
 
       const res = await recordOvertimeAdminApi(payload);
@@ -106,8 +112,6 @@ function RecordOvertimePaymentPage() {
         setHours("");
         setAmount("");
         setRemarks("");
-        setMonth(currentMonth);
-        setYear(currentYear);
       } else {
         showAlert(res.data?.message || "Failed to record overtime.", "error");
       }
@@ -118,15 +122,6 @@ function RecordOvertimePaymentPage() {
       setLoading(false);
     }
   };
-
-  // Month options dynamically based on selected year
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const allowedMonths = year === currentYear ? months.filter((m) => m <= currentMonth) : months;
-
-  // Year options (cannot select future years)
-  const years = Array.from({ length: 6 }, (_, i) => currentYear - 5 + i).filter(
-    (y) => y <= currentYear
-  );
 
   return (
     <DashboardLayout>
@@ -143,7 +138,7 @@ function RecordOvertimePaymentPage() {
               />
               <MDBox flexGrow={1} minWidth={200}>
                 <MDTypography variant="h5" fontWeight="bold" mb={1}>
-                  Overtime for {state?.full_name || "User"}
+                  Overtime for {fullName}
                 </MDTypography>
                 <MDTypography variant="body2" color="text">
                   Enter overtime details for the selected user
@@ -162,13 +157,16 @@ function RecordOvertimePaymentPage() {
                     label={
                       <MDBox display="flex" alignItems="center">
                         <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                        Hours
+                        Hours (Required)
                       </MDBox>
                     }
                     fullWidth
                     type="number"
                     value={hours}
                     onChange={(e) => setHours(e.target.value)}
+                    error={!!errors.hours}
+                    helperText={errors.hours}
+                    sx={{ "& .MuiOutlinedInput-root": { borderColor: errors.hours ? "red" : "" } }}
                   />
                 </Grid>
 
@@ -178,13 +176,16 @@ function RecordOvertimePaymentPage() {
                     label={
                       <MDBox display="flex" alignItems="center">
                         <PaymentsIcon fontSize="small" sx={{ mr: 1 }} />
-                        Amount (KES)
+                        Amount (KES) (Required)
                       </MDBox>
                     }
                     fullWidth
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
+                    error={!!errors.amount}
+                    helperText={errors.amount}
+                    sx={{ "& .MuiOutlinedInput-root": { borderColor: errors.amount ? "red" : "" } }}
                   />
                 </Grid>
 
@@ -194,7 +195,7 @@ function RecordOvertimePaymentPage() {
                     label={
                       <MDBox display="flex" alignItems="center">
                         <EventNoteIcon fontSize="small" sx={{ mr: 1 }} />
-                        Remarks
+                        Remarks (Required)
                       </MDBox>
                     }
                     fullWidth
@@ -202,6 +203,11 @@ function RecordOvertimePaymentPage() {
                     rows={3}
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
+                    error={!!errors.remarks}
+                    helperText={errors.remarks}
+                    sx={{
+                      "& .MuiOutlinedInput-root": { borderColor: errors.remarks ? "red" : "" },
+                    }}
                   />
                 </Grid>
 
@@ -213,20 +219,23 @@ function RecordOvertimePaymentPage() {
                     fullWidth
                     value={month}
                     onChange={(e) => setMonth(Number(e.target.value))}
+                    disabled
                     sx={{
-                      "& .MuiInputBase-root": {
-                        minHeight: 40,
+                      "& .MuiOutlinedInput-root": {
+                        minHeight: 48,
                         paddingTop: 1,
                         paddingBottom: 1,
+                        borderColor: errors.date ? "red" : "",
                       },
                     }}
                   >
-                    {allowedMonths.map((m) => (
-                      <MenuItem key={m} value={m}>
-                        {m}
-                      </MenuItem>
-                    ))}
+                    <MenuItem value={currentMonth}>{currentMonth}</MenuItem>
                   </TextField>
+                  {errors.date && (
+                    <MDTypography variant="caption" color="error">
+                      {errors.date}
+                    </MDTypography>
+                  )}
                 </Grid>
 
                 {/* Year */}
@@ -237,19 +246,17 @@ function RecordOvertimePaymentPage() {
                     fullWidth
                     value={year}
                     onChange={(e) => setYear(Number(e.target.value))}
+                    disabled
                     sx={{
-                      "& .MuiInputBase-root": {
-                        minHeight: 40,
+                      "& .MuiOutlinedInput-root": {
+                        minHeight: 48,
                         paddingTop: 1,
                         paddingBottom: 1,
+                        borderColor: errors.date ? "red" : "",
                       },
                     }}
                   >
-                    {years.map((y) => (
-                      <MenuItem key={y} value={y}>
-                        {y}
-                      </MenuItem>
-                    ))}
+                    <MenuItem value={currentYear}>{currentYear}</MenuItem>
                   </TextField>
                 </Grid>
               </Grid>

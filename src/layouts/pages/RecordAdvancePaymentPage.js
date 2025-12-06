@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
 
@@ -39,13 +38,14 @@ function RecordAdvancePaymentPage() {
   const photo = state?.photo;
 
   const now = new Date();
-  const currentMonth = now.getMonth() + 1; // JS months 0-11
+  const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [month, setMonth] = useState(currentMonth);
-  const [year, setYear] = useState(currentYear);
+
+  const [amountError, setAmountError] = useState("");
+  const [remarksError, setRemarksError] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -65,19 +65,30 @@ function RecordAdvancePaymentPage() {
     }
   }, [user_id]);
 
+  const validate = () => {
+    let valid = true;
+
+    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+      setAmountError("Amount must be a positive number");
+      valid = false;
+    } else {
+      setAmountError("");
+    }
+
+    if (!remarks.trim()) {
+      setRemarksError("Remarks are required");
+      valid = false;
+    } else {
+      setRemarksError("");
+    }
+
+    return valid;
+  };
+
   const handleSave = async () => {
     if (!user_id) return;
 
-    if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      showAlert("Please enter a valid amount.", "warning");
-      return;
-    }
-
-    // Prevent future month/year
-    if (year > currentYear || (year === currentYear && month > currentMonth)) {
-      showAlert("Cannot record advance payment for future months.", "warning");
-      return;
-    }
+    if (!validate()) return;
 
     setLoading(true);
 
@@ -85,9 +96,9 @@ function RecordAdvancePaymentPage() {
       const payload = {
         user_id,
         amount: Number(amount),
-        remarks: remarks || "",
-        month: month ? Number(month) : undefined,
-        year: year ? Number(year) : undefined,
+        remarks: remarks.trim(),
+        month: currentMonth,
+        year: currentYear,
       };
 
       const res = await createAdvanceAdminApi(payload);
@@ -96,8 +107,6 @@ function RecordAdvancePaymentPage() {
         showAlert("Advance payment recorded successfully!", "success");
         setAmount("");
         setRemarks("");
-        setMonth(currentMonth);
-        setYear(currentYear);
       } else {
         showAlert(res.data?.message || "Failed to record advance.", "error");
       }
@@ -108,15 +117,6 @@ function RecordAdvancePaymentPage() {
       setLoading(false);
     }
   };
-
-  // Month options dynamically based on selected year
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const allowedMonths = year === currentYear ? months.filter((m) => m <= currentMonth) : months;
-
-  // Year options (cannot select future years)
-  const years = Array.from({ length: 6 }, (_, i) => currentYear - 5 + i).filter(
-    (y) => y <= currentYear
-  );
 
   return (
     <DashboardLayout>
@@ -157,6 +157,18 @@ function RecordAdvancePaymentPage() {
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
+                    error={Boolean(amountError)}
+                    helperText={amountError}
+                    InputProps={{
+                      sx: {
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: amountError ? "red" : undefined,
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: amountError ? "red" : undefined,
+                        },
+                      },
+                    }}
                   />
                 </Grid>
 
@@ -166,7 +178,7 @@ function RecordAdvancePaymentPage() {
                     label={
                       <MDBox display="flex" alignItems="center">
                         <EventNoteIcon fontSize="small" sx={{ mr: 1 }} />
-                        Remarks
+                        Remarks (Required)
                       </MDBox>
                     }
                     fullWidth
@@ -174,55 +186,39 @@ function RecordAdvancePaymentPage() {
                     rows={3}
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
+                    error={Boolean(remarksError)}
+                    helperText={remarksError}
+                    InputProps={{
+                      sx: {
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: remarksError ? "red" : undefined,
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: remarksError ? "red" : undefined,
+                        },
+                      },
+                    }}
                   />
                 </Grid>
 
-                {/* Month */}
+                {/* Month (fixed) */}
                 <Grid item xs={6}>
                   <TextField
-                    select
                     label="Month"
                     fullWidth
-                    value={month}
-                    onChange={(e) => setMonth(Number(e.target.value))}
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        minHeight: 40,
-                        paddingTop: 1,
-                        paddingBottom: 1,
-                      },
-                    }}
-                  >
-                    {allowedMonths.map((m) => (
-                      <MenuItem key={m} value={m}>
-                        {m}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    value={currentMonth}
+                    InputProps={{ readOnly: true }}
+                  />
                 </Grid>
 
-                {/* Year */}
+                {/* Year (fixed) */}
                 <Grid item xs={6}>
                   <TextField
-                    select
                     label="Year"
                     fullWidth
-                    value={year}
-                    onChange={(e) => setYear(Number(e.target.value))}
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        minHeight: 40,
-                        paddingTop: 1,
-                        paddingBottom: 1,
-                      },
-                    }}
-                  >
-                    {years.map((y) => (
-                      <MenuItem key={y} value={y}>
-                        {y}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    value={currentYear}
+                    InputProps={{ readOnly: true }}
+                  />
                 </Grid>
               </Grid>
             </MDBox>
