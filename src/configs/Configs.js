@@ -41,6 +41,9 @@ const Configs = {
   apiTotalHoursEp: `${BASE_URL}/api/total-hours/`,
   apiGetTodayUserTimeSummaryEp: `${BASE_URL}/api/get-today-user-time-summary/`,
   apiCurrentSessionEp: `${BASE_URL}/api/attendance/current-session/`,
+  // New endpoints
+  apiUserAttendanceHistoryEp: `${BASE_URL}/api/attendance/history/`,
+  apiAdminUserAttendanceHistoryEp: `${BASE_URL}/api/attendance/admin/history/`,
 
   // Advance
   apiAdminCreateAdvanceEp: `${BASE_URL}/api/admin/advance/create/`,
@@ -48,6 +51,10 @@ const Configs = {
   apiGetAllUserAdvancesEp: `${BASE_URL}/api/advance/get-all/`,
   apiAdminGetUserAdvancesByMonthEp: `${BASE_URL}/api/admin/advance/get-by-month/`,
   apiAdminGetAllUserAdvancesEp: `${BASE_URL}/api/admin/advance/get-all/`,
+  // New endpoints
+  apiAllAdvancesEp: `${BASE_URL}/api/advances/all/`,
+  apiUserAdvancesEp: `${BASE_URL}/api/advances/user/`,
+  apiAdminUserAdvancesEp: `${BASE_URL}/api/advances/admin/user/`,
 
   // Overtime
   apiAdminRecordOvertimeEp: `${BASE_URL}/api/overtime/record/`,
@@ -55,6 +62,11 @@ const Configs = {
   apiGetAllUserOvertimeEp: `${BASE_URL}/api/overtime/get-all/`,
   apiAdminGetUserOvertimeByMonthEp: `${BASE_URL}/api/admin/overtime/get-by-month/`,
   apiAdminGetAllUserOvertimeEp: `${BASE_URL}/api/admin/overtime/get-all/`,
+
+  // New endpoints
+  apiAllOvertimesEp: `${BASE_URL}/api/overtimes/all/`,
+  apiUserOvertimesEp: `${BASE_URL}/api/overtimes/user/`,
+  apiAdminUserOvertimesEp: `${BASE_URL}/api/overtimes/admin/user/`,
 
   // Deduction
   apiSetDeductionEp: `${BASE_URL}/api/set-deduction/`,
