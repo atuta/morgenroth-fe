@@ -62,7 +62,6 @@ const Configs = {
   apiGetAllUserOvertimeEp: `${BASE_URL}/api/overtime/get-all/`,
   apiAdminGetUserOvertimeByMonthEp: `${BASE_URL}/api/admin/overtime/get-by-month/`,
   apiAdminGetAllUserOvertimeEp: `${BASE_URL}/api/admin/overtime/get-all/`,
-
   // New endpoints
   apiAllOvertimesEp: `${BASE_URL}/api/overtimes/all/`,
   apiUserOvertimesEp: `${BASE_URL}/api/overtimes/user/`,

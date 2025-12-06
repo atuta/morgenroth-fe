@@ -8,6 +8,7 @@ import Configs from "../configs/Configs";
 export const getUserAttendanceHistoryApi = async (params) => {
   try {
     const response = await axiosInstance.get(Configs.apiUserAttendanceHistoryEp, { params });
+    console.log("API Response:", response);
     return { ok: true, status: response.status, data: response.data };
   } catch (error) {
     if (error.response)

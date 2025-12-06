@@ -16,6 +16,8 @@ import UserProfilePage from "layouts/pages/UserProfilePage";
 import UserDetailsPage from "layouts/pages/UserDetailsPage";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
+
+import UserAttendanceHistory from "layouts/pages/UserAttendanceHistory";
 import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
 import DeductionsPage from "layouts/pages/DeductionsPage";
 import SignIn from "layouts/authentication/sign-in";
@@ -186,6 +188,13 @@ const routes = [
         key: "my-profile",
         route: "/my-profile",
         component: <UserProfilePage />,
+      },
+      {
+        type: "collapse",
+        name: "My Attendance",
+        key: "my-attendance",
+        route: "/my-attendance",
+        component: <UserAttendanceHistory />,
       },
       {
         type: "collapse",
