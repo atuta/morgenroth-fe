@@ -25,7 +25,7 @@ import CustomAlert from "../../components/CustomAlert";
 
 import { getAllAdvancesAdminApi } from "../../api/overtimeAndAdvanceApi";
 
-const COLUMN_COUNT = 6; // incremented for Actions column
+const COLUMN_COUNT = 7; // Incremented to include Approved By column and Actions
 
 function AllAdvancesPage() {
   const navigate = useNavigate();
@@ -179,6 +179,7 @@ function AllAdvancesPage() {
                 {/* Header */}
                 <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
                   <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Approved By</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Amount (KES)</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Month</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Year</TableCell>
@@ -210,6 +211,7 @@ function AllAdvancesPage() {
                       sx={{ "&:hover": { backgroundColor: "#f9f9f9" } }}
                     >
                       <TableCell>{advance.user_full_name || "N/A"}</TableCell>
+                      <TableCell>{advance.approved_by || "-"}</TableCell>
                       <TableCell>
                         <MDTypography variant="body2" fontWeight="bold" color="info">
                           KES {advance.amount ?? 0}

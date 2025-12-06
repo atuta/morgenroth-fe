@@ -25,7 +25,7 @@ import CustomAlert from "../../components/CustomAlert";
 
 import { getUserAdvancesAdminApi } from "../../api/overtimeAndAdvanceApi";
 
-const COLUMN_COUNT = 5;
+const COLUMN_COUNT = 6; // Incremented to include Approved By column
 
 function AdminUserAdvancePaymentsPage() {
   const location = useLocation();
@@ -180,11 +180,13 @@ function AdminUserAdvancePaymentsPage() {
           <TableContainer component={Paper} sx={{ maxHeight: 600, boxShadow: "none" }}>
             <Table stickyHeader aria-label="user advances table">
               <TableBody>
+                {/* Header */}
                 <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
                   <TableCell sx={{ fontWeight: "bold" }}>Amount (KES)</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Month</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Year</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Remarks</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Approved By</TableCell>
                 </TableRow>
 
                 {loading ? (
@@ -218,6 +220,7 @@ function AdminUserAdvancePaymentsPage() {
                       <TableCell>{advance.month}</TableCell>
                       <TableCell>{advance.year}</TableCell>
                       <TableCell>{advance.remarks || "-"}</TableCell>
+                      <TableCell>{advance.approved_by || "-"}</TableCell>
                     </TableRow>
                   ))
                 )}
