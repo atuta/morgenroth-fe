@@ -17,6 +17,7 @@ import UserDetailsPage from "layouts/pages/UserDetailsPage";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
 
+import UserOvertimesPage from "layouts/pages/UserOvertimesPage";
 import UserAdvancesPage from "layouts/pages/UserAdvancesPage";
 import AllOvertimesPage from "layouts/pages/AllOvertimesPage";
 import AllAdvancesPage from "layouts/pages/AllAdvancesPage";
@@ -211,6 +212,13 @@ const routes = [
         key: "my-advance-payments",
         route: "/my-advance-payments",
         component: <UserAdvancesPage />,
+      },
+      {
+        type: "collapse",
+        name: "My Overtime",
+        key: "my-overtime",
+        route: "/my-overtime",
+        component: <UserOvertimesPage />,
       },
       {
         type: "collapse",
