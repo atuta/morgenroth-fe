@@ -477,10 +477,6 @@ function UserDetailsPage() {
             <Grid container alignItems="center" justifyContent="space-between" spacing={2}>
               <Grid item xs={12} sm={6}>
                 <MDBox display="flex" alignItems="center">
-                  <EventBusyIcon
-                    fontSize="large"
-                    sx={{ mr: 1, color: is_on_leave ? "error.main" : "text.secondary" }}
-                  />
                   <MDTypography variant="body1">
                     Current Status:
                     <MDTypography

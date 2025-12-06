@@ -83,11 +83,11 @@ function TodayAttendancePage() {
 
         const normalizedData = attendanceData.map((item) => ({
           user_id: item.user_id || "",
-          full_name: item.full_name || "",
+          full_name: item.full_name || "-",
           user_role: item.user_role || "-",
-          earliest_clock_in: item.earliest_clock_in || "-",
-          latest_clock_out: item.latest_clock_out || "open",
-          total_hours: item.total_hours_worked ?? 0,
+          earliest_clock_in: item.earliest_clock_in || null,
+          latest_clock_out: item.latest_clock_out || null,
+          total_hours: item.total_hours_worked != null ? item.total_hours_worked : null,
           photo: item.user_photo_url || DEFAULT_AVATAR,
           status: item.latest_session_status || "open",
         }));
@@ -242,15 +242,21 @@ function TodayAttendancePage() {
                           </MDTypography>
                         </TableCell>
                         <TableCell align="center" sx={{ width: "15%" }}>
-                          {formatTime(item.earliest_clock_in)}
+                          {item.earliest_clock_in ? formatTime(item.earliest_clock_in) : "-"}
                         </TableCell>
                         <TableCell align="center" sx={{ width: "15%" }}>
-                          {item.latest_clock_out === "open"
-                            ? "open"
-                            : formatTime(item.latest_clock_out)}
+                          {item.latest_clock_out
+                            ? item.latest_clock_out === "open"
+                              ? "open"
+                              : formatTime(item.latest_clock_out)
+                            : "-"}
                         </TableCell>
                         <TableCell align="center" sx={{ width: "15%" }}>
-                          {isOpen ? calculateLiveHours(item.earliest_clock_in) : item.total_hours}
+                          {isOpen
+                            ? calculateLiveHours(item.earliest_clock_in)
+                            : item.total_hours != null
+                            ? Number(item.total_hours).toFixed(2)
+                            : "-"}
                         </TableCell>
                         <TableCell align="center" sx={{ width: "15%" }}>
                           <MDButton

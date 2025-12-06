@@ -208,7 +208,7 @@ function AdminUserAttendanceDetails() {
                       >
                         <TableCell>
                           <MDTypography variant="body2">
-                            {format(new Date(record.date), "yyyy-MM-dd")}
+                            {record.date ? format(new Date(record.date), "yyyy-MM-dd") : "-"}
                           </MDTypography>
                         </TableCell>
                         <TableCell>
@@ -217,7 +217,7 @@ function AdminUserAttendanceDetails() {
                             fontWeight="bold"
                             color={record.status === "closed" ? "success" : "warning"}
                           >
-                            {record.status.toUpperCase()}
+                            {record.status ? record.status.toUpperCase() : "-"}
                           </MDTypography>
                         </TableCell>
                         <TableCell>
@@ -232,7 +232,9 @@ function AdminUserAttendanceDetails() {
                         </TableCell>
                         <TableCell align="right">
                           <MDTypography variant="body2" fontWeight="bold" color="info">
-                            {record.total_hours.toFixed(2)}
+                            {record.total_hours != null
+                              ? Number(record.total_hours).toFixed(2)
+                              : "-"}
                           </MDTypography>
                         </TableCell>
                       </TableRow>
