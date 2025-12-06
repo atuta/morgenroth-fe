@@ -201,23 +201,35 @@ function RecordAdvancePaymentPage() {
                   />
                 </Grid>
 
-                {/* Month (fixed) */}
+                {/* Month (read-only & unclickable) */}
                 <Grid item xs={6}>
                   <TextField
                     label="Month"
                     fullWidth
                     value={currentMonth}
-                    InputProps={{ readOnly: true }}
+                    InputProps={{
+                      readOnly: true,
+                      sx: {
+                        minHeight: 56,
+                        "& input": { pointerEvents: "none", color: "text.primary" }, // unclickable & normal text color
+                      },
+                    }}
                   />
                 </Grid>
 
-                {/* Year (fixed) */}
+                {/* Year (read-only & unclickable) */}
                 <Grid item xs={6}>
                   <TextField
                     label="Year"
                     fullWidth
                     value={currentYear}
-                    InputProps={{ readOnly: true }}
+                    InputProps={{
+                      readOnly: true,
+                      sx: {
+                        minHeight: 56,
+                        "& input": { pointerEvents: "none", color: "text.primary" }, // unclickable & normal text color
+                      },
+                    }}
                   />
                 </Grid>
               </Grid>
