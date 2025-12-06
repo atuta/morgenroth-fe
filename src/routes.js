@@ -17,6 +17,7 @@ import UserDetailsPage from "layouts/pages/UserDetailsPage";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
 
+import AllOvertimesPage from "layouts/pages/AllOvertimesPage";
 import AllAdvancesPage from "layouts/pages/AllAdvancesPage";
 import AdminUserAttendanceDetails from "layouts/pages/AdminUserAttendanceDetails";
 import UserAttendanceHistory from "layouts/pages/UserAttendanceHistory";
@@ -106,7 +107,7 @@ const routes = [
         name: "Overtime Payments",
         key: "overtime-payments",
         route: "/overtime-payments",
-        component: <ClockPage />,
+        component: <AllOvertimesPage />,
       },
     ],
   },
