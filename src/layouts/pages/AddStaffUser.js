@@ -20,9 +20,11 @@ import addUserApi from "../../api/addUserApi";
 // Custom alert
 import CustomAlert from "../../components/CustomAlert";
 
+// UPDATED: New User Role Choices
 const USER_ROLE_CHOICES = [
   { value: "admin", label: "Admin" },
-  { value: "teacher", label: "Teacher" },
+  { value: "office", label: "Office Staff" }, // Changed label for clarity
+  { value: "teaching", label: "Teaching Staff" }, // Changed label for clarity
   { value: "subordinate", label: "Subordinate Staff" },
 ];
 
@@ -87,9 +89,11 @@ function AddStaffUser() {
     };
 
     try {
+      // Assuming addUserApi handles the data correctly
       const response = await addUserApi(data);
       if (response.status === "success") {
         showAlert("Staff user added successfully!", "success");
+        // Clear all fields on success
         setFirstName("");
         setLastName("");
         setEmail("");
@@ -100,9 +104,11 @@ function AddStaffUser() {
         setRole("");
         setErrors({});
       } else {
+        // Handle server-side validation/message
         showAlert(response.message || "Failed to add user", "error");
       }
     } catch (err) {
+      console.error(err);
       showAlert("Server error, try again", "error");
     } finally {
       setLoading(false);
