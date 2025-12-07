@@ -24,8 +24,12 @@ import loginApi from "../../../api/loginApi";
 // assets
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 
+import { useUserContext } from "context/UserContext";
+
 function Basic() {
   const navigate = useNavigate();
+  const { updateUser } = useUserContext();
+
   const [rememberMe, setRememberMe] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -47,39 +51,29 @@ function Basic() {
 
     setLoading(true);
 
-    try {
-      const response = await loginApi({ username, password });
-      console.log("LOGIN API RESPONSE:", response);
+    const response = await loginApi({ username, password });
 
-      if (response.status === "success") {
-        const { access_token, refresh_token, user_id, user_role, full_name } = response.data;
+    console.log("LOGIN API RESPONSE:", response);
 
-        // Store tokens in localStorage
-        localStorage.setItem("accessToken", access_token);
-        localStorage.setItem("refreshToken", refresh_token);
+    setLoading(false);
 
-        // Store user in localStorage
-        localStorage.setItem("user", JSON.stringify({ user_id, user_role, full_name }));
+    if (response.status === "success") {
+      // Store tokens in localStorage
+      localStorage.setItem("accessToken", response.data.access_token);
+      localStorage.setItem("refreshToken", response.data.refresh_token);
 
-        toast.success("Login successful", { duration: 2000 });
+      // Store full user data in localStorage and update context
+      updateUser(response.data);
 
-        // Navigate to dashboard
-        navigate("/dashboard");
-      } else {
-        toast.error(response?.message || "Login Failed", {
-          duration: 3000,
-          style: { background: "#ff4d4f", color: "#fff", fontSize: "12px" },
-        });
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      toast.error("Login Failed. Please try again.", {
-        duration: 3000,
-        style: { background: "#ff4d4f", color: "#fff", fontSize: "12px" },
-      });
-    } finally {
-      setLoading(false);
+      toast.success("Login successful", { duration: 2000 });
+      navigate("/dashboard");
+      return;
     }
+
+    toast.error(response?.message || "Login Failed", {
+      duration: 3000,
+      style: { background: "#ff4d4f", color: "#fff", fontSize: "12px" },
+    });
   };
 
   return (
@@ -87,15 +81,29 @@ function Basic() {
       <Toaster position="top-center" />
 
       <MDBox position="relative" zIndex={10} mb={4} textAlign="center">
-        <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-          Morgenroth Schulhaus
-        </MDTypography>
-        <MDTypography variant="h6" fontWeight="medium" color="white" mt={1}>
-          Sign In
-        </MDTypography>
+        {/* Logo and title placeholders */}
       </MDBox>
 
       <Card>
+        <MDBox
+          variant="gradient"
+          bgColor="info"
+          borderRadius="lg"
+          coloredShadow="info"
+          mx={2}
+          mt={-3}
+          p={2}
+          mb={1}
+          textAlign="center"
+        >
+          <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
+            Morgenroth Schulhaus
+          </MDTypography>
+          <MDTypography variant="h6" fontWeight="medium" color="white" mt={1}>
+            Sign In
+          </MDTypography>
+        </MDBox>
+
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form" onSubmit={handleSignIn}>
             <MDBox mb={2}>
@@ -116,6 +124,7 @@ function Basic() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+
               <span
                 onClick={() => setShowPass(!showPass)}
                 style={{

@@ -1,31 +1,36 @@
-// File: context/UserContext.js
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // Holds full user object
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
+  const [user, setUser] = useState(() => {
+    // Initialize user from localStorage if available
     const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (err) {
-        console.error("Failed to parse user from localStorage:", err);
-        setUser(null);
-      }
-    } else {
-      setUser(null);
-    }
+  const [loading, setLoading] = useState(false); // No API fetch anymore
 
-    setLoading(false);
-  }, []);
+  // Function to update user in context and localStorage
+  const updateUser = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
 
-  return <UserContext.Provider value={{ user, loading }}>{children}</UserContext.Provider>;
+  // Function to logout user
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+  };
+
+  return (
+    <UserContext.Provider value={{ user, updateUser, logout, loading }}>
+      {children}
+    </UserContext.Provider>
+  );
 };
 
 UserProvider.propTypes = {
