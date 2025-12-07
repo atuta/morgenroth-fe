@@ -1,23 +1,30 @@
 // File: src/layouts/dashboard/index.js
 import React, { useEffect, useState } from "react";
+// Import PropTypes for prop validation
+import PropTypes from "prop-types";
 import Grid from "@mui/material/Grid";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
+// Import Typography and Icon components
+import Typography from "@mui/material/Typography";
+import Icon from "@mui/material/Icon";
 
 import MDBox from "components/MDBox";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
+// Renamed/Custom component is imported
+import ReportsStatCard from "./ReportsStatCard";
 import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 
-import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
-import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
-
 import getAdminDashboardMetricsApi from "api/getAdminDashboardMetricsApi";
+
+// --- REMOVED: IconDescriptionContent / BlankChartContent components ---
+// We no longer need these components as ReportsStatCard now handles rendering the icon/text internally.
+// --- END REMOVED SECTION ---
 
 function Dashboard() {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
@@ -29,7 +36,6 @@ function Dashboard() {
   const currentYear = today.getFullYear();
 
   const allowedMonths = Array.from({ length: 12 }, (_, i) => i + 1);
-  // Get the last 10 years, starting from the current year, and sort them oldest to newest
   const allowedYears = Array.from({ length: 10 }, (_, i) => currentYear - i).sort((a, b) => a - b);
 
   // Handle month/year change
@@ -63,12 +69,11 @@ function Dashboard() {
   const attendance = metrics?.attendance_metrics || {};
   const payroll = metrics?.payroll_metrics || {};
 
-  // --- Start of Percentage Calculation Logic ---
+  // --- Percentage Calculation Logic (Retained) ---
   const totalStaff = attendance?.all_users_count || 0;
 
   const calculatePercentage = (count) => {
     if (totalStaff === 0) return 0;
-    // Calculate (count / total) * 100, then format to 1 decimal place
     return ((count / totalStaff) * 100).toFixed(1);
   };
 
@@ -81,7 +86,7 @@ function Dashboard() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        {/* --- Month / Year Selectors --- */}
+        {/* --- Month / Year Selectors (Retained) --- */}
         <MDBox mb={3} display="flex" gap={2} flexWrap="wrap">
           <FormControl sx={{ minWidth: 120 }}>
             <InputLabel>Month</InputLabel>
@@ -116,7 +121,7 @@ function Dashboard() {
           </FormControl>
         </MDBox>
 
-        {/* --- Statistics Cards --- */}
+        {/* --- Statistics Cards (Retained) --- */}
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
@@ -126,7 +131,7 @@ function Dashboard() {
                 title="Total Staff"
                 count={totalStaff}
                 percentage={{
-                  color: "dark", // Changed color to dark/info as 100% isn't success/failure
+                  color: "dark",
                   amount: "100%",
                   label: "Total Employee Base",
                 }}
@@ -141,7 +146,6 @@ function Dashboard() {
                 title="Staff Present"
                 count={attendance?.present_count || 0}
                 percentage={{
-                  // Dynamic Calculation
                   color: "success",
                   amount: `${presentPercentage}%`,
                   label: "present today",
@@ -157,8 +161,7 @@ function Dashboard() {
                 title="Staff Absent"
                 count={attendance?.absent_count || 0}
                 percentage={{
-                  // Dynamic Calculation
-                  color: "error", // Using 'error' for absent staff
+                  color: "error",
                   amount: `${absentPercentage}%`,
                   label: "absent today",
                 }}
@@ -173,7 +176,6 @@ function Dashboard() {
                 title="Staff on Leave"
                 count={attendance?.on_leave_count || 0}
                 percentage={{
-                  // Dynamic Calculation
                   color: "info",
                   amount: `${leavePercentage}%`,
                   label: "on scheduled leave",
@@ -183,51 +185,61 @@ function Dashboard() {
           </Grid>
         </Grid>
 
-        {/* --- Charts --- */}
+        {/* --- Payroll Summary Cards (Using new ReportsStatCard props) --- */}
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
+            {/* 1. Total Salary Card */}
             <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
-                <ReportsBarChart
+                <ReportsStatCard
                   color="info"
-                  title={`Total Salary - KES ${payroll?.total_salary?.toLocaleString() || "0.00"}`}
-                  description="Total salary computed for the month"
+                  title="Total Salary"
+                  description="Monthly computed salary metrics."
                   date="computed 2 hours ago"
-                  chart={reportsBarChartData}
+                  // NEW PROPS
+                  icon="paid"
+                  amount={`KES ${payroll?.total_salary?.toLocaleString() || "0.00"}`}
+                  headerDescription="Total gross amount before deductions."
                 />
               </MDBox>
             </Grid>
+
+            {/* 2. Advance Payment Card */}
             <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
-                <ReportsLineChart
+                <ReportsStatCard
                   color="success"
-                  title={`Advance Payment - KES ${
-                    payroll?.total_advance?.toLocaleString() || "0.00"
-                  }`}
+                  title="Advance Payment"
                   description={
                     <>
                       (<strong>+15%</strong>) of the total salary computed.
                     </>
                   }
                   date="updated 4 min ago"
-                  chart={reportsLineChartData.sales}
+                  // NEW PROPS
+                  icon="receipt_long"
+                  amount={`KES ${payroll?.total_advance?.toLocaleString() || "0.00"}`}
+                  headerDescription="Total advance payments disbursed this month."
                 />
               </MDBox>
             </Grid>
+
+            {/* 3. Total Net Due Card */}
             <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
-                <ReportsLineChart
+                <ReportsStatCard
                   color="dark"
-                  title={`Total Net Due - KES ${
-                    payroll?.total_net_due?.toLocaleString() || "0.00"
-                  }`}
+                  title="Total Net Due"
                   description={
                     <>
                       (<strong>+85%</strong>) of the total salary computed.
                     </>
                   }
                   date="just updated"
-                  chart={reportsLineChartData.tasks}
+                  // NEW PROPS
+                  icon="payments"
+                  amount={`KES ${payroll?.total_net_due?.toLocaleString() || "0.00"}`}
+                  headerDescription="The final amount payable to employees."
                 />
               </MDBox>
             </Grid>
