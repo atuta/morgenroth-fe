@@ -60,9 +60,11 @@ function UserAttendanceHistory() {
       const startDate = format(new Date(year, month - 1, 1), "yyyy-MM-dd");
       const endDate = format(new Date(year, month, 0), "yyyy-MM-dd");
 
+      // Assuming getUserAttendanceHistoryApi is set up correctly to handle the date range
       const res = await getUserAttendanceHistoryApi({ start_date: startDate, end_date: endDate });
 
       if (res.ok) {
+        // Ensure data is an array before setting
         setAttendanceData(res.data.message || []);
       } else {
         showAlert(res.data.message || "Failed to fetch attendance", "error");
@@ -210,9 +212,12 @@ function UserAttendanceHistory() {
                           {formatTime(record.clock_out_time)}
                         </MDTypography>
                       </TableCell>
+
+                      {/* --- FIX APPLIED HERE --- */}
                       <TableCell align="right">
                         <MDTypography variant="body2" fontWeight="bold" color="info">
-                          {record.total_hours.toFixed(2)}
+                          {/* Only call toFixed(2) if total_hours is not null/undefined */}
+                          {record.total_hours ? record.total_hours.toFixed(2) : "-"}
                         </MDTypography>
                       </TableCell>
                     </TableRow>

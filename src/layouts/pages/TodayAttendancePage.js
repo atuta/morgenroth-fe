@@ -13,6 +13,11 @@ import Avatar from "@mui/material/Avatar";
 import CircularProgress from "@mui/material/CircularProgress";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
+// Import components for the magnification feature (Modal/Dialog)
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -28,7 +33,7 @@ import Configs from "../../configs/Configs";
 import getTodayUserTimeSummaryApi from "../../api/getTodayUserTimeSummaryApi";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=40";
-const COLUMN_COUNT = 7;
+const COLUMN_COUNT = 8;
 
 const formatTime = (isoString) => {
   if (!isoString || isoString === "open") return isoString || "-";
@@ -65,10 +70,26 @@ function TodayAttendancePage() {
   const [alertSeverity, setAlertSeverity] = useState("info");
   const [tick, setTick] = useState(0);
 
+  // State for the image magnification modal
+  const [openImageModal, setOpenImageModal] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState("");
+
   const showAlert = (message, severity = "info") => {
     setAlertMessage(message);
     setAlertSeverity(severity);
     setAlertOpen(true);
+  };
+
+  // Handler for opening the image modal
+  const handleImageClick = (imageUrl) => {
+    setModalImageUrl(imageUrl);
+    setOpenImageModal(true);
+  };
+
+  // Handler for closing the image modal
+  const handleCloseImageModal = () => {
+    setOpenImageModal(false);
+    setModalImageUrl("");
   };
 
   useEffect(() => {
@@ -90,6 +111,7 @@ function TodayAttendancePage() {
           total_hours: item.total_hours_worked != null ? item.total_hours_worked : null,
           photo: item.user_photo_url || DEFAULT_AVATAR,
           status: item.latest_session_status || "open",
+          clock_in_photo: item.latest_clock_in_photo_url || null,
         }));
 
         setAttendanceList(normalizedData);
@@ -109,10 +131,13 @@ function TodayAttendancePage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTick((prev) => prev + 1);
+      const needsTick = attendanceList.some((item) => item.status === "open");
+      if (needsTick) {
+        setTick((prev) => prev + 1);
+      }
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [attendanceList]);
 
   useEffect(() => {
     if (!searchTerm) {
@@ -173,20 +198,23 @@ function TodayAttendancePage() {
                   <TableCell sx={{ fontWeight: "bold", width: "8%", padding: "12px 8px" }}>
                     Photo
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", width: "12%", textAlign: "center" }}>
+                  <TableCell sx={{ fontWeight: "bold" }}>Names</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "center" }}>
+                    Clock-In Photo
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", width: "10%", textAlign: "center" }}>
                     Status
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
+                  <TableCell sx={{ fontWeight: "bold", width: "13%", textAlign: "center" }}>
                     Clock In
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
+                  <TableCell sx={{ fontWeight: "bold", width: "13%", textAlign: "center" }}>
                     Clock Out
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
+                  <TableCell sx={{ fontWeight: "bold", width: "13%", textAlign: "center" }}>
                     Total Hours
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", width: "15%", textAlign: "center" }}>
+                  <TableCell sx={{ fontWeight: "bold", width: "13%", textAlign: "center" }}>
                     Actions
                   </TableCell>
                 </TableRow>
@@ -211,6 +239,10 @@ function TodayAttendancePage() {
                 ) : (
                   filteredAttendance.map((item) => {
                     const isOpen = item.status === "open";
+                    const clockInPhotoUrl = item.clock_in_photo
+                      ? `${Configs.baseUrl}${item.clock_in_photo}`
+                      : null;
+
                     return (
                       <TableRow key={item.user_id}>
                         <TableCell sx={{ padding: "8px 8px", width: "8%" }}>
@@ -232,7 +264,34 @@ function TodayAttendancePage() {
                             )}
                           </MDBox>
                         </TableCell>
-                        <TableCell align="center" sx={{ width: "12%" }}>
+
+                        {/* --- Clock-In Photo with Rounded Square and Click Feature --- */}
+                        <TableCell align="center" sx={{ width: "10%" }}>
+                          {clockInPhotoUrl ? (
+                            <MDBox
+                              component="img"
+                              src={clockInPhotoUrl}
+                              alt={`${item.full_name} clock in`}
+                              onClick={() => handleImageClick(clockInPhotoUrl)}
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 1.5, // Nice rounded corners (e.g., 6px)
+                                objectFit: "cover",
+                                cursor: "pointer", // Indicate clickability
+                                transition: "transform 0.2s",
+                                "&:hover": { transform: "scale(1.05)" },
+                              }}
+                            />
+                          ) : (
+                            <MDTypography variant="caption" color="text">
+                              N/A
+                            </MDTypography>
+                          )}
+                        </TableCell>
+                        {/* ----------------------------------------- */}
+
+                        <TableCell align="center" sx={{ width: "10%" }}>
                           <MDTypography
                             variant="body2"
                             color={isOpen ? "success" : "text"}
@@ -241,24 +300,24 @@ function TodayAttendancePage() {
                             {item.status}
                           </MDTypography>
                         </TableCell>
-                        <TableCell align="center" sx={{ width: "15%" }}>
+                        <TableCell align="center" sx={{ width: "13%" }}>
                           {item.earliest_clock_in ? formatTime(item.earliest_clock_in) : "-"}
                         </TableCell>
-                        <TableCell align="center" sx={{ width: "15%" }}>
+                        <TableCell align="center" sx={{ width: "13%" }}>
                           {item.latest_clock_out
                             ? item.latest_clock_out === "open"
                               ? "open"
                               : formatTime(item.latest_clock_out)
                             : "-"}
                         </TableCell>
-                        <TableCell align="center" sx={{ width: "15%" }}>
+                        <TableCell align="center" sx={{ width: "13%" }}>
                           {isOpen
                             ? calculateLiveHours(item.earliest_clock_in)
                             : item.total_hours != null
                             ? Number(item.total_hours).toFixed(2)
                             : "-"}
                         </TableCell>
-                        <TableCell align="center" sx={{ width: "15%" }}>
+                        <TableCell align="center" sx={{ width: "13%" }}>
                           <MDButton
                             variant="gradient"
                             color="info"
@@ -282,6 +341,42 @@ function TodayAttendancePage() {
           </TableContainer>
         </MDBox>
       </MDBox>
+
+      {/* --- Image Magnification Dialog/Modal --- */}
+      <Dialog open={openImageModal} onClose={handleCloseImageModal} maxWidth="md" fullWidth>
+        <DialogContent sx={{ p: 1, position: "relative" }}>
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseImageModal}
+            sx={{
+              position: "absolute",
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+              zIndex: 10,
+              backgroundColor: "rgba(255, 255, 255, 0.7)",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 1)",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+          {modalImageUrl && (
+            <img
+              src={modalImageUrl}
+              alt="Magnified Clock-In"
+              style={{
+                width: "100%",
+                height: "auto",
+                display: "block",
+                borderRadius: "4px",
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+      {/* --------------------------------------- */}
 
       <CustomAlert
         message={alertMessage}
