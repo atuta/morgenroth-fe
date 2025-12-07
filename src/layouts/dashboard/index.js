@@ -1,19 +1,5 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// @mui material components
+// File: src/layouts/dashboard/index.js
+import React, { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
 
 // Material Dashboard 2 React components
@@ -27,14 +13,45 @@ import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
 import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 
-// Data
+// Data (you can keep your charts data here)
 import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
 import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 
-// Dashboard components (NOTE: Projects and OrdersOverview imports have been removed)
+// API
+import getAdminDashboardMetricsApi from "../../api/getAdminDashboardMetricsApi";
 
 function Dashboard() {
-  const { sales, tasks } = reportsLineChartData;
+  const [metrics, setMetrics] = useState({
+    attendance_metrics: {
+      all_users_count: 0,
+      present_count: 0,
+      absent_count: 0,
+      on_leave_count: 0,
+    },
+    payroll_metrics: {
+      total_salary: 0,
+      total_advance: 0,
+      total_net_due: 0,
+    },
+    loading: true,
+  });
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const res = await getAdminDashboardMetricsApi();
+        if (res.status === 200 && res.data.status === "success") {
+          setMetrics({ ...res.data, loading: false });
+        }
+      } catch (e) {
+        console.error("Failed to fetch dashboard metrics", e);
+      }
+    };
+
+    fetchMetrics();
+  }, []);
+
+  const { attendance_metrics, payroll_metrics } = metrics;
 
   return (
     <DashboardLayout>
@@ -48,7 +65,7 @@ function Dashboard() {
                 color="dark"
                 icon="weekend"
                 title="Total Staff"
-                count={1}
+                count={attendance_metrics.all_users_count}
                 percentage={{
                   color: "success",
                   amount: "+0%",
@@ -63,7 +80,7 @@ function Dashboard() {
                 color="success"
                 icon="leaderboard"
                 title="Staff Present"
-                count="0"
+                count={attendance_metrics.present_count}
                 percentage={{
                   color: "success",
                   amount: "+0%",
@@ -78,7 +95,7 @@ function Dashboard() {
                 color="primary"
                 icon="store"
                 title="Staff Absent"
-                count="0"
+                count={attendance_metrics.absent_count}
                 percentage={{
                   color: "success",
                   amount: "+0%",
@@ -92,8 +109,8 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="info"
                 icon="person_add"
-                title="SMS Balance"
-                count="0"
+                title="Staff on Leave"
+                count={attendance_metrics.on_leave_count}
                 percentage={{
                   color: "success",
                   amount: "",
@@ -111,9 +128,9 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsBarChart
                   color="info"
-                  title="Total Salary - KES 0.00"
+                  title={`Total Salary - KES ${payroll_metrics.total_salary.toFixed(2)}`}
                   description="Total salary computed for the month"
-                  date="camputed 2 hours ago"
+                  date="computed recently"
                   chart={reportsBarChartData}
                 />
               </MDBox>
@@ -122,14 +139,22 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="success"
-                  title="Advance Payment - KES 0.00"
+                  title={`Advance Payment - KES ${payroll_metrics.total_advance.toFixed(2)}`}
                   description={
                     <>
-                      (<strong>+15%</strong>) of the total salary computed.
+                      (
+                      <strong>
+                        {(
+                          (payroll_metrics.total_advance / payroll_metrics.total_salary) *
+                          100
+                        ).toFixed(1)}
+                        %
+                      </strong>
+                      ) of the total salary computed.
                     </>
                   }
-                  date="updated 4 min ago"
-                  chart={sales}
+                  date="updated recently"
+                  chart={reportsLineChartData.sales}
                 />
               </MDBox>
             </Grid>
@@ -137,22 +162,27 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="dark"
-                  title="Total Net Due - KES 0.00"
+                  title={`Total Net Due - KES ${payroll_metrics.total_net_due.toFixed(2)}`}
                   description={
                     <>
-                      (<strong>+85%</strong>) of the total salary computed.
+                      (
+                      <strong>
+                        {(
+                          (payroll_metrics.total_net_due / payroll_metrics.total_salary) *
+                          100
+                        ).toFixed(1)}
+                        %
+                      </strong>
+                      ) of the total salary computed.
                     </>
                   }
                   date="just updated"
-                  chart={tasks}
+                  chart={reportsLineChartData.tasks}
                 />
               </MDBox>
             </Grid>
           </Grid>
         </MDBox>
-
-        {/* --- Removed Projects and OrdersOverview Section --- */}
-        {/* The entire MDBox block containing Projects and OrdersOverview has been removed. */}
       </MDBox>
       <Footer />
     </DashboardLayout>

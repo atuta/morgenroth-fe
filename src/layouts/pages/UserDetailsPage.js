@@ -367,7 +367,7 @@ function UserDetailsPage() {
                 <MDBox display="flex" alignItems="center" mb={3}>
                   <EventAvailableIcon fontSize="small" sx={{ mr: 1, color: "success.main" }} />
                   <MDTypography component="span" variant="body2" fontWeight="bold">
-                    Present Today:
+                    Present Now:
                   </MDTypography>
                   <MDTypography component="span" variant="body2" ml={0.5}>
                     {is_present_today ? "Yes" : "No"}
