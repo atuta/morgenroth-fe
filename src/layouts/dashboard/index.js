@@ -29,7 +29,8 @@ function Dashboard() {
   const currentYear = today.getFullYear();
 
   const allowedMonths = Array.from({ length: 12 }, (_, i) => i + 1);
-  const allowedYears = Array.from({ length: 10 }, (_, i) => currentYear - i).reverse();
+  // Get the last 10 years, starting from the current year, and sort them oldest to newest
+  const allowedYears = Array.from({ length: 10 }, (_, i) => currentYear - i).sort((a, b) => a - b);
 
   // Handle month/year change
   const handleMonthChange = (e) => setMonth(Number(e.target.value));
@@ -61,6 +62,20 @@ function Dashboard() {
 
   const attendance = metrics?.attendance_metrics || {};
   const payroll = metrics?.payroll_metrics || {};
+
+  // --- Start of Percentage Calculation Logic ---
+  const totalStaff = attendance?.all_users_count || 0;
+
+  const calculatePercentage = (count) => {
+    if (totalStaff === 0) return 0;
+    // Calculate (count / total) * 100, then format to 1 decimal place
+    return ((count / totalStaff) * 100).toFixed(1);
+  };
+
+  const presentPercentage = calculatePercentage(attendance?.present_count || 0);
+  const absentPercentage = calculatePercentage(attendance?.absent_count || 0);
+  const leavePercentage = calculatePercentage(attendance?.on_leave_count || 0);
+  // --- End of Percentage Calculation Logic ---
 
   return (
     <DashboardLayout>
@@ -107,13 +122,13 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="dark"
-                icon="weekend"
+                icon="group"
                 title="Total Staff"
-                count={attendance?.all_users_count || 0}
+                count={totalStaff}
                 percentage={{
-                  color: "success",
-                  amount: "+0%",
-                  label: "this month",
+                  color: "dark", // Changed color to dark/info as 100% isn't success/failure
+                  amount: "100%",
+                  label: "Total Employee Base",
                 }}
               />
             </MDBox>
@@ -122,12 +137,13 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="success"
-                icon="leaderboard"
+                icon="check_circle"
                 title="Staff Present"
                 count={attendance?.present_count || 0}
                 percentage={{
+                  // Dynamic Calculation
                   color: "success",
-                  amount: "+0%",
+                  amount: `${presentPercentage}%`,
                   label: "present today",
                 }}
               />
@@ -137,13 +153,14 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="primary"
-                icon="store"
+                icon="cancel"
                 title="Staff Absent"
                 count={attendance?.absent_count || 0}
                 percentage={{
-                  color: "success",
-                  amount: "+0%",
-                  label: "today",
+                  // Dynamic Calculation
+                  color: "error", // Using 'error' for absent staff
+                  amount: `${absentPercentage}%`,
+                  label: "absent today",
                 }}
               />
             </MDBox>
@@ -152,13 +169,14 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="info"
-                icon="person_add"
+                icon="flight_takeoff"
                 title="Staff on Leave"
                 count={attendance?.on_leave_count || 0}
                 percentage={{
-                  color: "success",
-                  amount: "",
-                  label: "Just updated",
+                  // Dynamic Calculation
+                  color: "info",
+                  amount: `${leavePercentage}%`,
+                  label: "on scheduled leave",
                 }}
               />
             </MDBox>
