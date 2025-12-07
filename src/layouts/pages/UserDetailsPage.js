@@ -8,7 +8,7 @@ import TextField from "@mui/material/TextField";
 import Paper from "@mui/material/Paper";
 import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import MenuItem from "@mui/material/MenuItem"; // ADDED: Required for dropdowns
+import MenuItem from "@mui/material/MenuItem";
 
 // Icons
 import EmailIcon from "@mui/icons-material/EmailOutlined";
@@ -32,9 +32,9 @@ import MDButton from "components/MDButton";
 
 import getUserDetailsApi from "../../api/getUserDetailsApi";
 import updateUserFieldsApi from "../../api/updateUserFieldsApi";
+import updateUserLeaveStatusApi from "../../api/updateUserLeaveStatusApi"; // NEW
 import CustomAlert from "../../components/CustomAlert";
 import Configs from "../../configs/Configs";
-// UPDATED IMPORT: Use the admin version of the payslip API
 import { adminGenerateUserPayslipPdfApi } from "../../api/payrollAndCompensationApi";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
@@ -61,7 +61,7 @@ function UserDetailsPage() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
 
-  // Payslip dropdown state (NEW STATE)
+  // Payslip dropdown state
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
   const currentYear = today.getFullYear();
@@ -119,13 +119,6 @@ function UserDetailsPage() {
     setSaving(true);
 
     try {
-      console.log("Captured values before API call:", {
-        user_id,
-        hourly_rate: editRate,
-        nssf: editNssf,
-        sha: editSha,
-      });
-
       const payload = {
         user_id,
         ...(editRate !== "" && { hourly_rate: editRate }),
@@ -133,14 +126,10 @@ function UserDetailsPage() {
         ...(editSha !== "" && { sha: editSha }),
       };
 
-      console.log("Payload sent to API:", payload);
-
       const res = await updateUserFieldsApi(payload);
 
       if (res.status === "success") {
         showAlert("User details updated successfully!", "success");
-
-        // Update displayed data to reflect last saved values
         setUserData((prev) => ({
           ...prev,
           hourly_rate: editRate,
@@ -162,13 +151,14 @@ function UserDetailsPage() {
     if (!user_id) return;
     const newLeaveStatus = event.target.checked;
 
-    // Optimistically update the UI
     setUserData((prev) => ({ ...prev, is_on_leave: newLeaveStatus }));
     setTogglingLeave(true);
 
     try {
-      // NOTE: Replace this with your actual API call to update the leave status
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await updateUserLeaveStatusApi({
+        user_id,
+        is_on_leave: newLeaveStatus, // service converts boolean -> "yes"/"no"
+      });
 
       showAlert(
         `User leave status updated to: ${newLeaveStatus ? "On Leave" : "Working"}`,
@@ -177,7 +167,7 @@ function UserDetailsPage() {
     } catch (err) {
       console.error(err);
       showAlert("Server error while updating leave status", "error");
-      setUserData((prev) => ({ ...prev, is_on_leave: !newLeaveStatus })); // Revert
+      setUserData((prev) => ({ ...prev, is_on_leave: !newLeaveStatus })); // revert
     } finally {
       setTogglingLeave(false);
     }
@@ -187,7 +177,6 @@ function UserDetailsPage() {
     if (!userData || !user_id) return;
 
     const todayDate = new Date();
-    // Prevent generating for future months
     if (
       year > todayDate.getFullYear() ||
       (year === todayDate.getFullYear() && month > todayDate.getMonth() + 1)
@@ -200,26 +189,18 @@ function UserDetailsPage() {
     showAlert("Generating payslip...", "info");
 
     try {
-      // 1. Pass user_id, month, and year
       const params = { user_id, month, year };
-
-      // 2. Use the Admin API endpoint
       const res = await adminGenerateUserPayslipPdfApi(params);
 
       if (res.ok) {
         const pdfBlob = new Blob([res.data], { type: "application/pdf" });
         const url = window.URL.createObjectURL(pdfBlob);
-
-        // 3. Construct filename including the employee's name (for admin clarity)
         const userFullName = `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
         const sanitizedName = userFullName.replace(/\s+/g, "_");
 
         const link = document.createElement("a");
         link.href = url;
-
-        // Use the download attribute to force download and set the file name
         link.setAttribute("download", `Payslip_${sanitizedName}_${month}_${year}.pdf`);
-
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -230,7 +211,6 @@ function UserDetailsPage() {
           "success"
         );
       } else {
-        // Error handling: need to read the blob error response (assuming server sends text/json on error)
         const errorText = await res.data.text();
         let errorMessage = "Failed to generate payslip";
         try {
@@ -282,21 +262,16 @@ function UserDetailsPage() {
 
       <MDBox py={3}>
         <MDBox sx={{ margin: "0 auto 0 0" }}>
-          {/* Back Button */}
           <MDButton variant="outlined" color="info" onClick={() => navigate(-1)} sx={{ mb: 2 }}>
             Back
           </MDButton>
 
-          {/* User Header */}
           <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
             <MDBox display="flex" alignItems="center" gap={3} flexWrap="wrap">
-              {/* Avatar */}
               <Avatar
                 src={photo ? `${Configs.baseUrl}${photo}` : DEFAULT_AVATAR}
                 sx={{ width: 80, height: 80 }}
               />
-
-              {/* User Info */}
               <MDBox flexGrow={1} minWidth={200}>
                 <MDTypography variant="h5" fontWeight="bold">
                   {first_name} {last_name}
@@ -308,7 +283,6 @@ function UserDetailsPage() {
                   {user_role} • {status}
                 </MDTypography>
 
-                {/* Action Buttons */}
                 <MDBox mt={2} display="flex" gap={2} flexWrap="wrap">
                   <MDButton
                     variant="outlined"
@@ -342,13 +316,10 @@ function UserDetailsPage() {
             </MDBox>
           </Paper>
 
-          {/* Staff Details Card (Form/Info) */}
+          {/* Staff Details Card */}
           <Paper elevation={0} sx={{ p: 3, borderRadius: "lg", mb: 3 }}>
-            {/* Grid container: Removed justifyContent="center" */}
             <Grid container spacing={3}>
-              {/* Main Content Column: Changed md={8} to xs={12} to ensure full width/left alignment */}
               <Grid item xs={12}>
-                {/* General Details - TOP */}
                 <MDTypography variant="body1" fontWeight="medium" mb={2}>
                   General Details
                 </MDTypography>
@@ -403,7 +374,6 @@ function UserDetailsPage() {
                   </MDTypography>
                 </MDBox>
 
-                {/* Financial & Statutory - BOTTOM */}
                 <MDTypography variant="body1" fontWeight="medium" mb={1} mt={3}>
                   Financial & Statutory (Editable)
                 </MDTypography>
@@ -451,7 +421,6 @@ function UserDetailsPage() {
                   sx={{ mb: 2 }}
                 />
 
-                {/* SAVE CHANGES BUTTON */}
                 <MDBox mt={2} display="flex" justifyContent="flex-start">
                   <MDButton
                     variant="gradient"
@@ -519,19 +488,13 @@ function UserDetailsPage() {
             </MDTypography>
           </Paper>
 
-          {/* Payslip Action Card - AT THE VERY BOTTOM */}
+          {/* Payslip Action Card */}
           <Paper elevation={0} sx={{ p: 3, borderRadius: "lg" }}>
-            <MDBox
-              display="flex"
-              flexDirection="column"
-              alignItems="flex-start"
-              justifyContent="flex-start"
-            >
+            <MDBox display="flex" flexDirection="column" alignItems="flex-start">
               <MDTypography variant="h6" fontWeight="bold" mb={2}>
                 Generate Payslip
               </MDTypography>
 
-              {/* MONTH/YEAR DROPDOWN UI (NEW) */}
               <Grid container spacing={2} mb={2} sx={{ maxWidth: 400, width: "100%" }}>
                 <Grid item xs={6}>
                   <TextField
@@ -541,13 +504,8 @@ function UserDetailsPage() {
                     value={month}
                     onChange={(e) => setMonth(Number(e.target.value))}
                     size="small"
-                    // ADDED: Custom styling to increase input height
                     sx={{
-                      "& .MuiInputBase-root": {
-                        minHeight: 48, // A common comfortable height for form fields
-                        paddingTop: 0,
-                        paddingBottom: 0,
-                      },
+                      "& .MuiInputBase-root": { minHeight: 48, paddingTop: 0, paddingBottom: 0 },
                     }}
                   >
                     {allowedMonths.map((m) => (
@@ -565,13 +523,8 @@ function UserDetailsPage() {
                     value={year}
                     onChange={(e) => setYear(Number(e.target.value))}
                     size="small"
-                    // ADDED: Custom styling to increase input height
                     sx={{
-                      "& .MuiInputBase-root": {
-                        minHeight: 48, // Match the Month field height
-                        paddingTop: 0,
-                        paddingBottom: 0,
-                      },
+                      "& .MuiInputBase-root": { minHeight: 48, paddingTop: 0, paddingBottom: 0 },
                     }}
                   >
                     {years.map((y) => (
@@ -582,7 +535,6 @@ function UserDetailsPage() {
                   </TextField>
                 </Grid>
               </Grid>
-              {/* END MONTH/YEAR DROPDOWN UI */}
 
               <MDButton
                 variant="gradient"
