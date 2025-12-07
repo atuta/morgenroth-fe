@@ -1,38 +1,23 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-*/
-
 import { useEffect, useState } from "react";
-
-// react-router-dom components
 import { useLocation, NavLink, useNavigate } from "react-router-dom";
-
-// prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
 
-// @mui material components
 import List from "@mui/material/List";
 import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
 import Icon from "@mui/material/Icon";
 import Collapse from "@mui/material/Collapse";
 
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 
-// Material Dashboard 2 React example components
 import SidenavCollapse from "examples/Sidenav/SidenavCollapse";
 import SidenavCollapseItem from "examples/Sidenav/SidenavCollapseItem";
 
-// Custom styles for the Sidenav
 import SidenavRoot from "examples/Sidenav/SidenavRoot";
 import sidenavLogoLabel from "examples/Sidenav/styles/sidenav";
 
-// Material Dashboard 2 React context
 import {
   useMaterialUIController,
   setMiniSidenav,
@@ -40,24 +25,25 @@ import {
   setWhiteSidenav,
 } from "context";
 
-// Toast
 import toast from "react-hot-toast";
+
+import { useUserContext } from "context/UserContext";
+import { filterRoutesByRole } from "utils/filterRoutesByRole";
 
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const navigate = useNavigate();
+  const { user } = useUserContext();
+  const allowedRoutes = filterRoutesByRole(routes, user?.user_role || "");
+
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = controller;
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
-  const [openCollapse, setOpenCollapse] = useState(""); // State to track TOP-LEVEL open/close
+  const [openCollapse, setOpenCollapse] = useState("");
 
   let textColor = "white";
-
-  if (transparentSidenav || (whiteSidenav && !darkMode)) {
-    textColor = "dark";
-  } else if (whiteSidenav && darkMode) {
-    textColor = "inherit";
-  }
+  if (transparentSidenav || (whiteSidenav && !darkMode)) textColor = "dark";
+  else if (whiteSidenav && darkMode) textColor = "inherit";
 
   const closeSidenav = () => setMiniSidenav(dispatch, true);
 
@@ -70,15 +56,13 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     window.addEventListener("resize", handleMiniSidenav);
     handleMiniSidenav();
     return () => window.removeEventListener("resize", handleMiniSidenav);
-  }, [dispatch, location]);
+  }, [dispatch, location, transparentSidenav, whiteSidenav]);
 
-  // Function to render only the TOP-LEVEL routes
-  const renderTopLevelRoutes = routes.map(
+  const renderTopLevelRoutes = allowedRoutes.map(
     ({ type, name, icon, title, noCollapse, key, href, route, collapse }) => {
       let returnValue;
 
       if (type === "collapse") {
-        // --- Handle Sign Out directly ---
         if (key === "sign-out") {
           return (
             <MDBox
@@ -96,12 +80,9 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           );
         }
 
-        // Logic to handle TOP-LEVEL nested routes
         if (collapse) {
           const isParentActive = collapse.some(({ key: nestedKey }) => nestedKey === collapseName);
-          const handleCollapse = () => {
-            setOpenCollapse((prevKey) => (prevKey === key ? "" : key));
-          };
+          const handleCollapse = () => setOpenCollapse((prev) => (prev === key ? "" : key));
 
           returnValue = (
             <MDBox key={key}>
@@ -111,7 +92,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
                 active={isParentActive}
                 noCollapse={noCollapse}
                 onClick={handleCollapse}
-                collapse={true}
+                collapse
                 open={openCollapse === key}
               />
               <Collapse in={openCollapse === key} timeout="auto" unmountOnExit>
@@ -120,7 +101,6 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             </MDBox>
           );
         } else {
-          // TOP-LEVEL leaf routes (not sign-out)
           returnValue = href ? (
             <Link
               href={href}
@@ -231,13 +211,11 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   );
 }
 
-// Setting default values for the props of Sidenav
 Sidenav.defaultProps = {
   color: "info",
   brand: "",
 };
 
-// Typechecking props for the Sidenav
 Sidenav.propTypes = {
   color: PropTypes.oneOf(["primary", "secondary", "info", "success", "warning", "error", "dark"]),
   brand: PropTypes.string,

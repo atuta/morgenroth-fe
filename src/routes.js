@@ -1,16 +1,19 @@
 /**
 =========================================================
-* Material Dashboard 2 React - v2.2.0
+* Material Dashboard 2 React - Routes with Role Access
 =========================================================
 */
 
-// Material Dashboard 2 React layouts
+import Icon from "@mui/material/Icon";
+
+// Layouts / Pages
 import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
 import Billing from "layouts/billing";
 import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
+
 import AddStaffUser from "layouts/pages/AddStaffUser";
 import UserProfilePage from "layouts/pages/UserProfilePage";
 import UserDetailsPage from "layouts/pages/UserDetailsPage";
@@ -33,32 +36,24 @@ import RecordOvertimePaymentPage from "layouts/pages/RecordOvertimePaymentPage";
 import RecordAdvancePaymentPage from "layouts/pages/RecordAdvancePaymentPage";
 import WorkingHoursPage from "layouts/pages/WorkingHoursPage";
 
-// @mui icons
-import Icon from "@mui/material/Icon";
-
 const routes = [
-  // --- ADMIN DASHBOARD Title ---
-  //   {
-  //     type: "title",
-  //     title: "Admin Dashboard",
-  //     key: "admin-dashboard-title",
-  //   },
+  // Dashboard
   {
     type: "collapse",
     name: "Dashboard",
     key: "dashboard",
     icon: <Icon fontSize="small">dashboard</Icon>,
-    route: "/dashboard", // ACTIVE ROUTE
+    route: "/dashboard",
     component: <Dashboard />,
+    userRoles: ["admin", "office", "teaching", "subordinate"],
   },
 
-  // --- Staff Management (Parent Link) ---
+  // Staff Management
   {
     type: "collapse",
     name: "Staff Management",
     key: "staff-management",
     icon: <Icon fontSize="small">group</Icon>,
-    // NOTE: Collapsible parent links do not need a route/component
     collapse: [
       {
         type: "collapse",
@@ -66,6 +61,7 @@ const routes = [
         key: "staff-add",
         route: "/add-staff-user",
         component: <AddStaffUser />,
+        userRoles: ["admin", "office"],
       },
       {
         type: "collapse",
@@ -73,16 +69,18 @@ const routes = [
         key: "users-list",
         route: "/users-list",
         component: <StaffListPage />,
+        userRoles: ["admin", "office"],
       },
       {
         key: "user-details",
         route: "/user-details",
         component: <UserDetailsPage />,
+        userRoles: ["admin", "office"],
       },
     ],
   },
 
-  // --- Salary and Payments (Parent Link) ---
+  // Salary and Payments
   {
     type: "collapse",
     name: "Salary and Payments",
@@ -93,21 +91,25 @@ const routes = [
         key: "record-advance-payments",
         route: "/record-advance-payments",
         component: <RecordAdvancePaymentPage />,
+        userRoles: ["admin", "office"],
       },
       {
         key: "record-overtime-payments",
         route: "/record-overtime-payments",
         component: <RecordOvertimePaymentPage />,
+        userRoles: ["admin", "office"],
       },
       {
         key: "admin-user-advance-payments",
         route: "/admin-user-advance-payments",
         component: <AdminUserAdvancePaymentsPage />,
+        userRoles: ["admin", "office"],
       },
       {
         key: "admin-user-overtime-payments",
         route: "/admin-user-overtime-payments",
         component: <AdminUserOvertimesPage />,
+        userRoles: ["admin", "office"],
       },
       {
         type: "collapse",
@@ -115,6 +117,7 @@ const routes = [
         key: "advance-payments",
         route: "/advance-payments",
         component: <AllAdvancesPage />,
+        userRoles: ["admin", "office"],
       },
       {
         type: "collapse",
@@ -122,11 +125,12 @@ const routes = [
         key: "overtime-payments",
         route: "/overtime-payments",
         component: <AllOvertimesPage />,
+        userRoles: ["admin", "office"],
       },
     ],
   },
 
-  // --- Attendance Reports (Parent Link) ---
+  // Attendance Reports
   {
     type: "collapse",
     name: "Attendance",
@@ -139,11 +143,13 @@ const routes = [
         key: "clock-in",
         route: "/clock-in",
         component: <ClockPage />,
+        userRoles: ["teaching", "subordinate"],
       },
       {
         key: "admin-user-attendance-details",
         route: "/admin-user-attendance-details",
         component: <AdminUserAttendanceDetails />,
+        userRoles: ["admin", "office"],
       },
       {
         type: "collapse",
@@ -151,23 +157,26 @@ const routes = [
         key: "attendance-summary",
         route: "/attendance-summary",
         component: <TodayAttendancePage />,
+        userRoles: ["admin", "office"],
       },
       {
         type: "collapse",
         name: "Verification Reports",
         key: "attendance-verification-reports",
-        route: "#", // DEAD LINK
+        route: "#",
+        userRoles: ["admin", "office"],
       },
       {
         type: "collapse",
         name: "Late/Absence Report",
         key: "attendance-late-absence",
-        route: "#", // DEAD LINK
+        route: "#",
+        userRoles: ["admin", "office"],
       },
     ],
   },
 
-  // --- System Settings (Parent Link) ---
+  // System Settings
   {
     type: "collapse",
     name: "System Settings",
@@ -180,12 +189,14 @@ const routes = [
         key: "set-working-hours",
         route: "/set-working-hours",
         component: <WorkingHoursPage />,
+        userRoles: ["admin", "office"],
       },
       {
         type: "collapse",
         name: "Verification Notifications",
         key: "settings-notifications",
-        route: "#", // DEAD LINK
+        route: "#",
+        userRoles: ["admin", "office"],
       },
       {
         type: "collapse",
@@ -193,11 +204,12 @@ const routes = [
         key: "set-statutory-deductions",
         route: "/set-statutory-deductions",
         component: <DeductionsPage />,
+        userRoles: ["admin", "office"],
       },
     ],
   },
 
-  // --- My Profile (Parent Link) ---
+  // My Profile
   {
     type: "collapse",
     name: "My Profile",
@@ -210,6 +222,7 @@ const routes = [
         key: "my-profile",
         route: "/my-profile",
         component: <UserProfilePage />,
+        userRoles: ["admin", "office", "teaching", "subordinate"],
       },
       {
         type: "collapse",
@@ -217,6 +230,7 @@ const routes = [
         key: "my-attendance",
         route: "/my-attendance",
         component: <UserAttendanceHistory />,
+        userRoles: ["teaching", "subordinate"],
       },
       {
         type: "collapse",
@@ -224,6 +238,7 @@ const routes = [
         key: "my-advance-payments",
         route: "/my-advance-payments",
         component: <UserAdvancesPage />,
+        userRoles: ["teaching", "subordinate"],
       },
       {
         type: "collapse",
@@ -231,17 +246,19 @@ const routes = [
         key: "my-overtime",
         route: "/my-overtime",
         component: <UserOvertimesPage />,
+        userRoles: ["teaching", "subordinate"],
       },
       {
         type: "collapse",
         name: "Change Password",
         key: "profile-change-password",
-        route: "#", // DEAD LINK
+        route: "#",
+        userRoles: ["admin", "office", "teaching", "subordinate"],
       },
     ],
   },
 
-  // --- User Manuals (Parent Link) ---
+  // User Manuals
   {
     type: "collapse",
     name: "User Manuals",
@@ -252,18 +269,20 @@ const routes = [
         type: "collapse",
         name: "Admin Manual",
         key: "manual-admin",
-        route: "#", // DEAD LINK
+        route: "#",
+        userRoles: ["admin", "office"],
       },
       {
         type: "collapse",
         name: "User Manual",
         key: "manual-user",
-        route: "#", // DEAD LINK
+        route: "#",
+        userRoles: ["teaching", "subordinate"],
       },
     ],
   },
 
-  // --- Sign Out (Standalone Link) ---
+  // Sign Out
   {
     type: "collapse",
     name: "Sign Out",
@@ -272,14 +291,6 @@ const routes = [
     route: "/authentication/sign-in",
     component: <SignIn />,
   },
-  //   {
-  //     type: "collapse",
-  //     name: "Sign In",
-  //     key: "sign-in",
-  //     icon: <Icon fontSize="small">login</Icon>,
-  //     route: "/authentication/sign-in",
-  //     component: <SignIn />,
-  //   },
 ];
 
 export default routes;
