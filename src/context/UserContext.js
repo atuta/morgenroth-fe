@@ -1,25 +1,22 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+// File: context/UserContext.js
+import { createContext, useContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import getLoggedInUserDetailsApi from "../api/getLoggedInUserDetailsApi"; // <- corrected path
+import getLoggedInUserDetailsApi from "../api/getLoggedInUserDetailsApi";
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // Holds full user object
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data, status } = await getLoggedInUserDetailsApi();
-        if (status === 200) {
-          setUser(data);
-        } else {
-          console.error("[UserContext] Failed to fetch user details:", data);
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("[UserContext] Error fetching user:", error);
+        const response = await getLoggedInUserDetailsApi();
+        // response.data.data contains the full user object
+        setUser(response.data.data);
+      } catch (err) {
+        console.error("Failed to fetch user details:", err);
         setUser(null);
       } finally {
         setLoading(false);
@@ -29,7 +26,7 @@ export const UserProvider = ({ children }) => {
     fetchUser();
   }, []);
 
-  return <UserContext.Provider value={{ user, setUser, loading }}>{children}</UserContext.Provider>;
+  return <UserContext.Provider value={{ user, loading }}>{children}</UserContext.Provider>;
 };
 
 UserProvider.propTypes = {
@@ -38,10 +35,6 @@ UserProvider.propTypes = {
 
 export const useUserContext = () => {
   const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUserContext must be used within a UserProvider");
-  }
+  if (!context) throw new Error("useUserContext must be used within a UserProvider");
   return context;
 };
-
-export default UserContext;
