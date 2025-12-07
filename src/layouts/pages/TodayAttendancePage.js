@@ -276,7 +276,7 @@ function TodayAttendancePage() {
                               sx={{
                                 width: 40,
                                 height: 40,
-                                borderRadius: 1.5, // Nice rounded corners (e.g., 6px)
+                                borderRadius: "50%",
                                 objectFit: "cover",
                                 cursor: "pointer", // Indicate clickability
                                 transition: "transform 0.2s",

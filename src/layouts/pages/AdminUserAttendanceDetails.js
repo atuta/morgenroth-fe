@@ -135,8 +135,7 @@ function AdminUserAttendanceDetails() {
                   fullWidth
                   value={month}
                   onChange={(e) => setMonth(Number(e.target.value))}
-                  // UPDATED: Match height of button
-                  sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                  sx={{ "& .MuiInputBase-root": { height: 45 } }}
                 >
                   {months.map((m) => (
                     <MenuItem key={m} value={m}>
@@ -153,8 +152,7 @@ function AdminUserAttendanceDetails() {
                   fullWidth
                   value={year}
                   onChange={(e) => setYear(Number(e.target.value))}
-                  // UPDATED: Match height of button
-                  sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                  sx={{ "& .MuiInputBase-root": { height: 45 } }}
                 >
                   {years.map((y) => (
                     <MenuItem key={y} value={y}>
@@ -170,8 +168,7 @@ function AdminUserAttendanceDetails() {
                   color="info"
                   onClick={fetchAttendance}
                   disabled={loading}
-                  // Ensure button height is fixed at 40px
-                  sx={{ height: 40 }}
+                  sx={{ height: 45 }}
                 >
                   {loading ? <CircularProgress size={20} color="white" /> : "Refresh"}
                 </MDButton>
@@ -184,7 +181,6 @@ function AdminUserAttendanceDetails() {
             <TableContainer component={Paper} sx={{ maxHeight: 600, boxShadow: "none" }}>
               <Table stickyHeader>
                 <TableBody>
-                  {/* Header Row */}
                   <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
                     <TableCell>
                       <MDTypography variant="body2">Date</MDTypography>
@@ -236,9 +232,8 @@ function AdminUserAttendanceDetails() {
                           </TableCell>
 
                           <TableCell>
-                            {/* UPDATED: Reduced size and removed bold */}
                             <MDTypography
-                              variant="caption" // Smaller size
+                              variant="caption"
                               color={record.status === "closed" ? "success" : "warning"}
                             >
                               {record.status?.toUpperCase() ?? "-"}
@@ -254,7 +249,7 @@ function AdminUserAttendanceDetails() {
                                 sx={{
                                   width: 40,
                                   height: 40,
-                                  borderRadius: 1.5,
+                                  borderRadius: "50%",
                                   cursor: "pointer",
                                   objectFit: "cover",
                                 }}
@@ -284,7 +279,7 @@ function AdminUserAttendanceDetails() {
         </MDBox>
       </MDBox>
 
-      {/* Image Magnification Dialog */}
+      {/* Image Modal */}
       <Dialog open={openImageModal} onClose={handleCloseImageModal} maxWidth="md" fullWidth>
         <DialogContent sx={{ p: 1, position: "relative" }}>
           <IconButton
