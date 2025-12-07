@@ -45,7 +45,7 @@ const routes = [
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
     component: <Dashboard />,
-    userRoles: ["admin", "office", "teaching", "subordinate"],
+    userRoles: ["admin"],
   },
 
   // Staff Management

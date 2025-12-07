@@ -66,7 +66,14 @@ function Basic() {
       updateUser(response.data);
 
       toast.success("Login successful", { duration: 2000 });
-      navigate("/dashboard");
+
+      // Redirect based on role
+      if (response.data.user_role === "admin") {
+        navigate("/dashboard");
+      } else {
+        navigate("/clock-in");
+      }
+
       return;
     }
 

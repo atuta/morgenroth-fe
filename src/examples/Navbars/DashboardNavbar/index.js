@@ -95,7 +95,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
               color={light || darkMode ? "white" : "dark"}
               sx={{ mr: 2 }}
             >
-              {user.full_name} ({user.user_role})
+              {user.full_name.toUpperCase()} ({user.user_role.toUpperCase()})
             </MDTypography>
 
             {/* Settings icon */}
