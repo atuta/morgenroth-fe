@@ -1,24 +1,13 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-*/
-
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // @mui material components
 import Card from "@mui/material/Card";
 import Switch from "@mui/material/Switch";
-import Grid from "@mui/material/Grid";
-import MuiLink from "@mui/material/Link";
 import CircularProgress from "@mui/material/CircularProgress";
 
 // icons
-import FacebookIcon from "@mui/icons-material/Facebook";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import GoogleIcon from "@mui/icons-material/Google";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
@@ -34,7 +23,6 @@ import loginApi from "../../../api/loginApi";
 
 // assets
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
-import logoImage from "assets/images/logo-ct.png";
 
 function Basic() {
   const navigate = useNavigate();
@@ -52,41 +40,46 @@ function Basic() {
     if (!username.trim() || !password.trim()) {
       toast.error("Username and password are required", {
         duration: 2500,
-        style: {
-          background: "#ff4d4f",
-          color: "#fff",
-          fontSize: "12px",
-        },
+        style: { background: "#ff4d4f", color: "#fff", fontSize: "12px" },
       });
       return;
     }
 
     setLoading(true);
 
-    const response = await loginApi({ username, password });
+    try {
+      const response = await loginApi({ username, password });
+      console.log("LOGIN API RESPONSE:", response);
 
-    console.log("LOGIN API RESPONSE:", response);
+      if (response.status === "success") {
+        const { access_token, refresh_token, user_id, user_role, full_name } = response.data;
 
-    setLoading(false);
+        // Store tokens in localStorage
+        localStorage.setItem("accessToken", access_token);
+        localStorage.setItem("refreshToken", refresh_token);
 
-    if (response.status === "success") {
-      // Store tokens in localStorage
-      localStorage.setItem("accessToken", response.data.access_token);
-      localStorage.setItem("refreshToken", response.data.refresh_token);
+        // Store user in localStorage
+        localStorage.setItem("user", JSON.stringify({ user_id, user_role, full_name }));
 
-      toast.success("Login successful", { duration: 2000 });
-      navigate("/dashboard");
-      return;
+        toast.success("Login successful", { duration: 2000 });
+
+        // Navigate to dashboard
+        navigate("/dashboard");
+      } else {
+        toast.error(response?.message || "Login Failed", {
+          duration: 3000,
+          style: { background: "#ff4d4f", color: "#fff", fontSize: "12px" },
+        });
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      toast.error("Login Failed. Please try again.", {
+        duration: 3000,
+        style: { background: "#ff4d4f", color: "#fff", fontSize: "12px" },
+      });
+    } finally {
+      setLoading(false);
     }
-
-    toast.error(response?.message || "Login Failed", {
-      duration: 3000,
-      style: {
-        background: "#ff4d4f",
-        color: "#fff",
-        fontSize: "12px",
-      },
-    });
   };
 
   return (
@@ -94,50 +87,15 @@ function Basic() {
       <Toaster position="top-center" />
 
       <MDBox position="relative" zIndex={10} mb={4} textAlign="center">
-        {/* <MDBox component="img" src={logoImage} alt="Morgenroth Logo" width="4rem" mb={1} /> */}
-
-        {/* <MDTypography variant="h3" fontWeight="bold" color="white" textAlign="center">
+        <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
           Morgenroth Schulhaus
-        </MDTypography> */}
+        </MDTypography>
+        <MDTypography variant="h6" fontWeight="medium" color="white" mt={1}>
+          Sign In
+        </MDTypography>
       </MDBox>
 
       <Card>
-        <MDBox
-          variant="gradient"
-          bgColor="info"
-          borderRadius="lg"
-          coloredShadow="info"
-          mx={2}
-          mt={-3}
-          p={2}
-          mb={1}
-          textAlign="center"
-        >
-          <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            Morgenroth Schulhaus
-          </MDTypography>
-          <MDTypography variant="h6" fontWeight="medium" color="white" mt={1}>
-            Sign In
-          </MDTypography>
-          {/* <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
-            <Grid item xs={2}>
-              <MDTypography component={MuiLink} href="#" variant="body1" color="white">
-                <FacebookIcon color="inherit" />
-              </MDTypography>
-            </Grid>
-            <Grid item xs={2}>
-              <MDTypography component={MuiLink} href="#" variant="body1" color="white">
-                <GitHubIcon color="inherit" />
-              </MDTypography>
-            </Grid>
-            <Grid item xs={2}>
-              <MDTypography component={MuiLink} href="#" variant="body1" color="white">
-                <GoogleIcon color="inherit" />
-              </MDTypography>
-            </Grid>
-          </Grid> */}
-        </MDBox>
-
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form" onSubmit={handleSignIn}>
             <MDBox mb={2}>
@@ -158,7 +116,6 @@ function Basic() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-
               <span
                 onClick={() => setShowPass(!showPass)}
                 style={{

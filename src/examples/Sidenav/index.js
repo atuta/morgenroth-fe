@@ -1,3 +1,4 @@
+// File: examples/Sidenav/index.js
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
@@ -6,6 +7,7 @@ import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
 import Icon from "@mui/material/Icon";
 import Collapse from "@mui/material/Collapse";
+
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
@@ -13,6 +15,7 @@ import SidenavCollapse from "examples/Sidenav/SidenavCollapse";
 import SidenavCollapseItem from "examples/Sidenav/SidenavCollapseItem";
 import SidenavRoot from "examples/Sidenav/SidenavRoot";
 import sidenavLogoLabel from "examples/Sidenav/styles/sidenav";
+
 import {
   useMaterialUIController,
   setMiniSidenav,
@@ -29,6 +32,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const [openCollapse, setOpenCollapse] = useState("");
   const { user, loading } = useUserContext();
 
+  // Determine text color for the sidenav
   let textColor = "white";
   if (transparentSidenav || (whiteSidenav && !darkMode)) textColor = "dark";
   else if (whiteSidenav && darkMode) textColor = "inherit";
@@ -46,40 +50,27 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     return () => window.removeEventListener("resize", handleMiniSidenav);
   }, [dispatch, transparentSidenav, whiteSidenav]);
 
-  if (loading) return null; // Wait until user data is ready
+  if (loading) return null; // Wait for user data
 
-  // Recursive filter to include only routes allowed for the user
+  // Recursive filter to include only routes allowed for the current user
   const filterRoutes = (routesArray) =>
     routesArray
       .map((route) => {
-        // If the route has children
+        // Handle parent routes with collapse
         if (route.collapse) {
           const filteredChildren = filterRoutes(route.collapse);
-          if (filteredChildren.length === 0) {
-            console.log(`[Sidenav] Excluding parent route ${route.key} (no allowed children)`);
-            return null; // Exclude parent if no children allowed
-          }
-          console.log(`[Sidenav] Including parent route ${route.key}`);
+          if (filteredChildren.length === 0) return null; // exclude parent with no allowed children
           return { ...route, collapse: filteredChildren };
         }
 
-        // Leaf route
-        if (route.userRoles && !route.userRoles.includes(user.user_role)) {
-          console.log(`[userRoles] ${route.userRoles} do not contain ${user.user_role}`);
-          console.log(`[Sidenav] Excluding route ${route.key} for role ${user.user_role}`);
-          return null;
-        }
+        // Leaf route: check userRoles
+        if (route.userRoles && !route.userRoles.includes(user.user_role)) return null;
 
-        console.log(`[Sidenav] Including route ${route.key} for role ${user.user_role}`);
         return route;
       })
       .filter(Boolean);
 
   const filteredRoutes = filterRoutes(routes);
-  console.log(
-    "[Sidenav] Final filtered routes:",
-    filteredRoutes.map((r) => r.key)
-  );
 
   // Recursive render
   const renderRoutes = (routesArray) =>
@@ -95,6 +86,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
               onClick={() => {
                 localStorage.removeItem("accessToken");
                 localStorage.removeItem("refreshToken");
+                localStorage.removeItem("user");
                 navigate("/authentication/sign-in");
                 toast.success("Logged out successfully", { duration: 2000 });
               }}
@@ -105,6 +97,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           );
         }
 
+        // Nested collapsible routes
         if (collapse) {
           const handleCollapse = () => setOpenCollapse((prev) => (prev === key ? "" : key));
           return (
@@ -123,6 +116,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           );
         }
 
+        // External links
         return href ? (
           <Link
             href={href}
@@ -185,8 +179,10 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           </MDBox>
         </MDBox>
       </MDBox>
+
       <Divider light />
       <List>{renderRoutes(filteredRoutes)}</List>
+
       <MDBox p={2} mt="auto">
         <MDButton
           component="a"

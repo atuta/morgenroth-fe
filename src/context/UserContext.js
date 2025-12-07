@@ -1,7 +1,6 @@
 // File: context/UserContext.js
 import { createContext, useContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import getLoggedInUserDetailsApi from "../api/getLoggedInUserDetailsApi";
 
 const UserContext = createContext();
 
@@ -10,20 +9,20 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await getLoggedInUserDetailsApi();
-        // response.data.data contains the full user object
-        setUser(response.data.data);
-      } catch (err) {
-        console.error("Failed to fetch user details:", err);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const storedUser = localStorage.getItem("user");
 
-    fetchUser();
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (err) {
+        console.error("Failed to parse user from localStorage:", err);
+        setUser(null);
+      }
+    } else {
+      setUser(null);
+    }
+
+    setLoading(false);
   }, []);
 
   return <UserContext.Provider value={{ user, loading }}>{children}</UserContext.Provider>;
