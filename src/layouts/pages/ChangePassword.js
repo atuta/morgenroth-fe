@@ -71,7 +71,7 @@ function ChangePassword() {
         setErrors({});
 
         if (user?.user_role === "admin") navigate("/dashboard");
-        else navigate("/clock-in");
+        else navigate("/clock-in-out");
       }
     } catch (error) {
       // Axios error

@@ -195,11 +195,11 @@ function Dashboard() {
                   color="info"
                   title="Total Salary"
                   description="Monthly computed salary metrics."
-                  date="computed 2 hours ago"
+                  date="Updated just now"
                   // NEW PROPS
                   icon="paid"
                   amount={`KES ${payroll?.total_salary?.toLocaleString() || "0.00"}`}
-                  headerDescription="Total gross amount before deductions."
+                  headerDescription="Gross amount before advance payment deductions."
                 />
               </MDBox>
             </Grid>
@@ -215,7 +215,7 @@ function Dashboard() {
                       (<strong>+15%</strong>) of the total salary computed.
                     </>
                   }
-                  date="updated 4 min ago"
+                  date="Updated just now"
                   // NEW PROPS
                   icon="receipt_long"
                   amount={`KES ${payroll?.total_advance?.toLocaleString() || "0.00"}`}
@@ -235,7 +235,7 @@ function Dashboard() {
                       (<strong>+85%</strong>) of the total salary computed.
                     </>
                   }
-                  date="just updated"
+                  date="Updated just now"
                   // NEW PROPS
                   icon="payments"
                   amount={`KES ${payroll?.total_net_due?.toLocaleString() || "0.00"}`}

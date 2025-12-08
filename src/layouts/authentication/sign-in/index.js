@@ -71,7 +71,7 @@ function Basic() {
       if (response.data.user_role === "admin") {
         navigate("/dashboard");
       } else {
-        navigate("/clock-in");
+        navigate("/clock-in-out");
       }
 
       return;
