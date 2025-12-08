@@ -22,7 +22,6 @@ import CustomAlert from "../../components/CustomAlert";
 
 // UPDATED: New User Role Choices
 const USER_ROLE_CHOICES = [
-  { value: "admin", label: "Admin" },
   { value: "office", label: "Office Staff" }, // Changed label for clarity
   { value: "teaching", label: "Teaching Staff" }, // Changed label for clarity
   { value: "subordinate", label: "Subordinate Staff" },

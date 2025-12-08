@@ -140,11 +140,11 @@ const routes = [
     collapse: [
       {
         type: "collapse",
-        name: "Clock In",
-        key: "clock-in",
-        route: "/clock-in",
+        name: "Clock In/Out",
+        key: "clock-in-out",
+        route: "/clock-in-out",
         component: <ClockPage />,
-        userRoles: ["teaching", "subordinate"],
+        userRoles: ["admin", "teaching", "subordinate"],
       },
       {
         key: "admin-user-attendance-details",
@@ -219,9 +219,9 @@ const routes = [
     collapse: [
       {
         type: "collapse",
-        name: "My Profile",
-        key: "my-profile",
-        route: "/my-profile",
+        name: "Profile Summary",
+        key: "profile-summary",
+        route: "/profile-summary",
         component: <UserProfilePage />,
         userRoles: ["admin", "office", "teaching", "subordinate"],
       },
