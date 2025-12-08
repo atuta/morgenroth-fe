@@ -56,7 +56,10 @@ function AddStaffUser() {
 
     if (!firstName.trim()) newErrors.firstName = "First name is required";
     if (!lastName.trim()) newErrors.lastName = "Last name is required";
-    if (!email.trim()) newErrors.email = "Email is required";
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Invalid email";
+    }
+    // if (!email.trim()) newErrors.email = "Email is required";
     if (!role) newErrors.role = "User role is required";
     if (!phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
     if (!idNumber.trim()) newErrors.idNumber = "ID number is required";
@@ -76,7 +79,7 @@ function AddStaffUser() {
 
     setLoading(true);
     const data = {
-      email,
+      email: email || null, // <-- if empty, send null
       first_name: firstName,
       last_name: lastName,
       role,
