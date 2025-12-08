@@ -22,10 +22,6 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 
 import getAdminDashboardMetricsApi from "api/getAdminDashboardMetricsApi";
 
-// --- REMOVED: IconDescriptionContent / BlankChartContent components ---
-// We no longer need these components as ReportsStatCard now handles rendering the icon/text internally.
-// --- END REMOVED SECTION ---
-
 function Dashboard() {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -81,6 +77,16 @@ function Dashboard() {
   const absentPercentage = calculatePercentage(attendance?.absent_count || 0);
   const leavePercentage = calculatePercentage(attendance?.on_leave_count || 0);
   // --- End of Percentage Calculation Logic ---
+
+  // ---------------- NEW: payroll percentage calculations (corrected) ----------------
+  const gross = payroll?.total_salary || 0;
+  const advance = payroll?.total_advance || 0;
+  const netDue = payroll?.total_net_due || 0;
+
+  // compute percentages as (value / gross) * 100, guard against zero gross
+  const advancePaymentPercentage = gross ? ((advance / gross) * 100).toFixed(1) : "0.0";
+  const totalNetDuePercentage = gross ? ((netDue / gross) * 100).toFixed(1) : "0.0";
+  // -------------------------------------------------------------------------------
 
   return (
     <DashboardLayout>
@@ -198,7 +204,7 @@ function Dashboard() {
                   date="Updated just now"
                   // NEW PROPS
                   icon="paid"
-                  amount={`KES ${payroll?.total_salary?.toLocaleString() || "0.00"}`}
+                  amount={`KES ${gross.toLocaleString() || "0.00"}`}
                   headerDescription="Gross amount before advance payment deductions."
                 />
               </MDBox>
@@ -212,13 +218,13 @@ function Dashboard() {
                   title="Advance Payment"
                   description={
                     <>
-                      (<strong>+15%</strong>) of the total salary computed.
+                      {" "}
+                      (+<strong>{advancePaymentPercentage}%</strong>) of the total salary computed.{" "}
                     </>
                   }
                   date="Updated just now"
-                  // NEW PROPS
                   icon="receipt_long"
-                  amount={`KES ${payroll?.total_advance?.toLocaleString() || "0.00"}`}
+                  amount={`KES ${advance.toLocaleString() || "0.00"}`}
                   headerDescription="Total advance payments disbursed this month."
                 />
               </MDBox>
@@ -232,13 +238,13 @@ function Dashboard() {
                   title="Total Net Due"
                   description={
                     <>
-                      (<strong>+85%</strong>) of the total salary computed.
+                      {" "}
+                      (+<strong>{totalNetDuePercentage}%</strong>) of the total salary computed.{" "}
                     </>
                   }
                   date="Updated just now"
-                  // NEW PROPS
                   icon="payments"
-                  amount={`KES ${payroll?.total_net_due?.toLocaleString() || "0.00"}`}
+                  amount={`KES ${netDue.toLocaleString() || "0.00"}`}
                   headerDescription="The final amount payable to employees."
                 />
               </MDBox>
