@@ -20,6 +20,7 @@ import UserDetailsPage from "layouts/pages/UserDetailsPage";
 import StaffListPage from "layouts/pages/StaffListPage";
 import ClockPage from "layouts/pages/ClockPage";
 
+import ChangePassword from "layouts/pages/ChangePassword";
 import AdminUserAdvancePaymentsPage from "layouts/pages/AdminUserAdvancePaymentsPage";
 import AdminUserOvertimesPage from "layouts/pages/AdminUserOvertimesPage";
 import UserOvertimesPage from "layouts/pages/UserOvertimesPage";
@@ -166,13 +167,13 @@ const routes = [
         route: "#",
         userRoles: ["admin", "office"],
       },
-      {
-        type: "collapse",
-        name: "Late/Absence Report",
-        key: "attendance-late-absence",
-        route: "#",
-        userRoles: ["admin", "office"],
-      },
+      //   {
+      //     type: "collapse",
+      //     name: "Late/Absence Report",
+      //     key: "attendance-late-absence",
+      //     route: "#",
+      //     userRoles: ["admin", "office"],
+      //   },
     ],
   },
 
@@ -252,7 +253,8 @@ const routes = [
         type: "collapse",
         name: "Change Password",
         key: "profile-change-password",
-        route: "#",
+        route: "/profile-change-password",
+        component: <ChangePassword />,
         userRoles: ["admin", "office", "teaching", "subordinate"],
       },
     ],
