@@ -2,26 +2,16 @@
 import axiosInstance from "../axios/axiosInstance";
 import Configs from "../configs/Configs";
 
-// ---------------------------
-// Admin: Generate Multi-User Payroll Report (JSON)
-// Expected params: { start_date: "2025-01-01", end_date: "2025-03-31" }
-export const adminGeneratePayrollReportApi = async (params) => {
+export const adminGeneratePayrollReportApi = async (params = {}) => {
   try {
-    console.log("adminGeneratePayrollReportApi Payload:", params); // Log input payload
-
-    const response = await axiosInstance.get(Configs.apiAdminGeneratePayrollReportEp, { params });
-
-    console.log("apiAdminGeneratePayrollReportEp Response:", response); // Log full response
-
+    const response = await axiosInstance.get(Configs.apiAdminGeneratePayrollReportEp, {
+      params,
+      responseType: "blob",
+    });
     return { ok: true, status: response.status, data: response.data };
   } catch (error) {
-    console.error("adminGeneratePayrollReportApi Error:", error); // Log error
-
-    if (error.response) {
-      console.log("Error Response:", error.response); // Log server response if present
+    if (error.response)
       return { ok: false, status: error.response.status, data: error.response.data };
-    }
-
     return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
   }
 };
