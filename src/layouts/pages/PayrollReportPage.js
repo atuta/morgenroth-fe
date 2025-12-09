@@ -17,7 +17,11 @@ import CustomAlert from "../../components/CustomAlert";
 import { adminGeneratePayrollReportApi } from "../../api/payrollApi";
 
 export default function PayrollReportPage() {
-  const todayStr = new Date().toISOString().split("T")[0];
+  const today = new Date();
+  // Get the string in YYYY-MM-DD format
+  const todayStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
 
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(todayStr);
@@ -48,24 +52,43 @@ export default function PayrollReportPage() {
       });
 
       if (res.ok) {
-        // Download JSON as file
-        const blob = new Blob([JSON.stringify(res.data, null, 2)], {
-          type: "application/json",
-        });
-        const url = window.URL.createObjectURL(blob);
+        // --- START FIX: Correctly handle PDF Blob download ---
+
+        // The API service returns the PDF file as a Blob object in res.data
+        const pdfBlob = res.data;
+
+        // 1. Create a URL for the Blob object
+        const url = window.URL.createObjectURL(pdfBlob);
+
+        // 2. Create a temporary <a> tag to initiate the download
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `PayrollReport_${startDate}_${endDate}.json`);
+
+        // 3. Set the desired filename for the download
+        // Using a .pdf extension is crucial here.
+        link.setAttribute("download", `Payroll_Report_${startDate}_to_${endDate}.pdf`);
+
+        // 4. Trigger the download and clean up
         document.body.appendChild(link);
         link.click();
         link.remove();
-        showAlert("Payroll report generated successfully!", "success");
+
+        // 5. Release the temporary URL
+        window.URL.revokeObjectURL(url);
+
+        showAlert("Payroll report downloaded successfully!", "success");
+
+        // --- END FIX ---
       } else {
-        showAlert(res.data.message || "Failed to generate report", "error");
+        // If the server returns an error, the response body (res.data) will be a Blob
+        // containing the error message JSON. We need to read it back out.
+        const errorText = await res.data.text();
+        const errorJson = JSON.parse(errorText);
+        showAlert(errorJson.message || "Failed to generate report", "error");
       }
     } catch (err) {
       console.error(err);
-      showAlert("Server error while generating report", "error");
+      showAlert("Network or server error while generating report", "error");
     } finally {
       setLoading(false);
     }
@@ -78,7 +101,7 @@ export default function PayrollReportPage() {
       <MDBox py={3}>
         <Paper elevation={0} sx={{ p: 3 }}>
           <MDTypography variant="h6" fontWeight="bold" mb={2}>
-            Generate Payroll Report (JSON)
+            Generate Payroll Report (PDF)
           </MDTypography>
 
           <Grid container spacing={2} mb={2}>
@@ -111,9 +134,9 @@ export default function PayrollReportPage() {
               color="info"
               onClick={handleGenerateReport}
               disabled={loading}
-              startIcon={loading && <CircularProgress size={20} color="white" />}
+              startIcon={loading && <CircularProgress size={20} sx={{ color: "white" }} />}
             >
-              {loading ? "Generating..." : "Download Report"}
+              {loading ? "Generating..." : "Download Report (PDF)"}
             </MDButton>
           </MDBox>
         </Paper>

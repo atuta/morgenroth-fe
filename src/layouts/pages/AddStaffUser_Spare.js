@@ -188,7 +188,7 @@ function AddStaffUser() {
         </Grid>
       </MDBox>
 
-      <Footer />
+      {/* <Footer /> */}
     </DashboardLayout>
   );
 }
