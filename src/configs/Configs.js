@@ -78,6 +78,7 @@ const Configs = {
   apiGenerateUserPayslipPdfEp: `${BASE_URL}/api/generate-user-payslip-pdf/`,
   apiAdminGenerateUserPayslipEp: `${BASE_URL}/api/admin/generate-user-payslip/`,
   apiAdminGenerateUserPayslipPdfEp: `${BASE_URL}/api/admin/generate-user-payslip-pdf/`,
+  apiAdminGeneratePayrollReportEp: `${BASE_URL}/api/admin/generate-payroll-report/`,
 
   // Rate
   apiSetRateEp: `${BASE_URL}/api/set-rate/`,

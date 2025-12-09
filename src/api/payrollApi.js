@@ -3,6 +3,20 @@ import axiosInstance from "../axios/axiosInstance";
 import Configs from "../configs/Configs";
 
 // ---------------------------
+// Admin: Generate Multi-User Payroll Report (JSON)
+// Expected params: { start_date: "2025-01-01", end_date: "2025-03-31" }
+export const adminGeneratePayrollReportApi = async (params) => {
+  try {
+    const response = await axiosInstance.get(Configs.apiAdminGeneratePayrollReportEp, { params });
+    return { ok: true, status: response.status, data: response.data };
+  } catch (error) {
+    if (error.response)
+      return { ok: false, status: error.response.status, data: error.response.data };
+    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
+  }
+};
+
+// ---------------------------
 // User: Generate JSON Payslip
 // Expected params: { month: 11, year: 2025 } (optional)
 export const generateUserPayslipApi = async (params = {}) => {
