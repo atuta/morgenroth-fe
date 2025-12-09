@@ -25,6 +25,7 @@ import AdminUserAdvancePaymentsPage from "layouts/pages/AdminUserAdvancePayments
 import AdminUserOvertimesPage from "layouts/pages/AdminUserOvertimesPage";
 import UserOvertimesPage from "layouts/pages/UserOvertimesPage";
 import UserAdvancesPage from "layouts/pages/UserAdvancesPage";
+import PayrollReportPage from "layouts/pages/PayrollReportPage";
 import AllOvertimesPage from "layouts/pages/AllOvertimesPage";
 import AllAdvancesPage from "layouts/pages/AllAdvancesPage";
 import AdminUserAttendanceDetails from "layouts/pages/AdminUserAttendanceDetails";
@@ -126,6 +127,14 @@ const routes = [
         key: "overtime-payments",
         route: "/overtime-payments",
         component: <AllOvertimesPage />,
+        userRoles: ["admin"],
+      },
+      {
+        type: "collapse",
+        name: "Payroll Report",
+        key: "payroll-report",
+        route: "/payroll-report",
+        component: <PayrollReportPage />,
         userRoles: ["admin"],
       },
     ],
