@@ -1,19 +1,21 @@
-// File: src/examples/Sidenav/index.js
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import List from "@mui/material/List";
 import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
+import Icon from "@mui/material/Icon";
 import Collapse from "@mui/material/Collapse";
-import Icon from "@mui/material/Icon"; // For close icon
+
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
+
 import SidenavCollapse from "examples/Sidenav/SidenavCollapse";
 import SidenavCollapseItem from "examples/Sidenav/SidenavCollapseItem";
 import SidenavRoot from "examples/Sidenav/SidenavRoot";
 import sidenavLogoLabel from "examples/Sidenav/styles/sidenav";
+
 import {
   useMaterialUIController,
   setMiniSidenav,
@@ -30,7 +32,6 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const [openCollapse, setOpenCollapse] = useState("");
   const { user, loading, logout } = useUserContext();
 
-  // Determine text color
   let textColor = "white";
   if (transparentSidenav || (whiteSidenav && !darkMode)) textColor = "dark";
   else if (whiteSidenav && darkMode) textColor = "inherit";
@@ -47,46 +48,45 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     return () => window.removeEventListener("resize", handleMiniSidenav);
   }, [dispatch, transparentSidenav, whiteSidenav]);
 
-  // Show nothing until user is loaded
   if (loading || !user) return null;
 
-  // Recursive filter: only include routes allowed for current user
+  // Filter routes based on user role
   const filterRoutes = (routesArray) =>
     routesArray
       .map((route) => {
         if (!user) return null;
-
         if (route.collapse) {
           const filteredChildren = filterRoutes(route.collapse);
           if (filteredChildren.length === 0) return null;
           return { ...route, collapse: filteredChildren };
         }
-
         if (route.userRoles && !route.userRoles.includes(user.user_role)) return null;
-
         return route;
       })
       .filter(Boolean);
 
   const filteredRoutes = filterRoutes(routes);
 
-  // Recursive render
-  // Recursive render with console logs
+  // Callback to close the sidenav on leaf click
+  const handleItemClick = () => {
+    if (window.innerWidth < 1200) setMiniSidenav(dispatch, true);
+  };
+
+  // Render routes recursively
   const renderRoutes = (routesArray) =>
     routesArray.map((route) => {
       const { type, name, icon, key, collapse, route: path, href, noCollapse } = route;
 
       if (type === "collapse") {
-        // Sign-out menu item
         if (key === "sign-out") {
           return (
             <MDBox
               key={key}
               onClick={() => {
-                console.log(`Clicked menu: ${name}`);
                 logout();
                 navigate("/authentication/sign-ins");
                 toast.success("Logged out successfully", { duration: 2000 });
+                handleItemClick();
               }}
               sx={{ cursor: "pointer" }}
             >
@@ -95,7 +95,6 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           );
         }
 
-        // Parent collapse with children
         if (collapse) {
           const handleCollapse = () => setOpenCollapse((prev) => (prev === key ? "" : key));
           return (
@@ -108,21 +107,12 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
                 open={openCollapse === key}
               />
               <Collapse in={openCollapse === key} timeout="auto" unmountOnExit>
-                {collapse.map((child) => (
-                  <MDBox
-                    key={child.key}
-                    onClick={() => console.log(`Clicked submenu: ${child.name}`)}
-                    sx={{ cursor: "pointer" }}
-                  >
-                    <SidenavCollapse name={child.name} icon={child.icon} />
-                  </MDBox>
-                ))}
+                <SidenavCollapseItem routes={collapse} onItemClick={handleItemClick} />
               </Collapse>
             </MDBox>
           );
         }
 
-        // Leaf menu item
         return href ? (
           <Link
             href={href}
@@ -130,12 +120,12 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             target="_blank"
             rel="noreferrer"
             sx={{ textDecoration: "none" }}
-            onClick={() => console.log(`Clicked menu: ${name}`)}
+            onClick={handleItemClick}
           >
             <SidenavCollapse name={name} icon={icon} noCollapse={noCollapse} />
           </Link>
         ) : (
-          <NavLink key={key} to={path} onClick={() => console.log(`Clicked menu: ${name}`)}>
+          <NavLink key={key} to={path} onClick={handleItemClick}>
             <SidenavCollapse name={name} icon={icon} noCollapse={noCollapse} />
           </NavLink>
         );
@@ -179,7 +169,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           top={0}
           right={0}
           p={1.625}
-          onClick={() => setMiniSidenav(dispatch, true)}
+          onClick={handleItemClick}
           sx={{ cursor: "pointer" }}
         >
           <MDTypography variant="h6" color="secondary">
