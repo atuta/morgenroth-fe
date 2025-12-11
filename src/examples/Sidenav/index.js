@@ -1,3 +1,9 @@
+/**
+=========================================================
+* Material Dashboard 2 React - v2.2.0
+=========================================================
+*/
+
 // File: src/examples/Sidenav/index.js
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -6,6 +12,7 @@ import List from "@mui/material/List";
 import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
 import Collapse from "@mui/material/Collapse";
+import Icon from "@mui/material/Icon"; // ⬅️ Needed for the close icon
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
@@ -49,20 +56,18 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   // Show nothing until user is loaded
   if (loading || !user) return null;
 
-  // Recursive filter: only include routes allowed for current user
+  // Recursive filter
   const filterRoutes = (routesArray) =>
     routesArray
       .map((route) => {
-        if (!user) return null; // guard against null
+        if (!user) return null;
 
-        // If parent route has children
         if (route.collapse) {
           const filteredChildren = filterRoutes(route.collapse);
-          if (filteredChildren.length === 0) return null; // exclude parent with no allowed children
+          if (filteredChildren.length === 0) return null;
           return { ...route, collapse: filteredChildren };
         }
 
-        // Leaf route
         if (route.userRoles && !route.userRoles.includes(user.user_role)) return null;
 
         return route;
@@ -77,7 +82,6 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       const { type, name, icon, key, collapse, route: path, href, noCollapse } = route;
 
       if (type === "collapse") {
-        // Proper logout using context
         if (key === "sign-out") {
           return (
             <MDBox
@@ -94,7 +98,6 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           );
         }
 
-        // Parent collapse with children
         if (collapse) {
           const handleCollapse = () => setOpenCollapse((prev) => (prev === key ? "" : key));
           return (
@@ -113,7 +116,6 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           );
         }
 
-        // NavLink or external link
         return href ? (
           <Link
             href={href}
@@ -150,9 +152,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
         );
       }
 
-      if (type === "divider") {
-        return <Divider key={key} light />;
-      }
+      if (type === "divider") return <Divider key={key} light />;
 
       return null;
     });
@@ -164,6 +164,21 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       ownerState={{ transparentSidenav, whiteSidenav, miniSidenav, darkMode }}
     >
       <MDBox pt={3} pb={1} px={4} textAlign="center">
+        {/* ✅ ADDED: Mobile Close Button (Nothing else changed) */}
+        <MDBox
+          display={{ xs: "block", xl: "none" }}
+          position="absolute"
+          top={0}
+          right={0}
+          p={1.625}
+          onClick={() => setMiniSidenav(dispatch, true)}
+          sx={{ cursor: "pointer" }}
+        >
+          <MDTypography variant="h6" color="secondary">
+            <Icon sx={{ fontWeight: "bold" }}>close</Icon>
+          </MDTypography>
+        </MDBox>
+
         <MDBox component={NavLink} to="/" display="flex" alignItems="center">
           {brand && <MDBox component="img" src={brand} alt="Brand" width="2rem" />}
           <MDBox
@@ -176,8 +191,11 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           </MDBox>
         </MDBox>
       </MDBox>
+
       <Divider light />
+
       <List>{renderRoutes(filteredRoutes)}</List>
+
       <MDBox p={2} mt="auto">
         <MDButton
           component="a"
