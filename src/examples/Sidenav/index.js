@@ -1,9 +1,3 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-*/
-
 // File: src/examples/Sidenav/index.js
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -12,7 +6,7 @@ import List from "@mui/material/List";
 import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
 import Collapse from "@mui/material/Collapse";
-import Icon from "@mui/material/Icon"; // ⬅️ Needed for the close icon
+import Icon from "@mui/material/Icon"; // For close icon
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
@@ -56,7 +50,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   // Show nothing until user is loaded
   if (loading || !user) return null;
 
-  // Recursive filter
+  // Recursive filter: only include routes allowed for current user
   const filterRoutes = (routesArray) =>
     routesArray
       .map((route) => {
@@ -82,6 +76,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       const { type, name, icon, key, collapse, route: path, href, noCollapse } = route;
 
       if (type === "collapse") {
+        // Sign-out menu item
         if (key === "sign-out") {
           return (
             <MDBox
@@ -98,6 +93,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           );
         }
 
+        // Parent collapse with children
         if (collapse) {
           const handleCollapse = () => setOpenCollapse((prev) => (prev === key ? "" : key));
           return (
@@ -110,12 +106,18 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
                 open={openCollapse === key}
               />
               <Collapse in={openCollapse === key} timeout="auto" unmountOnExit>
-                <SidenavCollapseItem routes={collapse} />
+                <SidenavCollapseItem
+                  routes={collapse.map((child) => ({
+                    ...child,
+                    onClick: () => window.innerWidth < 1200 && setMiniSidenav(dispatch, true),
+                  }))}
+                />
               </Collapse>
             </MDBox>
           );
         }
 
+        // NavLink or external link
         return href ? (
           <Link
             href={href}
@@ -123,11 +125,16 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             target="_blank"
             rel="noreferrer"
             sx={{ textDecoration: "none" }}
+            onClick={() => window.innerWidth < 1200 && setMiniSidenav(dispatch, true)}
           >
             <SidenavCollapse name={name} icon={icon} noCollapse={noCollapse} />
           </Link>
         ) : (
-          <NavLink key={key} to={path}>
+          <NavLink
+            key={key}
+            to={path}
+            onClick={() => window.innerWidth < 1200 && setMiniSidenav(dispatch, true)}
+          >
             <SidenavCollapse name={name} icon={icon} noCollapse={noCollapse} />
           </NavLink>
         );
@@ -164,7 +171,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       ownerState={{ transparentSidenav, whiteSidenav, miniSidenav, darkMode }}
     >
       <MDBox pt={3} pb={1} px={4} textAlign="center">
-        {/* ✅ ADDED: Mobile Close Button (Nothing else changed) */}
+        {/* Mobile Close Button */}
         <MDBox
           display={{ xs: "block", xl: "none" }}
           position="absolute"
