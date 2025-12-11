@@ -84,7 +84,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
               key={key}
               onClick={() => {
                 logout();
-                navigate("/authentication/sign-in");
+                navigate("/authentication/sign-ins");
                 toast.success("Logged out successfully", { duration: 2000 });
               }}
               sx={{ cursor: "pointer" }}
