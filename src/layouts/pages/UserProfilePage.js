@@ -39,6 +39,7 @@ import Configs from "../../configs/Configs";
 import CroppingModal from "./CroppingModal";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
+const NOT_AVAILABLE = "Not available"; // <--- Added constant for clarity
 
 function UserProfilePage() {
   const [userData, setUserData] = useState(null);
@@ -264,13 +265,14 @@ function UserProfilePage() {
 
             <MDBox>
               <MDTypography variant="h5" fontWeight="bold">
-                {first_name} {last_name}
+                {first_name || NOT_AVAILABLE} {last_name || NOT_AVAILABLE}
               </MDTypography>
               <MDTypography variant="body2" color="text">
-                {email}
+                {email || NOT_AVAILABLE}
               </MDTypography>
               <MDTypography variant="body2" color="text">
-                {user_role} • {status}
+                {/* Changed to use NOT_AVAILABLE for missing user_role or status */}
+                {user_role || NOT_AVAILABLE} • {status || NOT_AVAILABLE}
               </MDTypography>
             </MDBox>
           </MDBox>
@@ -289,7 +291,8 @@ function UserProfilePage() {
                   Email:
                 </MDTypography>
                 <MDTypography variant="body2" ml={0.5}>
-                  {email}
+                  {/* Changed from {email} to {email || NOT_AVAILABLE} */}
+                  {email || NOT_AVAILABLE}
                 </MDTypography>
               </MDBox>
               <MDBox display="flex" alignItems="center" mb={1}>
@@ -298,7 +301,8 @@ function UserProfilePage() {
                   Account:
                 </MDTypography>
                 <MDTypography variant="body2" ml={0.5}>
-                  {account || "-"}
+                  {/* Changed from {account || "-"} to {account || NOT_AVAILABLE} */}
+                  {account || NOT_AVAILABLE}
                 </MDTypography>
               </MDBox>
               <MDBox display="flex" alignItems="center" mb={1}>
@@ -307,7 +311,8 @@ function UserProfilePage() {
                   Phone:
                 </MDTypography>
                 <MDTypography variant="body2" ml={0.5}>
-                  {phone_number || "-"}
+                  {/* Changed from {phone_number || "-"} to {phone_number || NOT_AVAILABLE} */}
+                  {phone_number || NOT_AVAILABLE}
                 </MDTypography>
               </MDBox>
               <MDBox display="flex" alignItems="center" mb={1}>
@@ -316,7 +321,8 @@ function UserProfilePage() {
                   ID Number:
                 </MDTypography>
                 <MDTypography variant="body2" ml={0.5}>
-                  {id_number || "-"}
+                  {/* Changed from {id_number || "-"} to {id_number || NOT_AVAILABLE} */}
+                  {id_number || NOT_AVAILABLE}
                 </MDTypography>
               </MDBox>
               <MDBox display="flex" alignItems="center" mb={1}>
@@ -342,7 +348,8 @@ function UserProfilePage() {
                   Hourly Rate:
                 </MDTypography>
                 <MDTypography variant="body2" ml={0.5}>
-                  {hourly_rate} {hourly_rate_currency}
+                  {/* Handle hourly_rate and currency display logic, ensuring NOT_AVAILABLE if rate is missing/0/null */}
+                  {hourly_rate ? `${hourly_rate} ${hourly_rate_currency || ""}` : NOT_AVAILABLE}
                 </MDTypography>
               </MDBox>
               <MDBox display="flex" alignItems="center" mb={1}>
@@ -351,7 +358,8 @@ function UserProfilePage() {
                   NSSF Number:
                 </MDTypography>
                 <MDTypography variant="body2" ml={0.5}>
-                  {nssf_number}
+                  {/* Changed from {nssf_number} to {nssf_number || NOT_AVAILABLE} */}
+                  {nssf_number || NOT_AVAILABLE}
                 </MDTypography>
               </MDBox>
               <MDBox display="flex" alignItems="center" mb={1}>
@@ -360,7 +368,8 @@ function UserProfilePage() {
                   SHA Number:
                 </MDTypography>
                 <MDTypography variant="body2" ml={0.5}>
-                  {shif_sha_number}
+                  {/* Changed from {shif_sha_number} to {shif_sha_number || NOT_AVAILABLE} */}
+                  {shif_sha_number || NOT_AVAILABLE}
                 </MDTypography>
               </MDBox>
             </Paper>
