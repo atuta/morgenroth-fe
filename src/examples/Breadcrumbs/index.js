@@ -24,7 +24,7 @@ function Breadcrumbs({ icon, title, route, light }) {
 
   const handleHomeClick = (e) => {
     e.preventDefault();
-    navigate("/dashboard"); // << SPA navigation
+    navigate("/profile-summary"); // << SPA navigation
   };
 
   return (

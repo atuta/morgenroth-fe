@@ -74,7 +74,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
             title={route[route.length - 1]}
             route={route}
             light={light}
-            onHomeClick={() => navigate("/dashboard")} // << SPA HOME NAVIGATION
+            onHomeClick={() => navigate("/profile-summary")} // << SPA HOME NAVIGATION
           />
         </MDBox>
 
