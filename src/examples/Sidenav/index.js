@@ -71,6 +71,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const filteredRoutes = filterRoutes(routes);
 
   // Recursive render
+  // Recursive render with console logs
   const renderRoutes = (routesArray) =>
     routesArray.map((route) => {
       const { type, name, icon, key, collapse, route: path, href, noCollapse } = route;
@@ -82,6 +83,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             <MDBox
               key={key}
               onClick={() => {
+                console.log(`Clicked menu: ${name}`);
                 logout();
                 navigate("/authentication/sign-ins");
                 toast.success("Logged out successfully", { duration: 2000 });
@@ -106,18 +108,21 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
                 open={openCollapse === key}
               />
               <Collapse in={openCollapse === key} timeout="auto" unmountOnExit>
-                <SidenavCollapseItem
-                  routes={collapse.map((child) => ({
-                    ...child,
-                    onClick: () => window.innerWidth < 1200 && setMiniSidenav(dispatch, true),
-                  }))}
-                />
+                {collapse.map((child) => (
+                  <MDBox
+                    key={child.key}
+                    onClick={() => console.log(`Clicked submenu: ${child.name}`)}
+                    sx={{ cursor: "pointer" }}
+                  >
+                    <SidenavCollapse name={child.name} icon={child.icon} />
+                  </MDBox>
+                ))}
               </Collapse>
             </MDBox>
           );
         }
 
-        // NavLink or external link
+        // Leaf menu item
         return href ? (
           <Link
             href={href}
@@ -125,16 +130,12 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             target="_blank"
             rel="noreferrer"
             sx={{ textDecoration: "none" }}
-            onClick={() => window.innerWidth < 1200 && setMiniSidenav(dispatch, true)}
+            onClick={() => console.log(`Clicked menu: ${name}`)}
           >
             <SidenavCollapse name={name} icon={icon} noCollapse={noCollapse} />
           </Link>
         ) : (
-          <NavLink
-            key={key}
-            to={path}
-            onClick={() => window.innerWidth < 1200 && setMiniSidenav(dispatch, true)}
-          >
+          <NavLink key={key} to={path} onClick={() => console.log(`Clicked menu: ${name}`)}>
             <SidenavCollapse name={name} icon={icon} noCollapse={noCollapse} />
           </NavLink>
         );
