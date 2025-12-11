@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // useNavigate for SPA navigation
+import { useLocation, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
+
+// MUI
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Icon from "@mui/material/Icon";
+
+// Core components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import Breadcrumbs from "examples/Breadcrumbs";
+
+// Styles
 import {
   navbar,
   navbarContainer,
@@ -15,6 +21,8 @@ import {
   navbarIconButton,
   navbarMobileMenu,
 } from "examples/Navbars/DashboardNavbar/styles";
+
+// Context
 import { useMaterialUIController, setTransparentNavbar, setMiniSidenav } from "context";
 import { useUserContext } from "context/UserContext";
 
@@ -23,18 +31,23 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentNavbar, fixedNavbar, darkMode } = controller;
   const { user } = useUserContext();
-  const route = useLocation().pathname.split("/").slice(1);
-  const navigate = useNavigate(); // SPA navigation
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const route = location.pathname.split("/").slice(1);
 
   useEffect(() => {
     setNavbarType(fixedNavbar ? "sticky" : "static");
 
-    function handleTransparentNavbar() {
-      setTransparentNavbar(dispatch, (fixedNavbar && window.scrollY === 0) || !fixedNavbar);
-    }
+    const handleTransparentNavbar = () => {
+      const isTransparent = (fixedNavbar && window.scrollY === 0) || !fixedNavbar;
+      setTransparentNavbar(dispatch, isTransparent);
+    };
 
     window.addEventListener("scroll", handleTransparentNavbar);
     handleTransparentNavbar();
+
     return () => window.removeEventListener("scroll", handleTransparentNavbar);
   }, [dispatch, fixedNavbar]);
 
@@ -42,9 +55,9 @@ function DashboardNavbar({ absolute, light, isMini }) {
 
   const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
     color: () => {
-      let colorValue = light || darkMode ? white.main : dark.main;
-      if (transparentNavbar && !light) colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
-      return colorValue;
+      let value = light || darkMode ? white.main : dark.main;
+      if (transparentNavbar && !light) value = darkMode ? rgba(text.main, 0.6) : text.main;
+      return value;
     },
   });
 
@@ -56,11 +69,18 @@ function DashboardNavbar({ absolute, light, isMini }) {
     >
       <Toolbar sx={(theme) => navbarContainer(theme)}>
         <MDBox color="inherit" mb={{ xs: 1, md: 0 }} sx={(theme) => navbarRow(theme, { isMini })}>
-          <Breadcrumbs icon="home" title={route[route.length - 1]} route={route} light={light} />
+          <Breadcrumbs
+            icon="home"
+            title={route[route.length - 1]}
+            route={route}
+            light={light}
+            onHomeClick={() => navigate("/dashboard")} // << SPA HOME NAVIGATION
+          />
         </MDBox>
+
         {!isMini && (
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
-            {/* User info */}
+            {/* User Info */}
             <MDBox display="flex" alignItems="center" pr={2}>
               <MDTypography variant="button" fontWeight="medium" mr={1}>
                 {user?.full_name}
@@ -70,7 +90,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
               </MDTypography>
             </MDBox>
 
-            {/* Avatar with SPA navigation */}
+            {/* Avatar button (SPA navigation) */}
             <IconButton
               sx={navbarIconButton}
               size="small"
@@ -80,7 +100,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
               <Icon sx={iconsStyle}>account_circle</Icon>
             </IconButton>
 
-            {/* Mobile menu toggle */}
+            {/* Mobile Menu Toggle */}
             <IconButton
               size="small"
               disableRipple
