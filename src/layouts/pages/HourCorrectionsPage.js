@@ -13,6 +13,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Grid from "@mui/material/Grid";
 import SearchIcon from "@mui/icons-material/Search";
 import Pagination from "@mui/material/Pagination";
+import Avatar from "@mui/material/Avatar";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -217,41 +218,40 @@ export default function HourCorrectionsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredCorrections.map((c) => {
-                    const photoUrl = c.photo ? `${Configs.baseUrl}${c.photo}` : DEFAULT_AVATAR;
-                    return (
-                      <TableRow
-                        key={c.correction_id}
-                        sx={{ "&:hover": { backgroundColor: "#f9f9f9" } }}
-                      >
-                        <TableCell>
-                          <MDBox display="flex" alignItems="center">
-                            <img
-                              src={photoUrl}
-                              alt={c.full_name}
-                              width={40}
-                              height={40}
-                              style={{ borderRadius: "50%", objectFit: "cover" }}
-                              onError={(e) => (e.currentTarget.src = DEFAULT_AVATAR)}
-                            />
-                          </MDBox>
-                        </TableCell>
-                        <TableCell>{c.date}</TableCell>
-                        <TableCell>
-                          <MDTypography fontWeight="bold">{c.full_name}</MDTypography>
-                          <MDTypography variant="caption" color="text">
-                            {c.user_role || "N/A"}
-                          </MDTypography>
-                        </TableCell>
-                        <TableCell>{c.hours}</TableCell>
-                        <TableCell>
-                          {c.hourly_rate_currency} {c.hourly_rate}
-                        </TableCell>
-                        <TableCell>{c.amount} KES</TableCell>
-                        <TableCell>{c.reason}</TableCell>
-                      </TableRow>
-                    );
-                  })
+                  filteredCorrections.map((c) => (
+                    <TableRow
+                      key={c.correction_id}
+                      sx={{ "&:hover": { backgroundColor: "#f9f9f9" } }}
+                    >
+                      <TableCell>
+                        <Avatar
+                          src={c.photo ? `${Configs.baseUrl}${c.photo}` : DEFAULT_AVATAR}
+                          alt={c.full_name}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            cursor: "pointer",
+                            transition: "0.2s",
+                            "&:hover": { transform: "scale(1.1)" },
+                          }}
+                          onError={(e) => (e.currentTarget.src = DEFAULT_AVATAR)}
+                        />
+                      </TableCell>
+                      <TableCell>{c.date}</TableCell>
+                      <TableCell>
+                        <MDTypography fontWeight="bold">{c.full_name}</MDTypography>
+                        <MDTypography variant="caption" color="text">
+                          {c.user_role || "N/A"}
+                        </MDTypography>
+                      </TableCell>
+                      <TableCell>{c.hours}</TableCell>
+                      <TableCell>
+                        {c.hourly_rate_currency} {c.hourly_rate}
+                      </TableCell>
+                      <TableCell>{c.amount} KES</TableCell>
+                      <TableCell>{c.reason}</TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
