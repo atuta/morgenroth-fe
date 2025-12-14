@@ -67,14 +67,14 @@ function WorkingHoursPage() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        {/* Left-aligned responsive card */}
+        {/* Left-aligned responsive card: full width on xs, half width on lg */}
         <MDBox
           sx={{
-            maxWidth: { xs: "100%", md: "900px" }, // full width on small screens
-            margin: { xs: "0 auto", md: "0 0 0 0" }, // left-aligned on md and up
+            width: { xs: "100%", lg: "50%" },
+            margin: { xs: "0 auto", lg: "0 0 0 0" }, // center on small, left on large
           }}
         >
-          <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
+          <MDBox p={3} mb={3} bgColor="white" borderRadius="lg" sx={{ boxShadow: 1 }}>
             <MDTypography variant="h5" fontWeight="bold" mb={3}>
               Working Hours by Role
             </MDTypography>
