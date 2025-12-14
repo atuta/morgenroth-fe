@@ -34,9 +34,13 @@ import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
 import DeductionsPage from "layouts/pages/DeductionsPage";
 import SignIn from "layouts/authentication/sign-in";
 
+import RecordHourCorrectionPage from "layouts/pages/RecordHourCorrectionPage";
 import RecordOvertimePaymentPage from "layouts/pages/RecordOvertimePaymentPage";
 import RecordAdvancePaymentPage from "layouts/pages/RecordAdvancePaymentPage";
 import WorkingHoursPage from "layouts/pages/WorkingHoursPage";
+
+import AccessTimeIcon from "@mui/icons-material/AccessTimeOutlined";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 
 const routes = [
   // Dashboard
@@ -49,6 +53,22 @@ const routes = [
     component: <Dashboard />,
     userRoles: ["admin"],
   },
+
+  // Super Admin
+  //   {
+  //     type: "collapse",
+  //     name: "Super Admin",
+  //     key: "super-admin",
+  //     icon: <AdminPanelSettingsIcon fontSize="small" />,
+  //     collapse: [
+  //       {
+  //         key: "hour-correction",
+  //         route: "/hour-correction",
+  //         component: <RecordHourCorrectionPage />,
+  //         userRoles: ["admin"],
+  //       },
+  //     ],
+  //   },
 
   // Staff Management
   {
@@ -78,6 +98,12 @@ const routes = [
         route: "/user-details",
         component: <UserDetailsPage />,
         userRoles: ["admin"],
+      },
+      {
+        key: "hour-correction",
+        route: "/hour-correction",
+        component: <RecordHourCorrectionPage />,
+        userRoles: ["super"],
       },
     ],
   },

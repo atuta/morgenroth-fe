@@ -18,6 +18,7 @@ import PhoneIcon from "@mui/icons-material/PhoneOutlined";
 import FingerprintIcon from "@mui/icons-material/FingerprintOutlined";
 import PaidIcon from "@mui/icons-material/PaidOutlined";
 import EventAvailableIcon from "@mui/icons-material/EventAvailableOutlined";
+import AccessTimeIcon from "@mui/icons-material/AccessTimeOutlined";
 import EventBusyIcon from "@mui/icons-material/EventBusyOutlined";
 import PermIdentityIcon from "@mui/icons-material/PermIdentityOutlined";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLongOutlined";
@@ -310,6 +311,21 @@ function UserDetailsPage() {
                     size="medium"
                   >
                     Record Overtime Payment
+                  </MDButton>
+
+                  {/* New Hour Correction Button */}
+                  <MDButton
+                    variant="outlined"
+                    color="secondary"
+                    startIcon={<AccessTimeIcon />}
+                    onClick={() =>
+                      navigate("/hour-correction", {
+                        state: { user_id, photo, full_name: `${first_name} ${last_name}` },
+                      })
+                    }
+                    size="medium"
+                  >
+                    Record Hour Correction
                   </MDButton>
                 </MDBox>
               </MDBox>
