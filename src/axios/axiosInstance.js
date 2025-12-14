@@ -1,5 +1,12 @@
+// File: axiosInstance.js
 import axios from "axios";
 import Configs from "../configs/Configs";
+
+// Helper to redirect to login with hard reload
+const redirectToLogin = () => {
+  console.warn("Redirecting to login page...");
+  window.location.href = "/authentication/sign-in";
+};
 
 const axiosInstance = axios.create({
   baseURL: Configs.baseUrl,
@@ -9,6 +16,7 @@ const axiosInstance = axios.create({
   timeout: 20000,
 });
 
+// --- Request interceptor ---
 axiosInstance.interceptors.request.use(
   (config) => {
     const accessToken = localStorage.getItem("accessToken");
@@ -35,6 +43,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+// --- Response interceptor ---
 axiosInstance.interceptors.response.use(
   (response) => {
     console.log("Axios Response:", {
@@ -46,17 +55,25 @@ axiosInstance.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
+
     console.error("Axios Response Error:", {
       url: originalRequest?.url,
       status: error.response?.status,
       data: error.response?.data,
     });
 
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    // If neither token exists, redirect immediately
+    if (!accessToken && !refreshToken) {
+      redirectToLogin();
+      return Promise.reject(error);
+    }
+
+    // Handle 401 errors with token refresh
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
-      const refreshToken = localStorage.getItem("refreshToken");
-      console.log("401 detected, trying token refresh...", { refreshToken });
 
       if (refreshToken) {
         try {
@@ -75,8 +92,13 @@ axiosInstance.interceptors.response.use(
           console.error("Token refresh failed:", refreshError);
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
+          redirectToLogin();
           return Promise.reject(refreshError);
         }
+      } else {
+        // Refresh token missing, redirect immediately
+        redirectToLogin();
+        return Promise.reject(error);
       }
     }
 
