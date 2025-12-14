@@ -17,6 +17,7 @@ const Configs = {
   // User
   apiAdminDashboardMetricsEp: `${BASE_URL}/api/admin-dashboard-metrics/`,
   apiUploadUserPhotoEp: `${BASE_URL}/api/upload-user-photo/`,
+  apiUpdateUserHolidayStatusEp: `${BASE_URL}/api/update-user-holiday-status/`,
   apiUpdateUserLeaveStatusEp: `${BASE_URL}/api/update-user-leave-status/`,
   apiGetLoggedInUserDetailsEp: `${BASE_URL}/api/get-logged-in-user-details/`,
   apiGetUserDetailsEp: `${BASE_URL}/api/get-user-details/`,

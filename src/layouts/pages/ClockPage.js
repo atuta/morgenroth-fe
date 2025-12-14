@@ -49,6 +49,8 @@ function ClockPage() {
   const [notes, setNotes] = useState("");
   const [sessionDuration, setSessionDuration] = useState("00:00:00");
 
+  const [clockOutDisabledUntil, setClockOutDisabledUntil] = useState(null);
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [cameraActive, setCameraActive] = useState(false);
@@ -149,6 +151,11 @@ function ClockPage() {
         setPhotoBase64(null);
         fetchCurrentSession();
 
+        // Disable Clock Out for 10 minutes
+        const now = new Date();
+        setClockOutDisabledUntil(new Date(now.getTime() + 10 * 60 * 1000));
+
+        // Timed logout after 10 seconds
         setTimeout(() => {
           logout();
         }, 10000);
@@ -201,6 +208,9 @@ function ClockPage() {
       );
     }
 
+    const isClockOutDisabled =
+      loading || (clockOutDisabledUntil && new Date() < clockOutDisabledUntil);
+
     return (
       <MDBox p={3} bgColor="white" borderRadius="lg" width="100%">
         {currentSession ? (
@@ -233,7 +243,7 @@ function ClockPage() {
               variant="gradient"
               color="error"
               fullWidth
-              disabled={loading}
+              disabled={isClockOutDisabled}
               onClick={handleClockOut}
             >
               {loading ? <CircularProgress color="inherit" size={20} /> : "Clock Out"}
