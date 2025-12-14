@@ -12,6 +12,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import CircularProgress from "@mui/material/CircularProgress";
 import Grid from "@mui/material/Grid";
 import SearchIcon from "@mui/icons-material/Search";
+import Pagination from "@mui/material/Pagination";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -43,6 +44,10 @@ export default function HourCorrectionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
@@ -53,30 +58,39 @@ export default function HourCorrectionsPage() {
     setAlertOpen(true);
   };
 
-  const fetchCorrections = async () => {
+  const fetchCorrections = async (p = 1) => {
     setLoading(true);
     try {
-      const res = await getHourCorrectionsApi({ month, year });
+      const res = await getHourCorrectionsApi({ month, year, page: p });
       if (res.status === 200 && res.data.status === "success") {
         setCorrections(res.data.data.results || []);
         setFilteredCorrections(res.data.data.results || []);
+        setPage(res.data.data.current_page || 1);
+        setTotalPages(res.data.data.total_pages || 1);
+        setTotalRecords(res.data.data.total_records || 0);
       } else {
         showAlert(res.data?.message || "Failed to fetch hour corrections.", "error");
         setCorrections([]);
         setFilteredCorrections([]);
+        setPage(1);
+        setTotalPages(1);
+        setTotalRecords(0);
       }
     } catch (err) {
       console.error(err);
       showAlert("Server error. Could not fetch hour corrections.", "error");
       setCorrections([]);
       setFilteredCorrections([]);
+      setPage(1);
+      setTotalPages(1);
+      setTotalRecords(0);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCorrections();
+    fetchCorrections(1);
   }, [month, year]);
 
   useEffect(() => {
@@ -90,6 +104,10 @@ export default function HourCorrectionsPage() {
     );
     setFilteredCorrections(result);
   }, [searchTerm, corrections]);
+
+  const handlePageChange = (event, value) => {
+    fetchCorrections(value);
+  };
 
   return (
     <DashboardLayout>
@@ -158,7 +176,7 @@ export default function HourCorrectionsPage() {
               <MDButton
                 variant="gradient"
                 color="info"
-                onClick={fetchCorrections}
+                onClick={() => fetchCorrections(page)}
                 disabled={loading}
                 sx={{ minHeight: 48 }}
               >
@@ -242,6 +260,16 @@ export default function HourCorrectionsPage() {
               </TableBody>
             </Table>
           </TableContainer>
+
+          {/* Pagination */}
+          {!loading && filteredCorrections.length > 0 && (
+            <MDBox display="flex" justifyContent="center" mt={2}>
+              <Pagination count={totalPages} page={page} onChange={handlePageChange} color="info" />
+              <MDTypography variant="caption" display="block" mt={1} textAlign="center">
+                Total Records: {totalRecords}
+              </MDTypography>
+            </MDBox>
+          )}
         </MDBox>
       </MDBox>
 
