@@ -251,7 +251,7 @@ export default function HourCorrectionsPage() {
                         <TableCell>
                           {c.hourly_rate_currency} {c.hourly_rate}
                         </TableCell>
-                        <TableCell>{c.amount}</TableCell>
+                        <TableCell>{c.amount} KES</TableCell>
                         <TableCell>{c.reason}</TableCell>
                       </TableRow>
                     );
