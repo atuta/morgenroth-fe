@@ -34,6 +34,7 @@ import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
 import DeductionsPage from "layouts/pages/DeductionsPage";
 import SignIn from "layouts/authentication/sign-in";
 
+import HourCorrectionsPage from "layouts/pages/HourCorrectionsPage";
 import RecordHourCorrectionPage from "layouts/pages/RecordHourCorrectionPage";
 import RecordOvertimePaymentPage from "layouts/pages/RecordOvertimePaymentPage";
 import RecordAdvancePaymentPage from "layouts/pages/RecordAdvancePaymentPage";
@@ -54,21 +55,23 @@ const routes = [
     userRoles: ["admin"],
   },
 
-  // Super Admin
-  //   {
-  //     type: "collapse",
-  //     name: "Super Admin",
-  //     key: "super-admin",
-  //     icon: <AdminPanelSettingsIcon fontSize="small" />,
-  //     collapse: [
-  //       {
-  //         key: "hour-correction",
-  //         route: "/hour-correction",
-  //         component: <RecordHourCorrectionPage />,
-  //         userRoles: ["admin"],
-  //       },
-  //     ],
-  //   },
+  //   Super Admin
+  {
+    type: "collapse",
+    name: "Super Admin",
+    key: "super-admin",
+    icon: <AdminPanelSettingsIcon fontSize="small" />,
+    collapse: [
+      {
+        type: "collapse",
+        name: "Hour Corrections",
+        key: "hour-corrections",
+        route: "/hour-corrections",
+        component: <HourCorrectionsPage />,
+        userRoles: ["admin"],
+      },
+    ],
+  },
 
   // Staff Management
   {
