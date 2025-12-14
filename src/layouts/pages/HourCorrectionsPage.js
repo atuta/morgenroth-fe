@@ -218,9 +218,7 @@ export default function HourCorrectionsPage() {
                   </TableRow>
                 ) : (
                   filteredCorrections.map((c) => {
-                    const photoUrl = c.photo
-                      ? `${Configs.baseUrl}${c.photo}?t=${Date.now()}`
-                      : DEFAULT_AVATAR;
+                    const photoUrl = c.photo ? `${Configs.baseUrl}${c.photo}` : DEFAULT_AVATAR;
                     return (
                       <TableRow
                         key={c.correction_id}
@@ -228,16 +226,14 @@ export default function HourCorrectionsPage() {
                       >
                         <TableCell>
                           <MDBox display="flex" alignItems="center">
-                            <MDBox mr={1}>
-                              <img
-                                src={photoUrl}
-                                alt={c.full_name}
-                                width={40}
-                                height={40}
-                                style={{ borderRadius: "50%", objectFit: "cover" }}
-                                onError={(e) => (e.currentTarget.src = DEFAULT_AVATAR)}
-                              />
-                            </MDBox>
+                            <img
+                              src={photoUrl}
+                              alt={c.full_name}
+                              width={40}
+                              height={40}
+                              style={{ borderRadius: "50%", objectFit: "cover" }}
+                              onError={(e) => (e.currentTarget.src = DEFAULT_AVATAR)}
+                            />
                           </MDBox>
                         </TableCell>
                         <TableCell>{c.date}</TableCell>
@@ -263,7 +259,7 @@ export default function HourCorrectionsPage() {
 
           {/* Pagination */}
           {!loading && filteredCorrections.length > 0 && (
-            <MDBox display="flex" justifyContent="center" mt={2}>
+            <MDBox display="flex" flexDirection="column" alignItems="center" mt={2}>
               <Pagination count={totalPages} page={page} onChange={handlePageChange} color="info" />
               <MDTypography variant="caption" display="block" mt={1} textAlign="center">
                 Total Records: {totalRecords}
