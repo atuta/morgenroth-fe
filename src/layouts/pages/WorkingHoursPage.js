@@ -3,22 +3,17 @@
 import { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 
-// Material UI Table Components for structured display
+// Material UI Table Components
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead"; // Still needed for import completeness, though not used in the return block
 import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper"; // Import Paper for table container background
+import Paper from "@mui/material/Paper";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import MDButton from "components/MDButton";
-
-// Standard Material UI components
-import TextField from "@mui/material/TextField";
 
 // Layout components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -28,37 +23,16 @@ import Footer from "examples/Footer";
 // Custom components
 import CustomAlert from "../../components/CustomAlert";
 
-// API services
-import setWorkingHoursApi from "../../api/setWorkingHoursApi";
-import getWorkingHoursApi from "../../api/getWorkingHoursApi";
-
-const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-// Mapping day string to integer for backend
-const dayToNumberMap = {
-  Monday: 1,
-  Tuesday: 2,
-  Wednesday: 3,
-  Thursday: 4,
-  Friday: 5,
-  Saturday: 6,
-  Sunday: 7,
-};
-
-const DEFAULT_TIMEZONE = "Africa/Nairobi";
+// API service
+import getAllWorkingHoursApi from "../../api/getAllWorkingHoursApi";
 
 function WorkingHoursPage() {
-  const [dayOfWeek, setDayOfWeek] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [workingHours, setWorkingHours] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
-
-  const [workingHoursList, setWorkingHoursList] = useState([]);
 
   const showAlert = (message, severity = "info") => {
     setAlertMessage(message);
@@ -66,252 +40,101 @@ function WorkingHoursPage() {
     setAlertOpen(true);
   };
 
-  const validateFields = () => {
-    const newErrors = {};
-    if (!dayOfWeek) newErrors.dayOfWeek = "Day of week is required.";
-    if (!startTime) newErrors.startTime = "Start time is required.";
-    if (!endTime) newErrors.endTime = "End time is required.";
+  const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-    // Check time validation only if both fields are present
-    if (startTime && endTime) {
-      // Create date objects for comparison (e.g., '2000-01-01THH:MM:SS')
-      const startDateTime = new Date(`2000-01-01T${startTime}:00`);
-      const endDateTime = new Date(`2000-01-01T${endTime}:00`);
-
-      if (startDateTime >= endDateTime) {
-        newErrors.startTime = "Start Time must be before End Time.";
-        newErrors.endTime = "End Time must be after Start Time.";
-      }
-    }
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      // Only show a general alert if there are errors other than the ones displayed under the text fields
-      if (newErrors.dayOfWeek) {
-        showAlert("Please correct the highlighted errors.", "warning");
-      }
-    }
-
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Fetch existing working hours on page load
   useEffect(() => {
     const fetchWorkingHours = async () => {
+      setLoading(true);
       try {
-        const res = await getWorkingHoursApi(DEFAULT_TIMEZONE);
-        if (res.data?.status === "success" && Array.isArray(res.data.data)) {
-          // Assuming the API returns day_name along with day_of_week, start_time, etc.
-          setWorkingHoursList(res.data.data);
+        const res = await getAllWorkingHoursApi();
+        if (res.data?.status === "success") {
+          setWorkingHours(res.data.message || {});
+        } else {
+          showAlert(res.data?.message || "Failed to fetch working hours", "error");
         }
       } catch (err) {
-        console.error("Failed to fetch working hours:", err);
+        console.error("Error fetching working hours:", err);
+        showAlert("Server error while fetching working hours", "error");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchWorkingHours();
   }, []);
 
-  const handleSave = async () => {
-    if (!validateFields()) return;
-
-    setAlertOpen(false);
-    setLoading(true);
-
-    try {
-      const payload = {
-        day_of_week: dayToNumberMap[dayOfWeek],
-        start_time: startTime,
-        end_time: endTime,
-        timezone: DEFAULT_TIMEZONE,
-      };
-
-      const res = await setWorkingHoursApi(payload);
-
-      if (res.data?.status === "success") {
-        showAlert("Working hours saved successfully", "success");
-
-        // Update or add the record in the UI
-        setWorkingHoursList((prev) => {
-          const existingIndex = prev.findIndex((item) => item.day_of_week === payload.day_of_week);
-          const newEntry = {
-            day_of_week: payload.day_of_week,
-            day_name: dayOfWeek, // Use the selected dayOfWeek for day_name in the UI list
-            start_time: startTime,
-            end_time: endTime,
-            timezone: DEFAULT_TIMEZONE,
-            is_active: true,
-          };
-
-          if (existingIndex > -1) {
-            const updated = [...prev];
-            updated[existingIndex] = newEntry;
-            return updated;
-          } else {
-            return [...prev, newEntry];
-          }
-        });
-
-        // Reset form (Optional: Can keep the day selected for quick edits)
-        // setDayOfWeek("");
-        setStartTime("");
-        setEndTime("");
-        setErrors({});
-      } else {
-        showAlert(res.data?.message || "Failed to save working hours.", "error");
-      }
-    } catch {
-      showAlert("Server error. Could not connect to the API.", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        <MDBox sx={{ maxWidth: "600px", margin: "0 auto 0 0" }}>
+        {/* Left-aligned responsive card */}
+        <MDBox
+          sx={{
+            maxWidth: { xs: "100%", md: "900px" }, // full width on small screens
+            margin: { xs: "0 auto", md: "0 0 0 0" }, // left-aligned on md and up
+          }}
+        >
           <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
-            <MDTypography variant="h5" fontWeight="bold" mb={2}>
-              Working Hours
+            <MDTypography variant="h5" fontWeight="bold" mb={3}>
+              Working Hours by Role
             </MDTypography>
 
-            {/* --- Existing Working Hours Display (Table WITHOUT Header) --- */}
-            <MDBox mb={4}>
-              <MDTypography variant="subtitle2" fontWeight="medium" mb={1}>
-                Existing Working Hours:
-              </MDTypography>
-              {workingHoursList.length > 0 ? (
-                <TableContainer
-                  component={Paper}
-                  sx={{ boxShadow: "none", border: "1px solid #ddd" }}
-                >
-                  <Table size="small" aria-label="working hours table">
-                    {/* Manually insert the header row look-alike using a TableRow inside TableBody */}
-                    <TableBody>
-                      <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                        <TableCell sx={{ padding: "8px 16px", fontWeight: "bold" }}>Day</TableCell>
-                        <TableCell sx={{ padding: "8px 16px", fontWeight: "bold" }} align="center">
-                          Start Time
-                        </TableCell>
-                        <TableCell sx={{ padding: "8px 16px", fontWeight: "bold" }} align="center">
-                          End Time
-                        </TableCell>
-                      </TableRow>
-
-                      {/* Data rows */}
-                      {workingHoursList
-                        .sort((a, b) => a.day_of_week - b.day_of_week)
-                        .map((cfg) => (
-                          <TableRow
-                            key={cfg.day_of_week}
-                            // Highlight the row if it's the currently selected day for editing
-                            sx={{
-                              backgroundColor:
-                                dayToNumberMap[dayOfWeek] === cfg.day_of_week
-                                  ? "#e0f7fa"
-                                  : "inherit",
-                            }}
+            {loading ? (
+              <MDTypography>Loading working hours...</MDTypography>
+            ) : Object.keys(workingHours).length === 0 ? (
+              <MDTypography>No working hours data available.</MDTypography>
+            ) : (
+              Object.keys(workingHours).map((role) => (
+                <MDBox key={role} mb={4}>
+                  <MDTypography variant="h6" fontWeight="medium" mb={1}>
+                    Role: {role.charAt(0).toUpperCase() + role.slice(1)}
+                  </MDTypography>
+                  <TableContainer
+                    component={Paper}
+                    sx={{ boxShadow: "none", border: "1px solid #ddd" }}
+                  >
+                    <Table size="small" aria-label={`${role} working hours`}>
+                      <TableBody>
+                        {/* Header row */}
+                        <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
+                          <TableCell sx={{ padding: "8px 16px", fontWeight: "bold" }}>
+                            Day
+                          </TableCell>
+                          <TableCell
+                            sx={{ padding: "8px 16px", fontWeight: "bold" }}
+                            align="center"
                           >
-                            <TableCell sx={{ padding: "8px 16px" }}>{cfg.day_name}</TableCell>
-                            <TableCell sx={{ padding: "8px 16px" }} align="center">
-                              {cfg.start_time}
-                            </TableCell>
-                            <TableCell sx={{ padding: "8px 16px" }} align="center">
-                              {cfg.end_time}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              ) : (
-                <MDTypography variant="caption" display="block" color="text">
-                  No working hours configured yet.
-                </MDTypography>
-              )}
-            </MDBox>
-            {/* ----------------------------------------------------------------- */}
+                            Start Time
+                          </TableCell>
+                          <TableCell
+                            sx={{ padding: "8px 16px", fontWeight: "bold" }}
+                            align="center"
+                          >
+                            End Time
+                          </TableCell>
+                        </TableRow>
 
-            <Grid container spacing={3}>
-              {/* Day of Week Selector Buttons */}
-              <Grid item xs={12}>
-                <MDTypography variant="caption" fontWeight="medium" color="text" sx={{ mb: 1 }}>
-                  Select Day of Week:
-                </MDTypography>
-                <MDBox display="flex" flexWrap="wrap" gap={1} mb={errors.dayOfWeek ? 0 : 1}>
-                  {daysOfWeek.map((day) => (
-                    <MDButton
-                      key={day}
-                      variant={dayOfWeek === day ? "gradient" : "outlined"}
-                      color="info"
-                      onClick={() => setDayOfWeek(day)}
-                      sx={{
-                        borderColor: errors.dayOfWeek ? "error.main" : undefined,
-                        borderWidth: errors.dayOfWeek ? "2px" : "1px",
-                      }}
-                    >
-                      {day}
-                    </MDButton>
-                  ))}
+                        {/* Data rows */}
+                        {daysOfWeek.map((day) => {
+                          const dayHours = workingHours[role]?.[day.toLowerCase()];
+                          return (
+                            <TableRow key={day}>
+                              <TableCell sx={{ padding: "8px 16px" }}>{day}</TableCell>
+                              <TableCell sx={{ padding: "8px 16px" }} align="center">
+                                {dayHours?.start || "-"}
+                              </TableCell>
+                              <TableCell sx={{ padding: "8px 16px" }} align="center">
+                                {dayHours?.end || "-"}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 </MDBox>
-                {errors.dayOfWeek && (
-                  <MDBox mt={0.5} mb={2}>
-                    <MDTypography variant="caption" color="error">
-                      {errors.dayOfWeek}
-                    </MDTypography>
-                  </MDBox>
-                )}
-              </Grid>
-
-              {/* Timezone Info */}
-              <Grid item xs={12}>
-                <MDTypography variant="caption" color="text" fontWeight="medium">
-                  Timezone: {DEFAULT_TIMEZONE} (EAT)
-                </MDTypography>
-              </Grid>
-
-              {/* Start Time */}
-              <Grid item xs={6}>
-                <TextField
-                  label="Start Time"
-                  type="time"
-                  fullWidth
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  error={!!errors.startTime}
-                  helperText={errors.startTime}
-                />
-              </Grid>
-
-              {/* End Time */}
-              <Grid item xs={6}>
-                <TextField
-                  label="End Time"
-                  type="time"
-                  fullWidth
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  error={!!errors.endTime}
-                  helperText={errors.endTime}
-                />
-              </Grid>
-            </Grid>
-
-            <MDButton
-              variant="gradient"
-              color="info"
-              fullWidth
-              disabled={loading}
-              onClick={handleSave}
-              sx={{ mt: 3 }}
-            >
-              {loading ? "Saving..." : "Save Working Hours"}
-            </MDButton>
+              ))
+            )}
           </MDBox>
         </MDBox>
       </MDBox>
