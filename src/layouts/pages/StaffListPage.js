@@ -60,8 +60,14 @@ function StaffListPage() {
       try {
         const res = await getNonAdminUsersApi();
         if (res.data?.status === "success") {
-          setStaffList(res.data.data);
-          setFilteredStaff(res.data.data);
+          // Convert "yes"/"no" strings to booleans for checkboxes
+          const data = res.data.data.map((u) => ({
+            ...u,
+            is_on_leave: u.is_on_leave === "yes",
+            is_on_holiday: u.is_on_holiday === "yes",
+          }));
+          setStaffList(data);
+          setFilteredStaff(data);
         } else showAlert(res.data?.message || "Failed to load staff.", "error");
       } catch (err) {
         console.error(err);
