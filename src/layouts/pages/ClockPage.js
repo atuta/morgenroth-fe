@@ -18,6 +18,8 @@ import clockInApi from "../../api/clockInApi";
 import clockOutApi from "../../api/clockOutApi";
 import getCurrentSessionApi from "../../api/getCurrentSessionApi";
 
+import { useUserContext } from "../../context/UserContext";
+
 // --- Styled Components ---
 const StyledVideo = styled("video")({
   width: "100%",
@@ -35,6 +37,8 @@ const StyledImage = styled("img")({
 });
 
 function ClockPage() {
+  const { logout } = useUserContext();
+
   const [loading, setLoading] = useState(false);
   const [photoBase64, setPhotoBase64] = useState(null);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -144,6 +148,10 @@ function ClockPage() {
         showAlert("✅ Clock-in recorded successfully!", "success");
         setPhotoBase64(null);
         fetchCurrentSession();
+
+        setTimeout(() => {
+          logout();
+        }, 10000);
       } else if (res.data.message === "active_session_exists") {
         showAlert("⚠️ Already clocked in. Fetching current session...", "warning");
         fetchCurrentSession();

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 import PropTypes from "prop-types";
 
 const UserContext = createContext();
@@ -18,12 +18,14 @@ export const UserProvider = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
-  // Function to logout user
+  // Function to logout user (hard reload redirect)
   const logout = () => {
     setUser(null);
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
+
+    window.location.replace("/authentication/sign-in");
   };
 
   return (
