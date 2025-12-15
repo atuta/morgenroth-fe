@@ -185,15 +185,7 @@ function StaffListPage() {
                       : DEFAULT_AVATAR;
 
                     return (
-                      <TableRow
-                        key={user.user_id}
-                        sx={{
-                          "& td": {
-                            color: hasMissing ? "error.main" : "inherit",
-                            fontWeight: hasMissing ? "500" : "normal",
-                          },
-                        }}
-                      >
+                      <TableRow key={user.user_id}>
                         <TableCell>
                           <Avatar
                             src={photoUrl}
@@ -207,7 +199,10 @@ function StaffListPage() {
                         </TableCell>
 
                         <TableCell>
-                          <MDTypography fontWeight="bold">
+                          <MDTypography
+                            fontWeight="bold"
+                            sx={{ color: hasMissing ? "error.main" : "inherit" }}
+                          >
                             {user.first_name} {user.last_name}
                           </MDTypography>
                         </TableCell>
@@ -232,7 +227,12 @@ function StaffListPage() {
 
                         <TableCell>
                           {Object.entries(checks).map(([label, ok]) => (
-                            <MDTypography key={label} variant="caption" display="block">
+                            <MDTypography
+                              key={label}
+                              variant="caption"
+                              display="block"
+                              sx={{ color: ok ? "inherit" : "error.main" }}
+                            >
                               {ok ? "✓" : "✗"} {label}
                             </MDTypography>
                           ))}
