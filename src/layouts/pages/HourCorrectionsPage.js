@@ -245,9 +245,7 @@ export default function HourCorrectionsPage() {
                         </MDTypography>
                       </TableCell>
                       <TableCell>{c.hours}</TableCell>
-                      <TableCell>
-                        {c.hourly_rate_currency} {c.hourly_rate}
-                      </TableCell>
+                      <TableCell>{c.hourly_rate} KES</TableCell>
                       <TableCell>{c.amount} KES</TableCell>
                       <TableCell>{c.reason}</TableCell>
                     </TableRow>
