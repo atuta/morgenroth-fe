@@ -57,6 +57,8 @@ function UserDetailsPage() {
   const [editRate, setEditRate] = useState("");
   const [editNssf, setEditNssf] = useState("");
   const [editSha, setEditSha] = useState("");
+  const [editLunchStart, setEditLunchStart] = useState("");
+  const [editLunchEnd, setEditLunchEnd] = useState("");
 
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -82,6 +84,8 @@ function UserDetailsPage() {
     setEditRate(data.hourly_rate !== null ? String(data.hourly_rate) : "");
     setEditNssf(data.nssf_number || "");
     setEditSha(data.shif_sha_number || "");
+    setEditLunchStart(data.lunch_start ? String(data.lunch_start) : "");
+    setEditLunchEnd(data.lunch_end ? String(data.lunch_end) : "");
   };
 
   // Fetch user details on mount
@@ -117,6 +121,15 @@ function UserDetailsPage() {
   const handleSave = async () => {
     if (!user_id) return;
 
+    // Only save if both lunch start and end are provided when either is set
+    if (
+      (editLunchStart !== "" || editLunchEnd !== "") &&
+      (editLunchStart === "" || editLunchEnd === "")
+    ) {
+      showAlert("Both lunch start and end times must be provided", "error");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -125,6 +138,8 @@ function UserDetailsPage() {
         ...(editRate !== "" && { hourly_rate: editRate }),
         ...(editNssf !== "" && { nssf: editNssf }),
         ...(editSha !== "" && { sha: editSha }),
+        ...(editLunchStart !== "" && { lunch_start: Number(editLunchStart) }),
+        ...(editLunchEnd !== "" && { lunch_end: Number(editLunchEnd) }),
       };
 
       const res = await updateUserFieldsApi(payload);
@@ -136,6 +151,8 @@ function UserDetailsPage() {
           hourly_rate: editRate,
           nssf_number: editNssf,
           shif_sha_number: editSha,
+          lunch_start: editLunchStart !== "" ? Number(editLunchStart) : prev.lunch_start,
+          lunch_end: editLunchEnd !== "" ? Number(editLunchEnd) : prev.lunch_end,
         }));
       } else {
         showAlert(res.message || "Failed to update user details", "error");
@@ -408,6 +425,31 @@ function UserDetailsPage() {
                   type="number"
                   sx={{ mb: 2 }}
                 />
+
+                <Grid container spacing={2} sx={{ mb: 2 }}>
+                  <Grid item xs={6}>
+                    <TextField
+                      label="Lunch Start (24hr, e.g., 1300)"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      value={editLunchStart}
+                      onChange={(e) => setEditLunchStart(e.target.value)}
+                      type="number"
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      label="Lunch End (24hr, e.g., 1400)"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      value={editLunchEnd}
+                      onChange={(e) => setEditLunchEnd(e.target.value)}
+                      type="number"
+                    />
+                  </Grid>
+                </Grid>
 
                 <TextField
                   label={
