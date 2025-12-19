@@ -1,6 +1,5 @@
-// File: WorkingHoursPage.js
-
 import { useState, useEffect } from "react";
+import PropTypes from "prop-types"; // Added for ESLint compliance
 import Grid from "@mui/material/Grid";
 
 // Material UI Table Components
@@ -50,6 +49,76 @@ const USER_ROLES = [
 
 const DEFAULT_TIMEZONE = "Africa/Nairobi";
 
+// --- Constants for Dropdowns ---
+const HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"));
+const MINUTES = ["00", "15", "30", "45"];
+
+// --- Helper Component for Time Selection ---
+const TimeSelector = ({ label, value, onChange, error, helperText }) => {
+  const [h, m] = value && value.includes(":") ? value.split(":") : ["", ""];
+
+  const handleHourChange = (e) => onChange(`${e.target.value}:${m || "00"}`);
+  const handleMinChange = (e) => onChange(`${h || "00"}:${e.target.value}`);
+
+  return (
+    <MDBox>
+      <MDTypography variant="caption" fontWeight="bold" color={error ? "error" : "text"}>
+        {label}
+      </MDTypography>
+      <MDBox display="flex" gap={1} mt={0.5}>
+        <TextField
+          select
+          fullWidth
+          value={h}
+          onChange={handleHourChange}
+          SelectProps={{ native: true }}
+          error={error}
+        >
+          <option value="" disabled>
+            HH
+          </option>
+          {HOURS.map((hr) => (
+            <option key={hr} value={hr}>
+              {hr}
+            </option>
+          ))}
+        </TextField>
+        <TextField
+          select
+          fullWidth
+          value={m}
+          onChange={handleMinChange}
+          SelectProps={{ native: true }}
+          error={error}
+        >
+          <option value="" disabled>
+            MM
+          </option>
+          {MINUTES.map((min) => (
+            <option key={min} value={min}>
+              {min}
+            </option>
+          ))}
+        </TextField>
+      </MDBox>
+      {error && (
+        <MDTypography variant="caption" color="error" sx={{ mt: 0.5, display: "block" }}>
+          {helperText}
+        </MDTypography>
+      )}
+    </MDBox>
+  );
+};
+
+// PropTypes validation for the helper component
+TimeSelector.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  error: PropTypes.bool,
+  helperText: PropTypes.string,
+};
+
 function WorkingHoursPage() {
   const [dayOfWeek, setDayOfWeek] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -71,27 +140,28 @@ function WorkingHoursPage() {
   const validateFields = () => {
     const newErrors = {};
     if (!dayOfWeek) newErrors.dayOfWeek = "Day of week is required.";
-    if (!startTime) newErrors.startTime = "Start time is required.";
-    if (!endTime) newErrors.endTime = "End time is required.";
 
-    if (startTime && endTime) {
-      const startDateTime = new Date(`2000-01-01T${startTime}:00`);
-      const endDateTime = new Date(`2000-01-01T${endTime}:00`);
-      if (startDateTime >= endDateTime) {
-        newErrors.startTime = "Start Time must be before End Time.";
-        newErrors.endTime = "End Time must be after Start Time.";
+    // Check if both HH and MM are selected
+    if (!startTime || startTime.split(":").includes("") || startTime.length < 5) {
+      newErrors.startTime = "Valid start time required.";
+    }
+    if (!endTime || endTime.split(":").includes("") || endTime.length < 5) {
+      newErrors.endTime = "Valid end time required.";
+    }
+
+    if (startTime && endTime && startTime.length === 5 && endTime.length === 5) {
+      const startVal = parseInt(startTime.replace(":", ""), 10);
+      const endVal = parseInt(endTime.replace(":", ""), 10);
+      if (startVal >= endVal) {
+        newErrors.startTime = "Start must be before End.";
+        newErrors.endTime = "End must be after Start.";
       }
     }
 
     setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0 && newErrors.dayOfWeek) {
-      showAlert("Please correct the highlighted errors.", "warning");
-    }
-
     return Object.keys(newErrors).length === 0;
   };
 
-  // Fetch working hours when the page loads or userRole changes
   useEffect(() => {
     const fetchWorkingHours = async () => {
       try {
@@ -105,7 +175,6 @@ function WorkingHoursPage() {
         console.error("Failed to fetch working hours:", err);
       }
     };
-
     fetchWorkingHours();
   }, [userRole]);
 
@@ -128,7 +197,6 @@ function WorkingHoursPage() {
 
       if (res.data?.status === "success") {
         showAlert("Working hours saved successfully", "success");
-
         setWorkingHoursList((prev) => {
           const existingIndex = prev.findIndex((item) => item.day_of_week === payload.day_of_week);
           const newEntry = {
@@ -139,18 +207,16 @@ function WorkingHoursPage() {
             timezone: DEFAULT_TIMEZONE,
             is_active: true,
           };
-
           if (existingIndex > -1) {
             const updated = [...prev];
             updated[existingIndex] = newEntry;
             return updated;
-          } else {
-            return [...prev, newEntry];
           }
+          return [...prev, newEntry];
         });
-
         setStartTime("");
         setEndTime("");
+        setDayOfWeek("");
         setErrors({});
       } else {
         showAlert(res.data?.message || "Failed to save working hours.", "error");
@@ -167,13 +233,12 @@ function WorkingHoursPage() {
       <DashboardNavbar />
       <MDBox py={3}>
         <MDBox sx={{ maxWidth: "600px", margin: "0 auto 0 0" }}>
-          <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
+          <MDBox p={3} mb={3} bgColor="white" borderRadius="lg" shadow="md">
             <MDTypography variant="h5" fontWeight="bold" mb={2}>
               Working Hours
             </MDTypography>
 
-            {/* --- User Role Selector --- */}
-            <MDBox mb={2}>
+            <MDBox mb={3}>
               <MDTypography variant="caption" fontWeight="medium" mb={1}>
                 Select User Role:
               </MDTypography>
@@ -192,7 +257,6 @@ function WorkingHoursPage() {
               </TextField>
             </MDBox>
 
-            {/* --- Existing Working Hours Table --- */}
             <MDBox mb={4}>
               <MDTypography variant="subtitle2" fontWeight="medium" mb={1}>
                 Existing Working Hours:
@@ -202,18 +266,17 @@ function WorkingHoursPage() {
                   component={Paper}
                   sx={{ boxShadow: "none", border: "1px solid #ddd" }}
                 >
-                  <Table size="small" aria-label="working hours table">
+                  <Table size="small">
                     <TableBody>
                       <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                        <TableCell sx={{ padding: "8px 16px", fontWeight: "bold" }}>Day</TableCell>
-                        <TableCell sx={{ padding: "8px 16px", fontWeight: "bold" }} align="center">
-                          Start Time
+                        <TableCell sx={{ fontWeight: "bold" }}>Day</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                          Start
                         </TableCell>
-                        <TableCell sx={{ padding: "8px 16px", fontWeight: "bold" }} align="center">
-                          End Time
+                        <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                          End
                         </TableCell>
                       </TableRow>
-
                       {workingHoursList
                         .sort((a, b) => a.day_of_week - b.day_of_week)
                         .map((cfg) => (
@@ -226,83 +289,61 @@ function WorkingHoursPage() {
                                   : "inherit",
                             }}
                           >
-                            <TableCell sx={{ padding: "8px 16px" }}>{cfg.day_name}</TableCell>
-                            <TableCell sx={{ padding: "8px 16px" }} align="center">
-                              {cfg.start_time}
-                            </TableCell>
-                            <TableCell sx={{ padding: "8px 16px" }} align="center">
-                              {cfg.end_time}
-                            </TableCell>
+                            <TableCell>{cfg.day_name}</TableCell>
+                            <TableCell align="center">{cfg.start_time}</TableCell>
+                            <TableCell align="center">{cfg.end_time}</TableCell>
                           </TableRow>
                         ))}
                     </TableBody>
                   </Table>
                 </TableContainer>
               ) : (
-                <MDTypography variant="caption" display="block" color="text">
-                  No working hours configured yet.
+                <MDTypography variant="caption" color="text">
+                  No working hours configured.
                 </MDTypography>
               )}
             </MDBox>
 
-            {/* --- Form Inputs --- */}
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <MDTypography variant="caption" fontWeight="medium" color="text" sx={{ mb: 1 }}>
-                  Select Day of Week:
+                <MDTypography variant="caption" fontWeight="medium" color="text">
+                  Select Day:
                 </MDTypography>
-                <MDBox display="flex" flexWrap="wrap" gap={1} mb={errors.dayOfWeek ? 0 : 1}>
+                <MDBox display="flex" flexWrap="wrap" gap={1} mt={1}>
                   {daysOfWeek.map((day) => (
                     <MDButton
                       key={day}
                       variant={dayOfWeek === day ? "gradient" : "outlined"}
                       color="info"
+                      size="small"
                       onClick={() => setDayOfWeek(day)}
-                      sx={{
-                        borderColor: errors.dayOfWeek ? "error.main" : undefined,
-                        borderWidth: errors.dayOfWeek ? "2px" : "1px",
-                      }}
                     >
                       {day}
                     </MDButton>
                   ))}
                 </MDBox>
                 {errors.dayOfWeek && (
-                  <MDBox mt={0.5} mb={2}>
-                    <MDTypography variant="caption" color="error">
-                      {errors.dayOfWeek}
-                    </MDTypography>
-                  </MDBox>
+                  <MDTypography variant="caption" color="error">
+                    {errors.dayOfWeek}
+                  </MDTypography>
                 )}
               </Grid>
 
-              <Grid item xs={12}>
-                <MDTypography variant="caption" color="text" fontWeight="medium">
-                  Timezone: {DEFAULT_TIMEZONE} (EAT)
-                </MDTypography>
-              </Grid>
-
               <Grid item xs={6}>
-                <TextField
+                <TimeSelector
                   label="Start Time"
-                  type="time"
-                  fullWidth
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  onChange={setStartTime}
                   error={!!errors.startTime}
                   helperText={errors.startTime}
                 />
               </Grid>
 
               <Grid item xs={6}>
-                <TextField
+                <TimeSelector
                   label="End Time"
-                  type="time"
-                  fullWidth
                   value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  onChange={setEndTime}
                   error={!!errors.endTime}
                   helperText={errors.endTime}
                 />
@@ -315,7 +356,7 @@ function WorkingHoursPage() {
               fullWidth
               disabled={loading}
               onClick={handleSave}
-              sx={{ mt: 3 }}
+              sx={{ mt: 4 }}
             >
               {loading ? "Saving..." : "Save Working Hours"}
             </MDButton>
@@ -329,7 +370,6 @@ function WorkingHoursPage() {
         open={alertOpen}
         onClose={() => setAlertOpen(false)}
       />
-
       <Footer />
     </DashboardLayout>
   );
