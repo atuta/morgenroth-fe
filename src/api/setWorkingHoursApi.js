@@ -4,28 +4,43 @@ import Configs from "../configs/Configs";
 
 const setWorkingHoursApi = async (data) => {
   try {
-    // data example:
-    // {
-    //   day_of_week: "Monday",
-    //   start_time: "08:00",
-    //   end_time: "17:00",
-    //   timezone: "Africa/Nairobi"
-    // }
-    const response = await axiosInstance.post(Configs.apiSetWorkingHoursEp, data);
+    /**
+     * Expected data:
+     * {
+     *   day_of_week: number,   // 1–7
+     *   user_role: string,    // 'admin', 'office', 'teaching', etc.
+     *   start_time: "HH:MM",
+     *   end_time: "HH:MM",
+     *   timezone?: string
+     * }
+     */
+
+    if (!data?.day_of_week || !data?.user_role || !data?.start_time || !data?.end_time) {
+      throw new Error("Missing required working hours parameters");
+    }
+
+    const payload = {
+      day_of_week: Number(data.day_of_week),
+      user_role: data.user_role,
+      start_time: data.start_time,
+      end_time: data.end_time,
+      timezone: data.timezone || "Africa/Nairobi",
+    };
+
+    const response = await axiosInstance.post(Configs.apiSetWorkingHoursEp, payload);
 
     return {
       data: response.data,
-      status: response.status, // HTTP status code
+      status: response.status,
     };
   } catch (error) {
-    // Capture the HTTP status code if available
     if (error.response) {
       return {
         data: error.response.data,
         status: error.response.status,
       };
     }
-    throw error; // Let the caller handle network errors
+    throw error;
   }
 };
 

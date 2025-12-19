@@ -2,10 +2,17 @@
 import axiosInstance from "../axios/axiosInstance";
 import Configs from "../configs/Configs";
 
-const getWorkingHoursApi = async (timezone = "Africa/Nairobi") => {
+const getWorkingHoursApi = async (user_role, timezone = "Africa/Nairobi") => {
   try {
+    if (!user_role) {
+      throw new Error("user_role is required to fetch working hours");
+    }
+
     const response = await axiosInstance.get(Configs.apiGetWorkingHoursEp, {
-      params: { timezone },
+      params: {
+        user_role,
+        timezone,
+      },
     });
 
     return {
