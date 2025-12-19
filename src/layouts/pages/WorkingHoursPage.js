@@ -40,7 +40,6 @@ const dayToNumberMap = {
 };
 
 const USER_ROLES = [
-  { value: "super", label: "Super Admin" },
   { value: "admin", label: "Admin" },
   { value: "office", label: "Office" },
   { value: "teaching", label: "Teaching" },

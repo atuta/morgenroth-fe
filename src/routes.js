@@ -54,25 +54,6 @@ const routes = [
     component: <Dashboard />,
     userRoles: ["admin"],
   },
-
-  //   Super Admin
-  {
-    type: "collapse",
-    name: "Super Admin",
-    key: "super-admin",
-    icon: <AdminPanelSettingsIcon fontSize="small" />,
-    collapse: [
-      {
-        type: "collapse",
-        name: "Hour Corrections",
-        key: "hour-corrections",
-        route: "/hour-corrections",
-        component: <HourCorrectionsPage />,
-        userRoles: ["admin"],
-      },
-    ],
-  },
-
   // Staff Management
   {
     type: "collapse",
@@ -205,6 +186,15 @@ const routes = [
         route: "#",
         userRoles: ["admin"],
       },
+      {
+        type: "collapse",
+        name: "Hour Corrections",
+        key: "hour-corrections",
+        route: "/hour-corrections",
+        component: <HourCorrectionsPage />,
+        userRoles: ["admin"],
+      },
+
       //   {
       //     type: "collapse",
       //     name: "Late/Absence Report",
