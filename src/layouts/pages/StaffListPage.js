@@ -165,7 +165,7 @@ function StaffListPage() {
                   <TableCell align="right">Hourly Rate</TableCell>
                   <TableCell align="center">On Leave</TableCell>
                   <TableCell align="center">On Holiday</TableCell>
-                  <TableCell>Mandatory Fields</TableCell>
+                  <TableCell>Configured</TableCell>
                   <TableCell align="center">Actions</TableCell>
                 </TableRow>
 

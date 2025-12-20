@@ -154,7 +154,7 @@ function Dashboard() {
                 percentage={{
                   color: "success",
                   amount: `${presentPercentage}%`,
-                  label: "present today",
+                  label: "present now",
                 }}
               />
             </MDBox>
@@ -169,7 +169,7 @@ function Dashboard() {
                 percentage={{
                   color: "error",
                   amount: `${absentPercentage}%`,
-                  label: "absent today",
+                  label: "absent now",
                 }}
               />
             </MDBox>
