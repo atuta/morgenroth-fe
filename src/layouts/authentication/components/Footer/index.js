@@ -51,11 +51,9 @@ function Footer({ light }) {
             fontSize={size.sm}
           >
             &copy; {new Date().getFullYear()} |
-            <Link href="https://morgenroth-schulhaus.org/" target="_blank">
-              <MDTypography variant="button" fontWeight="medium" color={light ? "white" : "dark"}>
-                &nbsp;Morgenroth Schulhaus&nbsp;
-              </MDTypography>
-            </Link>
+            <MDTypography variant="button" fontWeight="medium" color="dark">
+              &nbsp;Morgenroth Schulhaus&nbsp;
+            </MDTypography>
           </MDBox>
           <MDBox
             component="ul"

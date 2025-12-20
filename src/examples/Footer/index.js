@@ -1,23 +1,6 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: #product/material-dashboard-react
-* Copyright 2023 Morgenroth Schulhaus (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// prop-types is a library for typechecking of props
 import PropTypes from "prop-types";
 
 // @mui material components
-import Link from "@mui/material/Link";
 import Icon from "@mui/material/Icon";
 
 // Material Dashboard 2 React components
@@ -27,20 +10,8 @@ import MDTypography from "components/MDTypography";
 // Material Dashboard 2 React base styles
 import typography from "assets/theme/base/typography";
 
-function Footer({ company, links }) {
-  const { href, name } = company;
+function Footer({ company }) {
   const { size } = typography;
-
-  const renderLinks = () =>
-    links.map((link) => (
-      <MDBox key={link.name} component="li" px={2} lineHeight={1}>
-        <Link href={link.href} target="_blank">
-          <MDTypography variant="button" fontWeight="regular" color="text">
-            {link.name}
-          </MDTypography>
-        </Link>
-      </MDBox>
-    ));
 
   return (
     <MDBox
@@ -61,50 +32,29 @@ function Footer({ company, links }) {
         px={1.5}
       >
         &copy; {new Date().getFullYear()} |
-        <Link href={href} target="_blank">
-          <MDTypography variant="button" fontWeight="medium">
-            &nbsp;{name}&nbsp;
-          </MDTypography>
-        </Link>
+        <MDTypography variant="button" fontWeight="medium" color="dark">
+          &nbsp;Morgenroth Schulhaus&nbsp;
+        </MDTypography>
       </MDBox>
-      <MDBox
-        component="ul"
-        sx={({ breakpoints }) => ({
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "center",
-          listStyle: "none",
-          mt: 3,
-          mb: 0,
-          p: 0,
 
-          [breakpoints.up("lg")]: {
-            mt: 0,
-          },
-        })}
-      >
-        {renderLinks()}
+      <MDBox display="flex" alignItems="center" mt={{ xs: 2, lg: 0 }}>
+        <Icon fontSize="small" sx={{ mr: 0.5 }}>
+          location_on
+        </Icon>
+        <MDTypography variant="button" fontWeight="regular" color="text">
+          Kidongo Park Gate Rd, Shimba Hills, Kwale
+        </MDTypography>
       </MDBox>
     </MDBox>
   );
 }
 
-// Setting default values for the props of Footer
 Footer.defaultProps = {
-  company: { href: "#", name: "Morgenroth Schulhaus" },
-  links: [
-    { href: "#", name: "Morgenroth Schulhaus" },
-    { href: "#presentation", name: "About Us" },
-    { href: "#blog", name: "Blog" },
-    { href: "#license", name: "License" },
-  ],
+  company: { name: "Morgenroth Schulhaus" },
 };
 
-// Typechecking props for the Footer
 Footer.propTypes = {
   company: PropTypes.objectOf(PropTypes.string),
-  links: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default Footer;
