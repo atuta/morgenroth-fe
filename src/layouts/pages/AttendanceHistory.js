@@ -1,6 +1,7 @@
 // File: AttendanceHistory.js
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -16,22 +17,27 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import InputAdornment from "@mui/material/InputAdornment";
+import SearchIcon from "@mui/icons-material/Search";
 
+// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 
+// Example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 
+// Project specific
 import CustomAlert from "../../components/CustomAlert";
 import { getAttendanceHistoryRangeApi } from "../../api/attendanceApi";
 import { format, parseISO, startOfMonth, endOfMonth } from "date-fns";
 
 const COLUMN_COUNT = 8;
 
-// Shared style for input height
+// Shared style for input height alignment
 const inputSx = {
   "& .MuiInputBase-root": {
     height: "2.5em",
@@ -44,20 +50,27 @@ const formatTime = (isoString) => {
 };
 
 function AttendanceHistory() {
+  const navigate = useNavigate();
+
+  // Data States
   const [attendanceData, setAttendanceData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // UI States
   const [loading, setLoading] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
+  const [openImageModal, setOpenImageModal] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState("");
 
+  // Date Filter States
   const today = new Date();
   const [startMonth, setStartMonth] = useState(today.getMonth() + 1);
   const [startYear, setStartYear] = useState(today.getFullYear());
   const [endMonth, setEndMonth] = useState(today.getMonth() + 1);
   const [endYear, setEndYear] = useState(today.getFullYear());
-
-  const [openImageModal, setOpenImageModal] = useState(false);
-  const [modalImageUrl, setModalImageUrl] = useState("");
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
   const years = Array.from({ length: 5 }, (_, i) => today.getFullYear() - i);
@@ -80,7 +93,9 @@ function AttendanceHistory() {
       });
 
       if (res.ok) {
-        setAttendanceData(res.data.message || []);
+        const data = res.data.message || [];
+        setAttendanceData(data);
+        setFilteredData(data);
       } else {
         showAlert(res.data.message || "Failed to fetch history", "error");
       }
@@ -91,6 +106,23 @@ function AttendanceHistory() {
       setLoading(false);
     }
   };
+
+  // Client-side Live Search
+  useEffect(() => {
+    if (!searchTerm) {
+      setFilteredData(attendanceData);
+      return;
+    }
+    const lowerTerm = searchTerm.toLowerCase();
+    const filtered = attendanceData.filter(
+      (item) =>
+        item.full_name?.toLowerCase().includes(lowerTerm) ||
+        item.date?.includes(lowerTerm) ||
+        item.status?.toLowerCase().includes(lowerTerm) ||
+        item.clockin_type?.toLowerCase().includes(lowerTerm)
+    );
+    setFilteredData(filtered);
+  }, [searchTerm, attendanceData]);
 
   useEffect(() => {
     fetchHistory();
@@ -105,8 +137,8 @@ function AttendanceHistory() {
             Attendance History
           </MDTypography>
 
-          {/* Compact Single Row Filters */}
-          <Grid container spacing={1} alignItems="center" mb={4}>
+          {/* Row 1: Filters (Month Numbers + 2.5em height) */}
+          <Grid container spacing={1} alignItems="center" mb={2}>
             <Grid item xs={6} sm={2} lg={1.5}>
               <TextField
                 select
@@ -139,13 +171,11 @@ function AttendanceHistory() {
                 ))}
               </TextField>
             </Grid>
-
             <Grid item xs={12} sm={1} display="flex" justifyContent="center" lg={0.5}>
               <MDTypography variant="caption" fontWeight="bold">
                 TO
               </MDTypography>
             </Grid>
-
             <Grid item xs={6} sm={2} lg={1.5}>
               <TextField
                 select
@@ -178,7 +208,6 @@ function AttendanceHistory() {
                 ))}
               </TextField>
             </Grid>
-
             <Grid item xs={12} sm={2} lg={1}>
               <MDButton
                 variant="gradient"
@@ -192,6 +221,24 @@ function AttendanceHistory() {
               </MDButton>
             </Grid>
           </Grid>
+
+          {/* Row 2: Full Width Live Search */}
+          <MDBox mb={3}>
+            <TextField
+              placeholder="Search by staff name, status, type or date..."
+              fullWidth
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </MDBox>
 
           <TableContainer
             component={Paper}
@@ -216,30 +263,46 @@ function AttendanceHistory() {
                       <CircularProgress size={30} />
                     </TableCell>
                   </TableRow>
-                ) : attendanceData.length === 0 ? (
+                ) : filteredData.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={COLUMN_COUNT} align="center" sx={{ py: 4 }}>
-                      No records found.
+                      No records match your criteria.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  attendanceData.map((record) => (
+                  filteredData.map((record) => (
                     <TableRow key={record.session_id}>
                       <TableCell>
                         <MDTypography variant="body2">{record.date}</MDTypography>
                       </TableCell>
+
+                      {/* Name with Navigation to Detailed Report */}
                       <TableCell>
-                        <MDTypography variant="body2" fontWeight="medium">
-                          {record.full_name}
-                        </MDTypography>
+                        <MDBox
+                          onClick={() =>
+                            navigate("/attendance-detailed-report", {
+                              state: { user_id: record.user_id, full_name: record.full_name },
+                            })
+                          }
+                          sx={{
+                            cursor: "pointer",
+                            width: "fit-content",
+                            "&:hover": { textDecoration: "underline", color: "info.main" },
+                          }}
+                        >
+                          <MDTypography variant="body2" fontWeight="medium" color="inherit">
+                            {record.full_name}
+                          </MDTypography>
+                        </MDBox>
                       </TableCell>
+
                       <TableCell align="center">
                         <MDTypography
                           variant="caption"
                           color={record.clockin_type === "overtime" ? "warning" : "info"}
                           fontWeight="bold"
                         >
-                          {record.clockin_type.toUpperCase()}
+                          {record.clockin_type ? record.clockin_type.toUpperCase() : "REGULAR"}
                         </MDTypography>
                       </TableCell>
                       <TableCell align="center">
@@ -278,7 +341,7 @@ function AttendanceHistory() {
                           fontWeight="bold"
                           color={record.status === "closed" ? "success" : "warning"}
                         >
-                          {record.status.toUpperCase()}
+                          {record.status ? record.status.toUpperCase() : "OPEN"}
                         </MDTypography>
                       </TableCell>
                     </TableRow>
@@ -290,7 +353,7 @@ function AttendanceHistory() {
         </MDBox>
       </MDBox>
 
-      {/* Image Modal */}
+      {/* Image Modal for photo verification */}
       <Dialog
         open={openImageModal}
         onClose={() => setOpenImageModal(false)}

@@ -29,6 +29,7 @@ import PayrollReportPage from "layouts/pages/PayrollReportPage";
 import AllOvertimesPage from "layouts/pages/AllOvertimesPage";
 import AllAdvancesPage from "layouts/pages/AllAdvancesPage";
 import AdminUserAttendanceDetails from "layouts/pages/AdminUserAttendanceDetails";
+import AttendanceDetailedReport from "layouts/pages/AttendanceDetailedReport";
 import UserAttendanceHistory from "layouts/pages/UserAttendanceHistory";
 import AttendanceHistory from "layouts/pages/AttendanceHistory";
 import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
@@ -165,6 +166,12 @@ const routes = [
         route: "/clock-in-out",
         component: <ClockPage />,
         userRoles: ["admin", "office", "teaching", "subordinate"],
+      },
+      {
+        key: "attendance-detailed-report",
+        route: "/attendance-detailed-report",
+        component: <AttendanceDetailedReport />,
+        userRoles: ["admin"],
       },
       {
         key: "admin-user-attendance-details",
