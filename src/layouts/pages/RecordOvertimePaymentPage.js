@@ -176,7 +176,7 @@ function RecordOvertimePaymentPage() {
                     label={
                       <MDBox display="flex" alignItems="center">
                         <PaymentsIcon fontSize="small" sx={{ mr: 1 }} />
-                        Amount (KES) (Required)
+                        Lumpsum Amount (KES) (Required)
                       </MDBox>
                     }
                     fullWidth
