@@ -29,7 +29,7 @@ import Footer from "examples/Footer";
 
 // Project specific
 import CustomAlert from "../../components/CustomAlert";
-import { getAttendanceDetailedReportApi } from "../../api/attendanceApi";
+import { getAttendanceDetailedReportApi, downloadAttendancePdfApi } from "../../api/attendanceApi";
 
 const inputSx = { "& .MuiInputBase-root": { height: "2.5em" } };
 
@@ -66,6 +66,7 @@ function AttendanceDetailedReport() {
 
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [alert, setAlert] = useState({ open: false, message: "", severity: "info" });
 
   const today = new Date();
@@ -109,6 +110,56 @@ function AttendanceDetailedReport() {
     }
   }, [user_id, startMonth, startYear, endMonth, endYear]);
 
+  // --- PDF Download Handler ---
+  const handleDownloadPDF = async () => {
+    setDownloading(true);
+    try {
+      const params = {
+        user_id,
+        start_date: format(startOfMonth(new Date(startYear, startMonth - 1)), "yyyy-MM-dd"),
+        end_date: format(endOfMonth(new Date(endYear, endMonth - 1)), "yyyy-MM-dd"),
+      };
+
+      const res = await downloadAttendancePdfApi(params);
+
+      if (res.ok) {
+        // Create a Blob from the data
+        const blob = new Blob([res.data], { type: "application/pdf" });
+
+        // Safety Check: If the blob is very small, it might be a JSON error hidden in a blob
+        if (blob.size < 200) {
+          const text = await blob.text();
+          console.error("Server returned an error hidden in a blob:", text);
+          setAlert({
+            open: true,
+            message: "Server error: Could not generate PDF content.",
+            severity: "error",
+          });
+          return;
+        }
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `Attendance_Report_${full_name || "Staff"}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        // If the response failed, res.data is likely a Blob containing a JSON error
+        const errorText = res.data instanceof Blob ? await res.data.text() : "Unknown Error";
+        console.error("Download failed:", errorText);
+        setAlert({ open: true, message: "Failed to generate PDF report", severity: "error" });
+      }
+    } catch (err) {
+      console.error("PDF Download Catch:", err);
+      setAlert({ open: true, message: "Error during PDF download", severity: "error" });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   useEffect(() => {
     fetchReport();
   }, [fetchReport]);
@@ -122,12 +173,17 @@ function AttendanceDetailedReport() {
             <MDTypography variant="h5" fontWeight="bold">
               Attendance Report: {full_name || reportData?.user?.full_name || "Staff Member"}
             </MDTypography>
-            <MDButton variant="gradient" color="dark" size="small" onClick={() => window.print()}>
-              Print PDF
+            <MDButton
+              variant="gradient"
+              color="dark"
+              size="small"
+              onClick={handleDownloadPDF}
+              disabled={downloading}
+            >
+              {downloading ? "Generating..." : "Download PDF"}
             </MDButton>
           </MDBox>
 
-          {/* Date Range Selectors */}
           <Grid container spacing={1} alignItems="center" mb={4}>
             <Grid item xs={6} sm={2} lg={1.5}>
               <TextField

@@ -3,6 +3,26 @@ import axiosInstance from "../axios/axiosInstance";
 import Configs from "../configs/Configs";
 
 // ---------------------------
+// Attendance PDF Report: Generates and downloads a binary PDF file
+// Targets: path('api/attendance/report/pdf/')
+// Expected params: { user_id: "<uuid>", start_date: "YYYY-MM-DD", end_date: "YYYY-MM-DD" }
+export const downloadAttendancePdfApi = async (params) => {
+  try {
+    const response = await axiosInstance.get(Configs.apiAttendanceDetailedPdfEp, {
+      params,
+      responseType: "blob", // CRITICAL: Tells axios to handle binary data
+    });
+    return { ok: true, status: response.status, data: response.data };
+  } catch (error) {
+    if (error.response) {
+      // Since responseType is 'blob', error.response.data might also be a blob.
+      return { ok: false, status: error.response.status, data: error.response.data };
+    }
+    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
+  }
+};
+
+// ---------------------------
 // Detailed Grouped Report: Grouped by Daily Totals and Summary Cards
 // Targets: path('api/attendance/report/detailed/')
 // Expected params: { user_id: "<uuid>", start_date: "YYYY-MM-DD", end_date: "YYYY-MM-DD" }

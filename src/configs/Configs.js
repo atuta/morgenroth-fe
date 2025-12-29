@@ -52,6 +52,7 @@ const Configs = {
   apiAdminUserAttendanceHistoryEp: `${BASE_URL}/api/attendance/admin/history/`,
   apiAttendanceHistoryRangeEp: `${BASE_URL}/api/attendance/history/range/`,
   apiAttendanceDetailedReportEp: `${BASE_URL}/api/attendance/report/detailed/`,
+  apiAttendanceDetailedPdfEp: `${BASE_URL}/api/attendance/report/pdf/`,
 
   // Advance
   apiAdminCreateAdvanceEp: `${BASE_URL}/api/admin/advance/create/`,
