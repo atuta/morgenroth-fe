@@ -181,16 +181,16 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
                 margin="normal"
                 value={editRole}
                 onChange={(e) => setEditRole(e.target.value)}
-                // Increase vertical padding and ensure alignment
-                SelectProps={{
-                  sx: {
-                    paddingTop: "8px",
-                    paddingBottom: "8px",
-                    "& .MuiSelect-select": {
-                      display: "flex",
-                      alignItems: "center",
-                      minHeight: "2.0em", // Standard MUI height
-                    },
+                // Targeting the root and the internal select element for persistence
+                sx={{
+                  "& .MuiInputBase-root": {
+                    minHeight: "42px", // Adjust this to match your other fields exactly
+                  },
+                  "& .MuiSelect-select": {
+                    display: "flex !important",
+                    alignItems: "center !important",
+                    paddingTop: "10px !important",
+                    paddingBottom: "10px !important",
                   },
                 }}
                 InputProps={{

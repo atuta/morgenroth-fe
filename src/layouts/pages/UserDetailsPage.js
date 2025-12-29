@@ -326,6 +326,15 @@ function UserDetailsPage() {
                     value={month}
                     onChange={(e) => setMonth(Number(e.target.value))}
                     size="small"
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        minHeight: "45px", // Match the height of your User Role field
+                      },
+                      "& .MuiSelect-select": {
+                        display: "flex !important",
+                        alignItems: "center !important",
+                      },
+                    }}
                   >
                     {allowedMonths.map((m) => (
                       <MenuItem key={m} value={m}>
@@ -342,6 +351,15 @@ function UserDetailsPage() {
                     value={year}
                     onChange={(e) => setYear(Number(e.target.value))}
                     size="small"
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        minHeight: "45px", // Consistent height across the row
+                      },
+                      "& .MuiSelect-select": {
+                        display: "flex !important",
+                        alignItems: "center !important",
+                      },
+                    }}
                   >
                     {years.map((y) => (
                       <MenuItem key={y} value={y}>
