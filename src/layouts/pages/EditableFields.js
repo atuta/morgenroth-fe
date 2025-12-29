@@ -24,8 +24,6 @@ import MDButton from "components/MDButton";
 import updateUserFieldsApi from "../../api/updateUserFieldsApi";
 
 const ROLE_CHOICES = [
-  { value: "super", label: "Super Admin" },
-  { value: "admin", label: "Admin" },
   { value: "office", label: "Office" },
   { value: "teaching", label: "Teaching" },
   { value: "subordinate", label: "Subordinate" },
