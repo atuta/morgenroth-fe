@@ -30,6 +30,7 @@ import AllOvertimesPage from "layouts/pages/AllOvertimesPage";
 import AllAdvancesPage from "layouts/pages/AllAdvancesPage";
 import AdminUserAttendanceDetails from "layouts/pages/AdminUserAttendanceDetails";
 import UserAttendanceHistory from "layouts/pages/UserAttendanceHistory";
+import AttendanceHistory from "layouts/pages/AttendanceHistory";
 import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
 import DeductionsPage from "layouts/pages/DeductionsPage";
 import SignIn from "layouts/authentication/sign-in";
@@ -173,10 +174,18 @@ const routes = [
       },
       {
         type: "collapse",
-        name: "Staff Attendance",
+        name: "Attendance Today",
         key: "attendance-summary",
         route: "/attendance-summary",
         component: <TodayAttendancePage />,
+        userRoles: ["admin", "office"],
+      },
+      {
+        type: "collapse",
+        name: "Attendance History",
+        key: "attendance-history",
+        route: "/attendance-history",
+        component: <AttendanceHistory />,
         userRoles: ["admin", "office"],
       },
       {

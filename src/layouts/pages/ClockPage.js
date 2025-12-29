@@ -236,7 +236,7 @@ function ClockPage() {
         {currentSession ? (
           <MDBox>
             <MDTypography variant="h5" fontWeight="bold" color="success" mb={1}>
-              Session Active
+              Session Active ({currentSession.clockin_type || "Regular"})
             </MDTypography>
             <MDTypography variant="h1" fontWeight="light" color="text" mb={2}>
               {sessionDuration}

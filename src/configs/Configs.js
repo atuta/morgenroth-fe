@@ -50,6 +50,7 @@ const Configs = {
   // New endpoints
   apiUserAttendanceHistoryEp: `${BASE_URL}/api/attendance/history/`,
   apiAdminUserAttendanceHistoryEp: `${BASE_URL}/api/attendance/admin/history/`,
+  apiAttendanceHistoryRangeEp: `${BASE_URL}/api/attendance/history/range/`,
 
   // Advance
   apiAdminCreateAdvanceEp: `${BASE_URL}/api/admin/advance/create/`,
