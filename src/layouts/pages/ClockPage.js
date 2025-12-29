@@ -14,6 +14,12 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import CustomAlert from "../../components/CustomAlert";
 
+// Dialog Components for Interception
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+
 import clockInApi from "../../api/clockInApi";
 import clockOutApi from "../../api/clockOutApi";
 import getCurrentSessionApi from "../../api/getCurrentSessionApi";
@@ -50,6 +56,9 @@ function ClockPage() {
   const [sessionDuration, setSessionDuration] = useState("00:00:00");
 
   const [clockOutDisabledUntil, setClockOutDisabledUntil] = useState(null);
+
+  // New State for Interception Dialogue
+  const [openTypeDialog, setOpenTypeDialog] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -140,14 +149,25 @@ function ClockPage() {
     stopCamera();
   };
 
-  const handleClockIn = async () => {
+  // Intermediate function to trigger the Dialog
+  const handleClockInInitiation = () => {
+    setOpenTypeDialog(true);
+  };
+
+  // Modified Clock-In to accept the choice from the Dialog
+  const handleClockIn = async (clockinType) => {
+    setOpenTypeDialog(false); // Close dialog
     setLoading(true);
     try {
-      const payload = { timestamp: new Date().toISOString(), photo_base64: photoBase64 };
+      const payload = {
+        timestamp: new Date().toISOString(),
+        photo_base64: photoBase64,
+        clockin_type: clockinType, // Added new field
+      };
       const res = await clockInApi(payload);
 
       if ((res.status === 200 || res.status === 201) && res.data.status === "success") {
-        showAlert("✅ Clock-in recorded successfully!", "success");
+        showAlert(`✅ ${clockinType} clock-in recorded successfully!`, "success");
         setPhotoBase64(null);
         fetchCurrentSession();
 
@@ -321,7 +341,7 @@ function ClockPage() {
               color="success"
               fullWidth
               disabled={loading || !photoBase64}
-              onClick={handleClockIn}
+              onClick={handleClockInInitiation} // Now triggers Dialog instead of direct API
               sx={{ mt: 1 }}
             >
               {loading ? <CircularProgress color="inherit" size={20} /> : "Clock In"}
@@ -337,11 +357,55 @@ function ClockPage() {
       <DashboardNavbar />
       <MDBox py={3}>
         <MDBox width="100%" sx={{ maxWidth: "600px" }}>
-          {" "}
-          {/* aligned left */}
           {renderContent()}
         </MDBox>
       </MDBox>
+
+      {/* Interception Dialog for Clock-In Type */}
+      <Dialog
+        open={openTypeDialog}
+        onClose={() => setOpenTypeDialog(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "lg" } }}
+      >
+        <DialogTitle>
+          <MDTypography variant="h6" fontWeight="bold">
+            Confirm Shift Type
+          </MDTypography>
+        </DialogTitle>
+        <DialogContent>
+          <MDTypography variant="body2" color="text">
+            Please select the type of session you are clocking in for.
+          </MDTypography>
+        </DialogContent>
+        <DialogActions sx={{ flexDirection: "column", p: 3, gap: 2 }}>
+          <MDButton
+            variant="gradient"
+            color="info"
+            fullWidth
+            onClick={() => handleClockIn("regular")}
+          >
+            Regular Shift
+          </MDButton>
+          <MDButton
+            variant="outlined"
+            color="dark"
+            fullWidth
+            onClick={() => handleClockIn("overtime")}
+          >
+            Overtime Session
+          </MDButton>
+          <MDButton
+            variant="text"
+            color="secondary"
+            fullWidth
+            onClick={() => setOpenTypeDialog(false)}
+          >
+            Cancel
+          </MDButton>
+        </DialogActions>
+      </Dialog>
 
       <CustomAlert
         message={alertMessage}
