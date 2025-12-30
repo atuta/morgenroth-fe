@@ -93,6 +93,9 @@ const Configs = {
   apiAdminRecordHourCorrectionEp: `${BASE_URL}/api/admin/record-hour-correction/`,
   apiGetHourCorrectionsEp: `${BASE_URL}/api/hour-corrections/`,
 
+  apiMyPayslipEp: `${BASE_URL}/payslips/my-pdf/`,
+  apiAdminPayslipEp: `${BASE_URL}/payslips/batch-pdf/`,
+
   // Rate
   apiSetRateEp: `${BASE_URL}/api/set-rate/`,
   apiGetRateEp: `${BASE_URL}/api/get-rate/`,

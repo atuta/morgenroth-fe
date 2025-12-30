@@ -2,263 +2,156 @@
 import axiosInstance from "../axios/axiosInstance";
 import Configs from "../configs/Configs";
 
-// ---------------------------
-// PAYROLL ENDPOINTS
-// ---------------------------
+/* ============================================================
+   Shared helpers
+============================================================ */
 
-// User: Generate JSON Payslip
-// params expected:
-// {
-//   user_id: number,
-//   month: number (1-12),
-//   year: number (YYYY)
-// }
-export const generateUserPayslipApi = async (params = {}) => {
+const parseBlobError = async (error) => {
+  if (!error.response) {
+    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
+  }
+
+  const { status, data } = error.response;
+
+  if (data instanceof Blob) {
+    try {
+      const text = await data.text();
+      return {
+        ok: false,
+        status,
+        data: JSON.parse(text),
+      };
+    } catch {
+      return {
+        ok: false,
+        status,
+        data: { message: "invalid_blob_error_response" },
+      };
+    }
+  }
+
+  return { ok: false, status, data };
+};
+
+const safeRequest = async (requestFn, { isBlob = false } = {}) => {
   try {
-    const response = await axiosInstance.get(Configs.apiGenerateUserPayslipEp, { params });
+    const response = await requestFn();
     return { ok: true, status: response.status, data: response.data };
   } catch (error) {
+    if (isBlob) return await parseBlobError(error);
+
     if (error.response)
       return { ok: false, status: error.response.status, data: error.response.data };
+
     return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
   }
 };
 
-// User: Generate PDF Payslip
-// params expected:
-// {
-//   user_id: number,
-//   month: number,
-//   year: number
-// }
-export const generateUserPayslipPdfApi = async (params = {}) => {
-  try {
-    const response = await axiosInstance.get(Configs.apiGenerateUserPayslipPdfEp, {
-      params,
-      responseType: "blob",
-    });
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+/* ============================================================
+   PAYROLL
+============================================================ */
 
-// Admin: Generate JSON Payslip for any user
-// params expected:
-// {
-//   user_id: number,
-//   month: number,
-//   year: number
-// }
-export const adminGenerateUserPayslipApi = async (params) => {
-  try {
-    const response = await axiosInstance.get(Configs.apiAdminGenerateUserPayslipEp, { params });
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+// User: Generate my PDF payslip
+export const generateMyPayslipPdfApi = (params = {}) =>
+  safeRequest(
+    () =>
+      axiosInstance.get(Configs.apiMyPayslipEp, {
+        params,
+        responseType: "blob",
+      }),
+    { isBlob: true }
+  );
 
-// Admin: Generate PDF Payslip for any user
-// params expected:
-// {
-//   user_id: number,
-//   month: number,
-//   year: number
-// }
-export const adminGenerateUserPayslipPdfApi = async (params) => {
-  try {
-    const response = await axiosInstance.get(Configs.apiAdminGenerateUserPayslipPdfEp, {
-      params,
-      responseType: "blob",
-    });
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+// Admin: Batch PDF payslips
+export const adminGenerateBatchPayslipPdfApi = (data = {}) =>
+  safeRequest(
+    () =>
+      axiosInstance.post(Configs.apiAdminPayslipEp, data, {
+        responseType: "blob",
+      }),
+    { isBlob: true }
+  );
 
-// ---------------------------
-// OVERTIME ENDPOINTS
-// ---------------------------
+// User: Generate JSON payslip
+export const generateUserPayslipApi = (params = {}) =>
+  safeRequest(() => axiosInstance.get(Configs.apiGenerateUserPayslipEp, { params }));
 
-// Admin: Record Overtime
-// data expected:
-// {
-//   user_id: number,
-//   hours: number,
-//   rate_per_hour?: number (optional, else system rate used),
-//   month: number,
-//   year: number,
-//   notes?: string
-// }
-export const recordOvertimeAdminApi = async (data) => {
-  try {
-    const response = await axiosInstance.post(Configs.apiAdminRecordOvertimeEp, data);
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+// User: Generate PDF payslip
+export const generateUserPayslipPdfApi = (params = {}) =>
+  safeRequest(
+    () =>
+      axiosInstance.get(Configs.apiGenerateUserPayslipPdfEp, {
+        params,
+        responseType: "blob",
+      }),
+    { isBlob: true }
+  );
 
-// User: Get overtime by month
-// data expected:
-// {
-//   month: number,
-//   year: number
-// }
-export const getUserOvertimeByMonthApi = async (data) => {
-  try {
-    const response = await axiosInstance.get(Configs.apiGetUserOvertimeByMonthEp, { params: data });
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+// Admin: Generate JSON payslip
+export const adminGenerateUserPayslipApi = (params) =>
+  safeRequest(() => axiosInstance.get(Configs.apiAdminGenerateUserPayslipEp, { params }));
 
-// User: Get all overtime (no params)
-export const getAllUserOvertimeApi = async () => {
-  try {
-    const response = await axiosInstance.get(Configs.apiGetAllUserOvertimeEp);
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+// Admin: Generate PDF payslip
+export const adminGenerateUserPayslipPdfApi = (params) =>
+  safeRequest(
+    () =>
+      axiosInstance.get(Configs.apiAdminGenerateUserPayslipPdfEp, {
+        params,
+        responseType: "blob",
+      }),
+    { isBlob: true }
+  );
 
-// Admin: Get overtime by month for user
-// data expected:
-// {
-//   user_id: number,
-//   month: number,
-//   year: number
-// }
-export const getUserOvertimeByMonthAdminApi = async (data) => {
-  try {
-    const response = await axiosInstance.get(Configs.apiAdminGetUserOvertimeByMonthEp, {
+/* ============================================================
+   OVERTIME
+============================================================ */
+
+export const recordOvertimeAdminApi = (data) =>
+  safeRequest(() => axiosInstance.post(Configs.apiAdminRecordOvertimeEp, data));
+
+export const getUserOvertimeByMonthApi = (data) =>
+  safeRequest(() => axiosInstance.get(Configs.apiGetUserOvertimeByMonthEp, { params: data }));
+
+export const getAllUserOvertimeApi = () =>
+  safeRequest(() => axiosInstance.get(Configs.apiGetAllUserOvertimeEp));
+
+export const getUserOvertimeByMonthAdminApi = (data) =>
+  safeRequest(() =>
+    axiosInstance.get(Configs.apiAdminGetUserOvertimeByMonthEp, {
       params: data,
-    });
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+    })
+  );
 
-// Admin: Get all overtime for user
-// data optional:
-// { user_id?: number }
-export const getAllUserOvertimeAdminApi = async (data) => {
-  try {
-    const response = await axiosInstance.get(Configs.apiAdminGetAllUserOvertimeEp, {
+export const getAllUserOvertimeAdminApi = (data) =>
+  safeRequest(() =>
+    axiosInstance.get(Configs.apiAdminGetAllUserOvertimeEp, {
       params: data,
-    });
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+    })
+  );
 
-// ---------------------------
-// ADVANCE PAYMENT ENDPOINTS
-// ---------------------------
+/* ============================================================
+   ADVANCES
+============================================================ */
 
-// Admin: Create salary advance
-// data expected:
-// {
-//   user_id: number,
-//   amount: number,
-//   month: number,
-//   year: number,
-//   note?: string
-// }
-export const createAdvanceAdminApi = async (data) => {
-  try {
-    const response = await axiosInstance.post(Configs.apiAdminCreateAdvanceEp, data);
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+export const createAdvanceAdminApi = (data) =>
+  safeRequest(() => axiosInstance.post(Configs.apiAdminCreateAdvanceEp, data));
 
-// User: Get advances by month
-// data expected:
-// {
-//   month: number,
-//   year: number
-// }
-export const getUserAdvancesByMonthApi = async (data) => {
-  try {
-    const response = await axiosInstance.get(Configs.apiGetUserAdvancesByMonthEp, { params: data });
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+export const getUserAdvancesByMonthApi = (data) =>
+  safeRequest(() => axiosInstance.get(Configs.apiGetUserAdvancesByMonthEp, { params: data }));
 
-// User: Get all advances (no params)
-export const getAllUserAdvancesApi = async () => {
-  try {
-    const response = await axiosInstance.get(Configs.apiGetAllUserAdvancesEp);
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+export const getAllUserAdvancesApi = () =>
+  safeRequest(() => axiosInstance.get(Configs.apiGetAllUserAdvancesEp));
 
-// Admin: View advances by month for user
-// data expected:
-// {
-//   user_id: number,
-//   month: number,
-//   year: number
-// }
-export const getUserAdvancesByMonthAdminApi = async (data) => {
-  try {
-    const response = await axiosInstance.get(Configs.apiAdminGetUserAdvancesByMonthEp, {
+export const getUserAdvancesByMonthAdminApi = (data) =>
+  safeRequest(() =>
+    axiosInstance.get(Configs.apiAdminGetUserAdvancesByMonthEp, {
       params: data,
-    });
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+    })
+  );
 
-// Admin: Get all user advances
-// data optional:
-// { user_id?: number }
-export const getAllUserAdvancesAdminApi = async (data) => {
-  try {
-    const response = await axiosInstance.get(Configs.apiAdminGetAllUserAdvancesEp, {
+export const getAllUserAdvancesAdminApi = (data) =>
+  safeRequest(() =>
+    axiosInstance.get(Configs.apiAdminGetAllUserAdvancesEp, {
       params: data,
-    });
-    return { ok: true, status: response.status, data: response.data };
-  } catch (error) {
-    if (error.response)
-      return { ok: false, status: error.response.status, data: error.response.data };
-    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
-  }
-};
+    })
+  );

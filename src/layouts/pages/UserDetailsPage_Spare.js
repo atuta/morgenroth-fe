@@ -1,11 +1,14 @@
+// File: UserDetailsPage.js
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
 import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
 import Paper from "@mui/material/Paper";
 import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import MenuItem from "@mui/material/MenuItem";
 
 // Icons
 import AccessTimeIcon from "@mui/icons-material/AccessTimeOutlined";
@@ -22,12 +25,12 @@ import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 
 // Internal Components & API
-import EditableFields from "./EditableFields";
-import GeneratePayslipCard from "./GeneratePayslipCard"; // <--- Imported the extracted component
+import EditableFields from "./EditableFields"; // <--- Imported new component
 import getUserDetailsApi from "../../api/getUserDetailsApi";
 import updateUserLeaveStatusApi from "../../api/updateUserLeaveStatusApi";
 import CustomAlert from "../../components/CustomAlert";
 import Configs from "../../configs/Configs";
+import { adminGenerateUserPayslipPdfApi } from "../../api/payrollAndCompensationApi";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
 
@@ -42,10 +45,21 @@ function UserDetailsPage() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [togglingLeave, setTogglingLeave] = useState(false);
+  const [generatingPayslip, setGeneratingPayslip] = useState(false);
 
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
+
+  // Payslip dropdown state
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+  const allowedMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+  const years = Array.from({ length: 10 }, (_, i) => currentYear - i).reverse();
+
+  const [month, setMonth] = useState(currentMonth);
+  const [year, setYear] = useState(currentYear);
 
   const showAlert = (msg, severity = "info") => {
     setAlertMessage(msg);
@@ -104,6 +118,52 @@ function UserDetailsPage() {
       setUserData((prev) => ({ ...prev, is_on_leave: !newLeaveStatus }));
     } finally {
       setTogglingLeave(false);
+    }
+  };
+
+  const handleGeneratePayslip = async () => {
+    if (!userData || !user_id) return;
+
+    const todayDate = new Date();
+    if (
+      year > todayDate.getFullYear() ||
+      (year === todayDate.getFullYear() && month > todayDate.getMonth() + 1)
+    ) {
+      showAlert("Cannot generate payslip for a future month/year", "error");
+      return;
+    }
+
+    setGeneratingPayslip(true);
+    showAlert("Generating payslip...", "info");
+
+    try {
+      const params = { user_id, month, year };
+      const res = await adminGenerateUserPayslipPdfApi(params);
+
+      if (res.ok) {
+        const pdfBlob = new Blob([res.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(pdfBlob);
+        const userFullName = `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
+        const sanitizedName = userFullName.replace(/\s+/g, "_");
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `Payslip_${sanitizedName}_${month}_${year}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        showAlert(`Payslip for ${userFullName} downloaded successfully!`, "success");
+      } else {
+        const errorText = await res.data.text();
+        showAlert(errorText || "Failed to generate payslip", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert("Server error while generating payslip", "error");
+    } finally {
+      setGeneratingPayslip(false);
     }
   };
 
@@ -193,7 +253,7 @@ function UserDetailsPage() {
             </MDBox>
           </Paper>
 
-          {/* Editable Personal Fields Component */}
+          {/* New Extracted Component */}
           <EditableFields
             userData={userData}
             user_id={user_id}
@@ -250,8 +310,77 @@ function UserDetailsPage() {
             </Grid>
           </Paper>
 
-          {/* Extracted Payslip Component */}
-          <GeneratePayslipCard user_id={user_id} userData={userData} showAlert={showAlert} />
+          {/* Payslip Action Card */}
+          <Paper elevation={0} sx={{ p: 3, borderRadius: "lg" }}>
+            <MDBox display="flex" flexDirection="column" alignItems="flex-start">
+              <MDTypography variant="h6" fontWeight="bold" mb={2}>
+                Generate Payslip
+              </MDTypography>
+
+              <Grid container spacing={2} mb={2} sx={{ maxWidth: 400, width: "100%" }}>
+                <Grid item xs={6}>
+                  <TextField
+                    select
+                    label="Month"
+                    fullWidth
+                    value={month}
+                    onChange={(e) => setMonth(Number(e.target.value))}
+                    size="small"
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        minHeight: "45px", // Match the height of your User Role field
+                      },
+                      "& .MuiSelect-select": {
+                        display: "flex !important",
+                        alignItems: "center !important",
+                      },
+                    }}
+                  >
+                    {allowedMonths.map((m) => (
+                      <MenuItem key={m} value={m}>
+                        {m}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    select
+                    label="Year"
+                    fullWidth
+                    value={year}
+                    onChange={(e) => setYear(Number(e.target.value))}
+                    size="small"
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        minHeight: "45px", // Consistent height across the row
+                      },
+                      "& .MuiSelect-select": {
+                        display: "flex !important",
+                        alignItems: "center !important",
+                      },
+                    }}
+                  >
+                    {years.map((y) => (
+                      <MenuItem key={y} value={y}>
+                        {y}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+              </Grid>
+
+              <MDButton
+                variant="gradient"
+                color="info"
+                onClick={handleGeneratePayslip}
+                disabled={generatingPayslip}
+                startIcon={generatingPayslip && <CircularProgress size={20} color="white" />}
+              >
+                {generatingPayslip ? "Generating..." : "Generate Payslip"}
+              </MDButton>
+            </MDBox>
+          </Paper>
         </MDBox>
       </MDBox>
 
