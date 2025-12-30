@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect
 import Grid from "@mui/material/Grid";
 import Icon from "@mui/material/Icon";
 
@@ -13,8 +13,9 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 
-// API service
+// API services
 import addOrganizationApi from "../../api/addOrganizationApi";
+import getLatestOrganizationApi from "../../api/getLatestOrganizationApi"; // Added GET service
 
 // Custom alert
 import CustomAlert from "../../components/CustomAlert";
@@ -33,6 +34,31 @@ function AddOrganization() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
+
+  // --- NEW: Pre-populate data on component mount ---
+  useEffect(() => {
+    const fetchOrgData = async () => {
+      try {
+        const result = await getLatestOrganizationApi();
+        if (result.status === "success" && result.data) {
+          const org = result.data;
+          setName(org.name || "");
+          setEmail(org.email || "");
+          setTelephone(org.telephone || "");
+          setPhysicalAddress(org.physical_address || "");
+          setPostalAddress(org.postal_address || "");
+          // The backend view sends an absolute URL for the logo
+          if (org.logo) {
+            setLogoPreview(org.logo);
+          }
+        }
+      } catch (err) {
+        console.log("No existing organization record found to populate.");
+      }
+    };
+
+    fetchOrgData();
+  }, []);
 
   const showAlert = (message, severity = "info") => {
     setAlertMessage(message);
@@ -79,7 +105,6 @@ function AddOrganization() {
       const response = await addOrganizationApi(data);
       if (response.status === "success") {
         showAlert("Organization details saved successfully!", "success");
-        // Reset fields if needed, or leave them for editing
       } else {
         showAlert(response.message || "Failed to save details", "error");
       }

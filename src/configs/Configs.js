@@ -32,6 +32,7 @@ const Configs = {
 
   // Organization
   apiUpsertOrganizationEp: `${BASE_URL}/api/upsert-organization/`,
+  apiGetLatestOrganizationEp: `${BASE_URL}/api/get-latest-organization/`,
 
   // Working hours
   apiGetAllWorkingHoursEp: `${BASE_URL}/api/get-all-working-hours/`,
