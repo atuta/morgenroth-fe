@@ -30,6 +30,9 @@ const Configs = {
   apiAddUserEp: `${BASE_URL}/api/add-user/`,
   apiChangePasswordEp: `${BASE_URL}/api/change-password/`,
 
+  // Organization
+  apiUpsertOrganizationEp: `${BASE_URL}/api/upsert-organization/`,
+
   // Working hours
   apiGetAllWorkingHoursEp: `${BASE_URL}/api/get-all-working-hours/`,
 

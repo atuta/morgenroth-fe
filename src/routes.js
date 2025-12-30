@@ -36,6 +36,7 @@ import TodayAttendancePage from "layouts/pages/TodayAttendancePage";
 import DeductionsPage from "layouts/pages/DeductionsPage";
 import SignIn from "layouts/authentication/sign-in";
 
+import AddOrganization from "layouts/pages/AddOrganization";
 import HourCorrectionsPage from "layouts/pages/HourCorrectionsPage";
 import RecordHourCorrectionPage from "layouts/pages/RecordHourCorrectionPage";
 import RecordOvertimePaymentPage from "layouts/pages/RecordOvertimePaymentPage";
@@ -249,6 +250,14 @@ const routes = [
         key: "set-statutory-deductions",
         route: "/set-statutory-deductions",
         component: <DeductionsPage />,
+        userRoles: ["admin"],
+      },
+      {
+        type: "collapse",
+        name: "Upsert Organization",
+        key: "upsert-organization",
+        route: "/upsert-organization",
+        component: <AddOrganization />,
         userRoles: ["admin"],
       },
     ],
