@@ -142,7 +142,8 @@ function PayslipsCenter() {
       <DashboardNavbar />
 
       <MDBox py={3}>
-        <MDBox sx={{ maxWidth: "800px", margin: "0 auto" }}>
+        {/* Changed margin from "0 auto" to 0 to align the card to the left */}
+        <MDBox sx={{ maxWidth: "800px", margin: 0 }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: "lg" }}>
             <MDTypography variant="h5" fontWeight="bold" mb={3}>
               Payslips Center
