@@ -7,12 +7,13 @@ const updateUserFieldsApi = async ({
   hourly_rate,
   nssf,
   sha,
+  nssf_amount, // ✅ NEW
   lunch_start,
   lunch_end,
-  email, // NEW
-  phone_number, // NEW
-  id_number, // NEW
-  user_role, // NEW
+  email,
+  phone_number,
+  id_number,
+  user_role,
 }) => {
   try {
     if (!user_id) {
@@ -38,10 +39,11 @@ const updateUserFieldsApi = async ({
 
     addToPayload("nssf", nssf);
     addToPayload("sha", sha);
+    addToPayload("nssf_amount", nssf_amount); // ✅ NEW
     addToPayload("lunch_start", lunch_start);
     addToPayload("lunch_end", lunch_end);
 
-    // --- Contact & Identity (New Inclusions) ---
+    // --- Contact & Identity ---
     addToPayload("email", email);
     addToPayload("phone_number", phone_number);
     addToPayload("id_number", id_number);

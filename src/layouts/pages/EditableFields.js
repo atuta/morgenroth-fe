@@ -1,4 +1,3 @@
-// File: EditableFields.js
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Grid from "@mui/material/Grid";
@@ -16,7 +15,7 @@ import PaidIcon from "@mui/icons-material/PaidOutlined";
 import PermIdentityIcon from "@mui/icons-material/PermIdentityOutlined";
 import BadgeIcon from "@mui/icons-material/BadgeOutlined";
 
-// Material Dashboard 2 React components
+// Components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
@@ -32,33 +31,35 @@ const ROLE_CHOICES = [
 function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
   const [saving, setSaving] = useState(false);
 
-  // Existing state
+  // Payroll & statutory
   const [editRate, setEditRate] = useState("");
   const [editNssf, setEditNssf] = useState("");
+  const [editNssfAmount, setEditNssfAmount] = useState("");
   const [editSha, setEditSha] = useState("");
   const [editLunchStart, setEditLunchStart] = useState("");
   const [editLunchEnd, setEditLunchEnd] = useState("");
 
-  // New state
+  // Identity & contact
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editIdNumber, setEditIdNumber] = useState("");
   const [editRole, setEditRole] = useState("");
 
   useEffect(() => {
-    if (userData) {
-      setEditRate(userData.hourly_rate !== null ? String(userData.hourly_rate) : "");
-      setEditNssf(userData.nssf_number || "");
-      setEditSha(userData.shif_sha_number || "");
-      setEditLunchStart(userData.lunch_start ? String(userData.lunch_start) : "");
-      setEditLunchEnd(userData.lunch_end ? String(userData.lunch_end) : "");
+    if (!userData) return;
 
-      // Initialize new fields
-      setEditEmail(userData.email || "");
-      setEditPhone(userData.phone_number || "");
-      setEditIdNumber(userData.id_number || "");
-      setEditRole(userData.user_role || "");
-    }
+    setEditRate(userData.hourly_rate ?? "");
+    setEditNssf(userData.nssf_number || "");
+    setEditNssfAmount(userData.nssf_amount ?? "");
+    setEditSha(userData.shif_sha_number || "");
+
+    setEditLunchStart(userData.lunch_start ? String(userData.lunch_start) : "");
+    setEditLunchEnd(userData.lunch_end ? String(userData.lunch_end) : "");
+
+    setEditEmail(userData.email || "");
+    setEditPhone(userData.phone_number || "");
+    setEditIdNumber(userData.id_number || "");
+    setEditRole(userData.user_role || "");
   }, [userData]);
 
   const handleSave = async () => {
@@ -73,6 +74,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
     }
 
     setSaving(true);
+
     try {
       const payload = {
         user_id,
@@ -80,9 +82,13 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
         phone_number: editPhone,
         id_number: editIdNumber,
         user_role: editRole,
+
         nssf: editNssf,
+        nssf_amount: editNssfAmount,
         sha: editSha,
+
         hourly_rate: editRate,
+
         lunch_start: editLunchStart !== "" ? Number(editLunchStart) : null,
         lunch_end: editLunchEnd !== "" ? Number(editLunchEnd) : null,
       };
@@ -91,14 +97,18 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
 
       if (res.status === "success") {
         showAlert("User details updated successfully!", "success");
+
         onUpdateSuccess({
           email: editEmail,
           phone_number: editPhone,
           id_number: editIdNumber,
           user_role: editRole,
+
           hourly_rate: editRate,
           nssf_number: editNssf,
+          nssf_amount: editNssfAmount,
           shif_sha_number: editSha,
+
           lunch_start: editLunchStart !== "" ? Number(editLunchStart) : userData.lunch_start,
           lunch_end: editLunchEnd !== "" ? Number(editLunchEnd) : userData.lunch_end,
         });
@@ -122,7 +132,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
           </MDTypography>
 
           <Grid container spacing={2}>
-            {/* Email Field */}
+            {/* Email */}
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Email Address"
@@ -138,7 +148,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
               />
             </Grid>
 
-            {/* Phone Number Field */}
+            {/* Phone */}
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Phone Number"
@@ -154,7 +164,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
               />
             </Grid>
 
-            {/* ID Number Field */}
+            {/* ID */}
             <Grid item xs={12} sm={6}>
               <TextField
                 label="ID Number"
@@ -170,7 +180,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
               />
             </Grid>
 
-            {/* User Role Select */}
+            {/* Role */}
             <Grid item xs={12} sm={6}>
               <TextField
                 select
@@ -179,16 +189,15 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
                 margin="normal"
                 value={editRole}
                 onChange={(e) => setEditRole(e.target.value)}
-                // Targeting the root and the internal select element for persistence
                 sx={{
                   "& .MuiInputBase-root": {
-                    minHeight: "42px", // Adjust this to match your other fields exactly
+                    minHeight: "43px", // default height for TextField
                   },
                   "& .MuiSelect-select": {
                     display: "flex !important",
                     alignItems: "center !important",
-                    paddingTop: "10px !important",
-                    paddingBottom: "10px !important",
+                    paddingTop: "18px !important",
+                    paddingBottom: "18px !important",
                   },
                 }}
                 InputProps={{
@@ -197,16 +206,16 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
                   ),
                 }}
               >
-                {ROLE_CHOICES.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
+                {ROLE_CHOICES.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
                   </MenuItem>
                 ))}
               </TextField>
             </Grid>
 
             {/* Hourly Rate */}
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Hourly Rate (KES)"
                 fullWidth
@@ -222,7 +231,24 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
               />
             </Grid>
 
-            {/* Lunch Policy */}
+            {/* NSSF Amount */}
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="NSSF Amount (KES)"
+                fullWidth
+                margin="normal"
+                type="number"
+                value={editNssfAmount}
+                onChange={(e) => setEditNssfAmount(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <EventAvailableIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
+                }}
+              />
+            </Grid>
+
+            {/* Lunch */}
             <Grid item xs={6}>
               <TextField
                 label="Lunch Start (24hr)"
@@ -233,6 +259,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
                 onChange={(e) => setEditLunchStart(e.target.value)}
               />
             </Grid>
+
             <Grid item xs={6}>
               <TextField
                 label="Lunch End (24hr)"
@@ -259,6 +286,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
                 }}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="SHA Number"
