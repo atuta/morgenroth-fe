@@ -52,11 +52,10 @@ const safeRequest = async (requestFn, { isBlob = false } = {}) => {
 ============================================================ */
 
 // User: Generate my PDF payslip
-export const generateMyPayslipPdfApi = (params = {}) =>
+export const generateMyPayslipPdfApi = (data = {}) =>
   safeRequest(
     () =>
-      axiosInstance.get(Configs.apiMyPayslipEp, {
-        params,
+      axiosInstance.post(Configs.apiMyPayslipEp, data, {
         responseType: "blob",
       }),
     { isBlob: true }

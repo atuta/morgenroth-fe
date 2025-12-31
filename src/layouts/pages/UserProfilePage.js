@@ -1,13 +1,9 @@
-// File: UserProfilePage.js
-
 import { useEffect, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
-import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
 
 // Icons
 import EmailIcon from "@mui/icons-material/EmailOutlined";
@@ -19,27 +15,27 @@ import PaidIcon from "@mui/icons-material/PaidOutlined";
 import PermIdentityIcon from "@mui/icons-material/PermIdentityOutlined";
 import EventAvailableIcon from "@mui/icons-material/EventAvailableOutlined";
 import EventBusyIcon from "@mui/icons-material/EventBusyOutlined";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLongOutlined";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 
+// Layout & Components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import MDButton from "components/MDButton";
 import CustomAlert from "../../components/CustomAlert";
 
+// API & Config
 import getLoggedInUserDetailsApi from "../../api/getLoggedInUserDetailsApi";
 import uploadUserPhotoApi from "../../api/uploadUserPhotoApi";
-import { generateUserPayslipPdfApi } from "../../api/payrollAndCompensationApi";
 import Configs from "../../configs/Configs";
 
+// Child Components
 import CroppingModal from "./CroppingModal";
+import OwnerPayslipDownloadCard from "./OwnerPayslipDownloadCard";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
-const NOT_AVAILABLE = "Not available"; // <--- Added constant for clarity
+const NOT_AVAILABLE = "Not available";
 
 function UserProfilePage() {
   const [userData, setUserData] = useState(null);
@@ -48,7 +44,6 @@ function UserProfilePage() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [generatingPayslip, setGeneratingPayslip] = useState(false);
 
   // Cropping modal
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -57,16 +52,6 @@ function UserProfilePage() {
   // Avatar state
   const [currentPhotoUrl, setCurrentPhotoUrl] = useState(DEFAULT_AVATAR);
   const [serverPhotoUrl, setServerPhotoUrl] = useState(DEFAULT_AVATAR);
-
-  // Payslip dropdown state
-  const today = new Date();
-  const currentMonth = today.getMonth() + 1;
-  const currentYear = today.getFullYear();
-  const allowedMonths = Array.from({ length: 12 }, (_, i) => i + 1);
-  const years = Array.from({ length: 10 }, (_, i) => currentYear - i).reverse();
-
-  const [month, setMonth] = useState(currentMonth);
-  const [year, setYear] = useState(currentYear);
 
   const showAlert = (msg, severity = "info") => {
     setAlertMessage(msg);
@@ -102,39 +87,31 @@ function UserProfilePage() {
   const handlePhotoChange = (e) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
-
     const tempUrl = URL.createObjectURL(file);
     setCurrentPhotoUrl(tempUrl);
-
     setFileToCrop(file);
     setCropModalOpen(true);
-
     e.target.value = null;
   };
 
   const handleCropConfirmAndUpload = async (croppedFile) => {
     setCropModalOpen(false);
     setUploadingPhoto(true);
-
     const tempUrl = URL.createObjectURL(croppedFile);
     setCurrentPhotoUrl(tempUrl);
 
     try {
       const res = await uploadUserPhotoApi(croppedFile);
-
       if (res.status === "success") {
         const finalPhotoUrl = `${Configs.baseUrl}${res.data.photo}`;
-
         setUserData((prev) => ({ ...prev, photo: finalPhotoUrl }));
         setCurrentPhotoUrl(finalPhotoUrl);
         setServerPhotoUrl(finalPhotoUrl);
-
         showAlert(res.message || "Photo uploaded successfully!", "success");
       } else {
         showAlert(res.message || "Failed to upload photo", "error");
         setCurrentPhotoUrl(serverPhotoUrl);
       }
-
       URL.revokeObjectURL(tempUrl);
     } catch (err) {
       console.error(err);
@@ -143,55 +120,6 @@ function UserProfilePage() {
       URL.revokeObjectURL(tempUrl);
     } finally {
       setUploadingPhoto(false);
-    }
-  };
-
-  const handleGeneratePayslip = async () => {
-    if (!userData) return;
-
-    const todayDate = new Date();
-    if (
-      year > todayDate.getFullYear() ||
-      (year === todayDate.getFullYear() && month > todayDate.getMonth() + 1)
-    ) {
-      showAlert("Cannot generate payslip for a future month/year", "error");
-      return;
-    }
-
-    setGeneratingPayslip(true);
-    showAlert("Generating payslip...", "info");
-
-    try {
-      const res = await generateUserPayslipPdfApi({ month, year });
-      if (res.ok) {
-        const url = window.URL.createObjectURL(new Blob([res.data]));
-        const link = document.createElement("a");
-        link.href = url;
-
-        // --- FIX STARTS HERE ---
-
-        // 1. Construct the full name, replacing spaces with underscores (for clean filename)
-        const userFullName = `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
-        const sanitizedName = userFullName.replace(/\s+/g, "_");
-
-        // 2. Use the sanitized name in the download attribute
-        // Example: Payslip_John_Doe_12_2025.pdf
-        link.setAttribute("download", `Payslip_${sanitizedName}_${month}_${year}.pdf`);
-
-        // --- FIX ENDS HERE ---
-
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        showAlert(`Payslip for ${month}/${year} generated successfully!`, "success");
-      } else {
-        showAlert(res.data.message || "Failed to generate payslip", "error");
-      }
-    } catch (err) {
-      console.error(err);
-      showAlert("Server error while generating payslip", "error");
-    } finally {
-      setGeneratingPayslip(false);
     }
   };
 
@@ -271,7 +199,6 @@ function UserProfilePage() {
                 {email || NOT_AVAILABLE}
               </MDTypography>
               <MDTypography variant="body2" color="text">
-                {/* Changed to use NOT_AVAILABLE for missing user_role or status */}
                 {user_role || NOT_AVAILABLE} • {status || NOT_AVAILABLE}
               </MDTypography>
             </MDBox>
@@ -285,46 +212,24 @@ function UserProfilePage() {
               <MDTypography variant="h6" fontWeight="bold" mb={2}>
                 Staff Information
               </MDTypography>
-              <MDBox display="flex" alignItems="center" mb={1}>
-                <EmailIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
-                <MDTypography variant="body2" fontWeight="bold">
-                  Email:
-                </MDTypography>
-                <MDTypography variant="body2" ml={0.5}>
-                  {/* Changed from {email} to {email || NOT_AVAILABLE} */}
-                  {email || NOT_AVAILABLE}
-                </MDTypography>
-              </MDBox>
-              <MDBox display="flex" alignItems="center" mb={1}>
-                <AccountCircleIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
-                <MDTypography variant="body2" fontWeight="bold">
-                  Account:
-                </MDTypography>
-                <MDTypography variant="body2" ml={0.5}>
-                  {/* Changed from {account || "-"} to {account || NOT_AVAILABLE} */}
-                  {account || NOT_AVAILABLE}
-                </MDTypography>
-              </MDBox>
-              <MDBox display="flex" alignItems="center" mb={1}>
-                <PhoneIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
-                <MDTypography variant="body2" fontWeight="bold">
-                  Phone:
-                </MDTypography>
-                <MDTypography variant="body2" ml={0.5}>
-                  {/* Changed from {phone_number || "-"} to {phone_number || NOT_AVAILABLE} */}
-                  {phone_number || NOT_AVAILABLE}
-                </MDTypography>
-              </MDBox>
-              <MDBox display="flex" alignItems="center" mb={1}>
-                <FingerprintIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
-                <MDTypography variant="body2" fontWeight="bold">
-                  ID Number:
-                </MDTypography>
-                <MDTypography variant="body2" ml={0.5}>
-                  {/* Changed from {id_number || "-"} to {id_number || NOT_AVAILABLE} */}
-                  {id_number || NOT_AVAILABLE}
-                </MDTypography>
-              </MDBox>
+              {[
+                { icon: <EmailIcon />, label: "Email", value: email },
+                { icon: <AccountCircleIcon />, label: "Account", value: account },
+                { icon: <PhoneIcon />, label: "Phone", value: phone_number },
+                { icon: <FingerprintIcon />, label: "ID Number", value: id_number },
+              ].map((item, idx) => (
+                <MDBox key={idx} display="flex" alignItems="center" mb={1}>
+                  <MDBox sx={{ mr: 1, color: "text.secondary", display: "flex" }}>
+                    {item.icon}
+                  </MDBox>
+                  <MDTypography variant="body2" fontWeight="bold">
+                    {item.label}:
+                  </MDTypography>
+                  <MDTypography variant="body2" ml={0.5}>
+                    {item.value || NOT_AVAILABLE}
+                  </MDTypography>
+                </MDBox>
+              ))}
               <MDBox display="flex" alignItems="center" mb={1}>
                 <EventAvailableIcon fontSize="small" sx={{ mr: 1, color: "success.main" }} />
                 <MDTypography variant="body2" fontWeight="bold">
@@ -348,7 +253,6 @@ function UserProfilePage() {
                   Hourly Rate:
                 </MDTypography>
                 <MDTypography variant="body2" ml={0.5}>
-                  {/* Handle hourly_rate and currency display logic, ensuring NOT_AVAILABLE if rate is missing/0/null */}
                   {hourly_rate ? `${hourly_rate} ${hourly_rate_currency || ""}` : NOT_AVAILABLE}
                 </MDTypography>
               </MDBox>
@@ -358,7 +262,6 @@ function UserProfilePage() {
                   NSSF Number:
                 </MDTypography>
                 <MDTypography variant="body2" ml={0.5}>
-                  {/* Changed from {nssf_number} to {nssf_number || NOT_AVAILABLE} */}
                   {nssf_number || NOT_AVAILABLE}
                 </MDTypography>
               </MDBox>
@@ -368,7 +271,6 @@ function UserProfilePage() {
                   SHA Number:
                 </MDTypography>
                 <MDTypography variant="body2" ml={0.5}>
-                  {/* Changed from {shif_sha_number} to {shif_sha_number || NOT_AVAILABLE} */}
                   {shif_sha_number || NOT_AVAILABLE}
                 </MDTypography>
               </MDBox>
@@ -394,81 +296,8 @@ function UserProfilePage() {
           </Paper>
         </MDBox>
 
-        {/* Payslip Card */}
-        <MDBox mt={3}>
-          <Paper elevation={0} sx={{ p: 2 }}>
-            <MDTypography variant="h6" fontWeight="bold" mb={2}>
-              Payslip
-            </MDTypography>
-
-            {/* ADDED: sx prop to limit the overall width of the dropdown container */}
-            <Grid container spacing={2} mb={2} sx={{ maxWidth: 400, width: "100%" }}>
-              {/* Month */}
-              <Grid item xs={6}>
-                <TextField
-                  select
-                  label="Month"
-                  fullWidth
-                  value={month}
-                  onChange={(e) => setMonth(Number(e.target.value))}
-                  sx={{
-                    "& .MuiInputBase-root": {
-                      minHeight: 48, // Taller size retained
-                      paddingTop: 0,
-                      paddingBottom: 0,
-                    },
-                  }}
-                >
-                  {allowedMonths.map((m) => (
-                    <MenuItem key={m} value={m}>
-                      {m}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-
-              {/* Year */}
-              <Grid item xs={6}>
-                <TextField
-                  select
-                  label="Year"
-                  fullWidth
-                  value={year}
-                  onChange={(e) => setYear(Number(e.target.value))}
-                  sx={{
-                    "& .MuiInputBase-root": {
-                      minHeight: 48, // Taller size retained
-                      paddingTop: 0,
-                      paddingBottom: 0,
-                    },
-                  }}
-                >
-                  {years.map((y) => (
-                    <MenuItem key={y} value={y}>
-                      {y}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-            </Grid>
-
-            <MDBox display="flex" alignItems="center" gap={2} mb={1}>
-              <MDButton
-                variant="gradient"
-                color="info"
-                onClick={handleGeneratePayslip}
-                disabled={generatingPayslip}
-                startIcon={generatingPayslip && <CircularProgress size={20} color="white" />}
-              >
-                {generatingPayslip ? "Generating..." : "Download Payslip"}
-              </MDButton>
-            </MDBox>
-            <MDTypography variant="caption" color="text.secondary">
-              You can only download the payslip for the current or previous months. Future months
-              are disabled.
-            </MDTypography>
-          </Paper>
-        </MDBox>
+        {/* Extracted Payslip Download Card */}
+        <OwnerPayslipDownloadCard userData={userData} onAlert={showAlert} />
       </MDBox>
 
       <CustomAlert
@@ -480,7 +309,6 @@ function UserProfilePage() {
 
       <Footer />
 
-      {/* Cropping Modal */}
       {cropModalOpen && (
         <CroppingModal
           open={cropModalOpen}
