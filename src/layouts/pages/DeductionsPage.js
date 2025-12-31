@@ -25,7 +25,6 @@ import getDeductionApi from "../../api/getDeductionApi";
 
 // Deduction options with display name and API value
 const deductionOptions = [
-  { display: "NSSF", value: "nssf" },
   { display: "SHIF/SHA", value: "shif_sha" },
   { display: "Housing Levy", value: "housing_levy" },
 ];
