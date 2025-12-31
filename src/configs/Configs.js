@@ -29,6 +29,7 @@ const Configs = {
   apiUserHasModulePermissionEp: `${BASE_URL}/api/user-has-module-permission/`,
   apiAddUserEp: `${BASE_URL}/api/add-user/`,
   apiChangePasswordEp: `${BASE_URL}/api/change-password/`,
+  apiGetUserFullnamesWithIdsEp: `${BASE_URL}/api/api-get-all-user-names-and-ids/`,
 
   // Organization
   apiUpsertOrganizationEp: `${BASE_URL}/api/upsert-organization/`,

@@ -25,6 +25,7 @@ import AdminUserAdvancePaymentsPage from "layouts/pages/AdminUserAdvancePayments
 import AdminUserOvertimesPage from "layouts/pages/AdminUserOvertimesPage";
 import UserOvertimesPage from "layouts/pages/UserOvertimesPage";
 import UserAdvancesPage from "layouts/pages/UserAdvancesPage";
+import PayslipsCenter from "layouts/pages/PayslipsCenter";
 import PayrollReportPage from "layouts/pages/PayrollReportPage";
 import AllOvertimesPage from "layouts/pages/AllOvertimesPage";
 import AllAdvancesPage from "layouts/pages/AllAdvancesPage";
@@ -140,6 +141,14 @@ const routes = [
         key: "overtime-payments",
         route: "/overtime-payments",
         component: <AllOvertimesPage />,
+        userRoles: ["admin"],
+      },
+      {
+        type: "collapse",
+        name: "Payslips Centre",
+        key: "payslips-centre",
+        route: "/payslips-centre",
+        component: <PayslipsCenter />,
         userRoles: ["admin"],
       },
       {
