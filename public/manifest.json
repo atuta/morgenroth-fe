@@ -1,15 +1,15 @@
 {
-  "short_name": "Morgenroth Schulhaus",
   "name": "Morgenroth Schulhaus",
+  "short_name": "Morgenroth Schulhaus",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
   "icons": [
     {
-      "src": "favicon.png",
-      "sizes": "64x64 32x32 24x24 16x16",
+      "src": "/logo.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#1A73E8",
-  "background_color": "#ffffff"
+  ]
 }
