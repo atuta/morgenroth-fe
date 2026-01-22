@@ -14,6 +14,7 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailableOutlined";
 import PaidIcon from "@mui/icons-material/PaidOutlined";
 import PermIdentityIcon from "@mui/icons-material/PermIdentityOutlined";
 import BadgeIcon from "@mui/icons-material/BadgeOutlined";
+import PersonIcon from "@mui/icons-material/PersonOutline";
 
 // Components
 import MDBox from "components/MDBox";
@@ -31,36 +32,61 @@ const ROLE_CHOICES = [
 function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
   const [saving, setSaving] = useState(false);
 
-  // Payroll & statutory
-  const [editRate, setEditRate] = useState("");
-  const [editNssf, setEditNssf] = useState("");
-  const [editNssfAmount, setEditNssfAmount] = useState("");
-  const [editSha, setEditSha] = useState("");
-  const [editLunchStart, setEditLunchStart] = useState("");
-  const [editLunchEnd, setEditLunchEnd] = useState("");
-
-  // Identity & contact
+  // Identity
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editIdNumber, setEditIdNumber] = useState("");
   const [editRole, setEditRole] = useState("");
 
+  // Payroll & statutory
+  const [editRate, setEditRate] = useState("");
+  const [editNssf, setEditNssf] = useState("");
+  const [editNssfAmount, setEditNssfAmount] = useState("");
+  const [editSha, setEditSha] = useState("");
+  const [editKraPin, setEditKraPin] = useState(""); // ✅ NEW
+
+  // Lunch Hour States
+  const [editLunchStart, setEditLunchStart] = useState("");
+  const [editLunchEnd, setEditLunchEnd] = useState("");
+
+  // Validation States for Lunch Hours
+  const [lunchStartError, setLunchStartError] = useState("");
+  const [lunchEndError, setLunchEndError] = useState("");
+
   useEffect(() => {
     if (!userData) return;
+
+    setEditFirstName(userData.first_name || "");
+    setEditLastName(userData.last_name || "");
+    setEditEmail(userData.email || "");
+    setEditPhone(userData.phone_number || "");
+    setEditIdNumber(userData.id_number || "");
+    setEditRole(userData.user_role || "");
 
     setEditRate(userData.hourly_rate ?? "");
     setEditNssf(userData.nssf_number || "");
     setEditNssfAmount(userData.nssf_amount ?? "");
     setEditSha(userData.shif_sha_number || "");
+    setEditKraPin(userData.kra_pin || ""); // ✅ NEW
 
     setEditLunchStart(userData.lunch_start ? String(userData.lunch_start) : "");
     setEditLunchEnd(userData.lunch_end ? String(userData.lunch_end) : "");
-
-    setEditEmail(userData.email || "");
-    setEditPhone(userData.phone_number || "");
-    setEditIdNumber(userData.id_number || "");
-    setEditRole(userData.user_role || "");
   }, [userData]);
+
+  const handleNumericChange = (e, setter, setError) => {
+    const value = e.target.value;
+    const numericRegex = /^[0-9]*\.?[0-9]*$/;
+
+    if (!numericRegex.test(value)) {
+      setError("Numbers only");
+      return;
+    }
+
+    setError("");
+    setter(value);
+  };
 
   const handleSave = async () => {
     if (!user_id) return;
@@ -78,6 +104,8 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
     try {
       const payload = {
         user_id,
+        first_name: editFirstName,
+        last_name: editLastName,
         email: editEmail,
         phone_number: editPhone,
         id_number: editIdNumber,
@@ -86,6 +114,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
         nssf: editNssf,
         nssf_amount: editNssfAmount,
         sha: editSha,
+        kra_pin: editKraPin, // ✅ NEW
 
         hourly_rate: editRate,
 
@@ -99,18 +128,9 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
         showAlert("User details updated successfully!", "success");
 
         onUpdateSuccess({
-          email: editEmail,
-          phone_number: editPhone,
-          id_number: editIdNumber,
-          user_role: editRole,
-
-          hourly_rate: editRate,
+          ...payload,
           nssf_number: editNssf,
-          nssf_amount: editNssfAmount,
           shif_sha_number: editSha,
-
-          lunch_start: editLunchStart !== "" ? Number(editLunchStart) : userData.lunch_start,
-          lunch_end: editLunchEnd !== "" ? Number(editLunchEnd) : userData.lunch_end,
         });
       } else {
         showAlert(res.message || "Failed to update user details", "error");
@@ -132,6 +152,38 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
           </MDTypography>
 
           <Grid container spacing={2}>
+            {/* First Name */}
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="First Name"
+                fullWidth
+                margin="normal"
+                value={editFirstName}
+                onChange={(e) => setEditFirstName(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <PersonIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
+                }}
+              />
+            </Grid>
+
+            {/* Last Name */}
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Last Name"
+                fullWidth
+                margin="normal"
+                value={editLastName}
+                onChange={(e) => setEditLastName(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <PersonIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
+                }}
+              />
+            </Grid>
+
             {/* Email */}
             <Grid item xs={12} sm={6}>
               <TextField
@@ -164,7 +216,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
               />
             </Grid>
 
-            {/* ID */}
+            {/* ID Number */}
             <Grid item xs={12} sm={6}>
               <TextField
                 label="ID Number"
@@ -180,7 +232,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
               />
             </Grid>
 
-            {/* Role */}
+            {/* User Role */}
             <Grid item xs={12} sm={6}>
               <TextField
                 select
@@ -189,17 +241,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
                 margin="normal"
                 value={editRole}
                 onChange={(e) => setEditRole(e.target.value)}
-                sx={{
-                  "& .MuiInputBase-root": {
-                    minHeight: "43px", // default height for TextField
-                  },
-                  "& .MuiSelect-select": {
-                    display: "flex !important",
-                    alignItems: "center !important",
-                    paddingTop: "18px !important",
-                    paddingBottom: "18px !important",
-                  },
-                }}
+                sx={{ "& .MuiInputBase-root": { minHeight: "43px" } }}
                 InputProps={{
                   startAdornment: (
                     <BadgeIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
@@ -225,7 +267,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
                 onChange={(e) => setEditRate(e.target.value)}
                 InputProps={{
                   startAdornment: (
-                    <EventAvailableIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
+                    <PaidIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
                   ),
                 }}
               />
@@ -248,31 +290,8 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
               />
             </Grid>
 
-            {/* Lunch */}
-            <Grid item xs={6}>
-              <TextField
-                label="Lunch Start (24hr)"
-                fullWidth
-                margin="normal"
-                type="number"
-                value={editLunchStart}
-                onChange={(e) => setEditLunchStart(e.target.value)}
-              />
-            </Grid>
-
-            <Grid item xs={6}>
-              <TextField
-                label="Lunch End (24hr)"
-                fullWidth
-                margin="normal"
-                type="number"
-                value={editLunchEnd}
-                onChange={(e) => setEditLunchEnd(e.target.value)}
-              />
-            </Grid>
-
-            {/* Statutory Numbers */}
-            <Grid item xs={12} sm={6}>
+            {/* Statutory Info */}
+            <Grid item xs={12} sm={4}>
               <TextField
                 label="NSSF Number"
                 fullWidth
@@ -281,13 +300,13 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
                 onChange={(e) => setEditNssf(e.target.value)}
                 InputProps={{
                   startAdornment: (
-                    <PaidIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
+                    <FingerprintIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
                   ),
                 }}
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
               <TextField
                 label="SHA Number"
                 fullWidth
@@ -301,6 +320,48 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
                 }}
               />
             </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="KRA PIN"
+                fullWidth
+                margin="normal"
+                value={editKraPin}
+                onChange={(e) => setEditKraPin(e.target.value.toUpperCase())}
+                InputProps={{
+                  startAdornment: (
+                    <PaidIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
+                }}
+              />
+            </Grid>
+
+            {/* Lunch Times */}
+            <Grid item xs={6}>
+              <TextField
+                label="Lunch Start (24hr)"
+                fullWidth
+                margin="normal"
+                value={editLunchStart}
+                onChange={(e) => handleNumericChange(e, setEditLunchStart, setLunchStartError)}
+                error={!!lunchStartError}
+                helperText={lunchStartError}
+                inputProps={{ inputMode: "decimal" }}
+              />
+            </Grid>
+
+            <Grid item xs={6}>
+              <TextField
+                label="Lunch End (24hr)"
+                fullWidth
+                margin="normal"
+                value={editLunchEnd}
+                onChange={(e) => handleNumericChange(e, setEditLunchEnd, setLunchEndError)}
+                error={!!lunchEndError}
+                helperText={lunchEndError}
+                inputProps={{ inputMode: "decimal" }}
+              />
+            </Grid>
           </Grid>
 
           <MDBox mt={3} display="flex" justifyContent="flex-start">
@@ -308,7 +369,7 @@ function EditableFields({ userData, user_id, showAlert, onUpdateSuccess }) {
               variant="gradient"
               color="success"
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || !!lunchStartError || !!lunchEndError}
               startIcon={saving ? <CircularProgress size={20} color="inherit" /> : null}
             >
               {saving ? "Saving..." : "Save Changes"}
