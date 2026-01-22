@@ -268,7 +268,7 @@ function StaffListPage() {
                             {user.first_name} {user.last_name}
                           </MDTypography>
                           <MDTypography variant="caption" color="text">
-                            {user.user_role}
+                            ({user.user_role} staff)
                           </MDTypography>
                         </TableCell>
 
