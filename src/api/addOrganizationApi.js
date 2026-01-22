@@ -14,6 +14,7 @@ const addOrganizationApi = async (data) => {
     if (data.physical_address) formData.append("physical_address", data.physical_address);
     if (data.postal_address) formData.append("postal_address", data.postal_address);
     if (data.telephone) formData.append("telephone", data.telephone);
+    if (data.kra_pin) formData.append("kra_pin", data.kra_pin); // ✅ NEW
     if (data.email) formData.append("email", data.email);
 
     // Append the logo file if it exists
@@ -30,6 +31,7 @@ const addOrganizationApi = async (data) => {
 
     return response.data;
   } catch (error) {
+    console.error("addOrganizationApi error:", error);
     throw error;
   }
 };

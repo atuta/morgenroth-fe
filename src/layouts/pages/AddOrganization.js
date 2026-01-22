@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 import Icon from "@mui/material/Icon";
 
@@ -15,7 +15,7 @@ import Footer from "examples/Footer";
 
 // API services
 import addOrganizationApi from "../../api/addOrganizationApi";
-import getLatestOrganizationApi from "../../api/getLatestOrganizationApi"; // Added GET service
+import getLatestOrganizationApi from "../../api/getLatestOrganizationApi";
 
 // Custom alert
 import CustomAlert from "../../components/CustomAlert";
@@ -24,6 +24,7 @@ function AddOrganization() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [telephone, setTelephone] = useState("");
+  const [kraPin, setKraPin] = useState(""); // ✅ NEW
   const [physicalAddress, setPhysicalAddress] = useState("");
   const [postalAddress, setPostalAddress] = useState("");
   const [logo, setLogo] = useState(null);
@@ -35,7 +36,7 @@ function AddOrganization() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
 
-  // --- NEW: Pre-populate data on component mount ---
+  // Fetch existing data on mount
   useEffect(() => {
     const fetchOrgData = async () => {
       try {
@@ -45,9 +46,10 @@ function AddOrganization() {
           setName(org.name || "");
           setEmail(org.email || "");
           setTelephone(org.telephone || "");
+          setKraPin(org.kra_pin || ""); // ✅ NEW
           setPhysicalAddress(org.physical_address || "");
           setPostalAddress(org.postal_address || "");
-          // The backend view sends an absolute URL for the logo
+
           if (org.logo) {
             setLogoPreview(org.logo);
           }
@@ -70,7 +72,7 @@ function AddOrganization() {
     const file = e.target.files[0];
     if (file) {
       setLogo(file);
-      setLogoPreview(URL.createObjectURL(file)); // Create a local preview URL
+      setLogoPreview(URL.createObjectURL(file));
     }
   };
 
@@ -96,9 +98,10 @@ function AddOrganization() {
       name,
       email: email || null,
       telephone: telephone || null,
+      kra_pin: kraPin || null, // ✅ NEW
       physical_address: physicalAddress || null,
       postal_address: postalAddress || null,
-      logo: logo, // This is the file object
+      logo: logo,
     };
 
     try {
@@ -205,6 +208,16 @@ function AddOrganization() {
                   fullWidth
                   value={telephone}
                   onChange={(e) => setTelephone(e.target.value)}
+                />
+              </Grid>
+
+              {/* Statutory Information */}
+              <Grid item xs={12}>
+                <MDInput
+                  label="KRA PIN"
+                  fullWidth
+                  value={kraPin}
+                  onChange={(e) => setKraPin(e.target.value.toUpperCase())} // Standardize to caps
                 />
               </Grid>
 

@@ -14,8 +14,8 @@ export const UserProvider = ({ children }) => {
   // Ref to hold the ID of the setTimeout
   const timeoutRef = useRef(null);
 
-  // 20 minutes in milliseconds
-  const INACTIVITY_LIMIT = 20 * 60 * 1000;
+  // 7 minutes in milliseconds
+  const INACTIVITY_LIMIT = 7 * 60 * 1000;
 
   const logout = useCallback(() => {
     // Clear the timer if it's running

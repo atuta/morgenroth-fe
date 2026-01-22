@@ -2,18 +2,31 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import TextField from "@mui/material/TextField";
-import Avatar from "@mui/material/Avatar";
-import CircularProgress from "@mui/material/CircularProgress";
-import InputAdornment from "@mui/material/InputAdornment";
-import Checkbox from "@mui/material/Checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Paper,
+  TextField,
+  Avatar,
+  CircularProgress,
+  InputAdornment,
+  Checkbox,
+  Tooltip,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
+
+// Icons
 import SearchIcon from "@mui/icons-material/Search";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -27,6 +40,7 @@ import CustomAlert from "../../components/CustomAlert";
 import getNonAdminUsersApi from "../../api/getNonAdminUsersApi";
 import updateUserLeaveStatusApi from "../../api/updateUserLeaveStatusApi";
 import updateUserHolidayStatusApi from "../../api/updateUserHolidayStatusApi";
+import deleteUserApi from "../../api/deleteUserApi";
 import Configs from "../../configs/Configs";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=60";
@@ -43,12 +57,18 @@ function StaffListPage() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
 
+  // DELETE DIALOG STATE (ADDED ONLY)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const showAlert = (message, severity = "info") => {
     setAlertMessage(message);
     setAlertSeverity(severity);
     setAlertOpen(true);
   };
 
+  // ================= FETCH =================
   useEffect(() => {
     const fetchStaff = async () => {
       setLoading(true);
@@ -77,18 +97,23 @@ function StaffListPage() {
   }, []);
 
   useEffect(() => {
-    if (!searchTerm) return setFilteredStaff(staffList);
+    if (!searchTerm) {
+      setFilteredStaff(staffList);
+      return;
+    }
 
     const term = searchTerm.toLowerCase();
-    const result = staffList.filter(
-      (u) =>
-        u.first_name?.toLowerCase().includes(term) ||
-        u.last_name?.toLowerCase().includes(term) ||
-        u.user_role?.toLowerCase().includes(term)
+    setFilteredStaff(
+      staffList.filter(
+        (u) =>
+          u.first_name?.toLowerCase().includes(term) ||
+          u.last_name?.toLowerCase().includes(term) ||
+          u.user_role?.toLowerCase().includes(term)
+      )
     );
-    setFilteredStaff(result);
   }, [searchTerm, staffList]);
 
+  // ================= TOGGLES (UNTOUCHED) =================
   const handleLeaveToggle = async (user_id, currentStatus) => {
     try {
       const newStatus = !currentStatus;
@@ -123,6 +148,41 @@ function StaffListPage() {
     }
   };
 
+  // ================= DELETE (DIALOG VERSION ONLY) =================
+  const openDeleteConfirm = (user) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await deleteUserApi(userToDelete.user_id);
+
+      // ✅ deleteUserApi already returns response.data
+      if (res?.status === "success") {
+        showAlert("Staff deleted successfully", "success");
+        setStaffList((prev) => prev.filter((u) => u.user_id !== userToDelete.user_id));
+        setFilteredStaff((prev) => prev.filter((u) => u.user_id !== userToDelete.user_id));
+      } else {
+        showAlert("Failed to delete staff", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert("Failed to delete staff", "error");
+    } finally {
+      setIsDeleting(false);
+      closeDeleteConfirm();
+    }
+  };
+
   const mandatoryChecks = (user) => ({
     "Hourly Rate": !!user.hourly_rate,
     NSSF: !!user.nssf_number,
@@ -131,25 +191,27 @@ function StaffListPage() {
     "Lunch End": user.lunch_end != null,
   });
 
+  // ================= UI =================
   return (
     <DashboardLayout>
       <DashboardNavbar />
+
       <MDBox py={3}>
-        <MDBox p={3} bgColor="white" borderRadius="lg">
-          <MDTypography variant="h5" fontWeight="bold" mb={2}>
-            Staff List
+        <MDBox p={3} bgColor="white" borderRadius="xl" shadow="lg">
+          <MDTypography variant="h5" fontWeight="bold" mb={3}>
+            Staff Management
           </MDTypography>
 
-          <MDBox mb={2}>
+          <MDBox mb={3}>
             <TextField
-              label="Search staff by name or role"
+              placeholder="Search staff by name or role"
               fullWidth
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon />
+                    <SearchIcon color="info" />
                   </InputAdornment>
                 ),
               }}
@@ -157,22 +219,28 @@ function StaffListPage() {
           </MDBox>
 
           <TableContainer component={Paper} sx={{ boxShadow: "none" }}>
-            <Table stickyHeader>
+            <Table>
               <TableBody>
-                <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                  <TableCell>Photo</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell align="right">Hourly Rate</TableCell>
-                  <TableCell align="center">On Leave</TableCell>
-                  <TableCell align="center">On Holiday</TableCell>
-                  <TableCell>Configured</TableCell>
-                  <TableCell align="center">Actions</TableCell>
+                <TableRow sx={{ backgroundColor: "#f3f4f6" }}>
+                  <TableCell sx={{ fontWeight: "bold" }}>Photo</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Staff Profile</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Rate (KES)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                    Leave
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                    Holiday
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Configuration</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                    Actions
+                  </TableCell>
                 </TableRow>
 
                 {loading ? (
                   <TableRow>
                     <TableCell colSpan={COLUMN_COUNT} align="center">
-                      <CircularProgress size={24} />
+                      <CircularProgress size={28} />
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -185,30 +253,27 @@ function StaffListPage() {
                       : DEFAULT_AVATAR;
 
                     return (
-                      <TableRow key={user.user_id}>
+                      <TableRow key={user.user_id} hover>
                         <TableCell>
-                          <Avatar
-                            src={photoUrl}
-                            sx={{ cursor: "pointer" }}
-                            onClick={() =>
-                              navigate("/user-details", {
-                                state: { user_id: user.user_id },
-                              })
-                            }
-                          />
+                          <Avatar src={photoUrl} variant="rounded" sx={{ width: 48, height: 48 }} />
                         </TableCell>
 
                         <TableCell>
                           <MDTypography
                             fontWeight="bold"
-                            sx={{ color: hasMissing ? "error.main" : "inherit" }}
+                            sx={{ color: hasMissing ? "error.main" : "dark.main" }}
                           >
                             {user.first_name} {user.last_name}
                           </MDTypography>
+                          <MDTypography variant="caption" color="text">
+                            {user.user_role}
+                          </MDTypography>
                         </TableCell>
 
-                        <TableCell align="right">
-                          {user.hourly_rate_currency} {user.hourly_rate}
+                        <TableCell>
+                          <MDTypography fontWeight="medium">
+                            {user.hourly_rate || "0.00"}
+                          </MDTypography>
                         </TableCell>
 
                         <TableCell align="center">
@@ -231,25 +296,30 @@ function StaffListPage() {
                               key={label}
                               variant="caption"
                               display="block"
-                              sx={{ color: ok ? "inherit" : "error.main" }}
+                              sx={{ color: ok ? "success.main" : "error.main" }}
                             >
-                              {ok ? "✓" : "✗"} {label}
+                              {ok ? "✓" : "✕"} {label}
                             </MDTypography>
                           ))}
                         </TableCell>
 
                         <TableCell align="center">
-                          <MDButton
-                            size="small"
-                            color="info"
-                            onClick={() =>
-                              navigate("/user-details", {
-                                state: { user_id: user.user_id },
-                              })
-                            }
-                          >
-                            View Details
-                          </MDButton>
+                          <Tooltip title="View details">
+                            <IconButton
+                              color="info"
+                              onClick={() =>
+                                navigate("/user-details", { state: { user_id: user.user_id } })
+                              }
+                            >
+                              <VisibilityIcon />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="Delete staff">
+                            <IconButton color="error" onClick={() => openDeleteConfirm(user)}>
+                              <DeleteOutlineIcon />
+                            </IconButton>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     );
@@ -260,6 +330,33 @@ function StaffListPage() {
           </TableContainer>
         </MDBox>
       </MDBox>
+
+      {/* DELETE DIALOG */}
+      <Dialog open={deleteDialogOpen} onClose={closeDeleteConfirm}>
+        <DialogTitle sx={{ color: "error.main", fontWeight: "bold" }}>
+          Confirm Permanent Deletion
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You are about to delete{" "}
+            <strong>
+              {userToDelete?.first_name} {userToDelete?.last_name}
+            </strong>
+            .<br />
+            <br />
+            This will permanently remove their profile and all associated history.
+            <strong> This action cannot be undone.</strong>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={closeDeleteConfirm} color="dark" variant="text">
+            Cancel
+          </MDButton>
+          <MDButton onClick={handleDeleteUser} color="error" variant="gradient">
+            {isDeleting ? "Deleting..." : "Permanently Delete"}
+          </MDButton>
+        </DialogActions>
+      </Dialog>
 
       <CustomAlert
         message={alertMessage}
