@@ -22,8 +22,8 @@ import CustomAlert from "../../components/CustomAlert";
 
 // UPDATED: New User Role Choices
 const USER_ROLE_CHOICES = [
-  { value: "office", label: "Office Staff" }, // Changed label for clarity
-  { value: "teaching", label: "Teaching Staff" }, // Changed label for clarity
+  { value: "office", label: "Office Staff" },
+  { value: "teaching", label: "Teaching Staff" },
   { value: "subordinate", label: "Subordinate Staff" },
 ];
 
@@ -36,6 +36,7 @@ function AddStaffUser() {
   const [idNumber, setIdNumber] = useState("");
   const [nssfNumber, setNssfNumber] = useState("");
   const [shifShaNumber, setShifShaNumber] = useState("");
+  const [kraPin, setKraPin] = useState(""); // <── Added State
   const [loading, setLoading] = useState(false);
 
   const [errors, setErrors] = useState({});
@@ -59,10 +60,10 @@ function AddStaffUser() {
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Invalid email";
     }
-    // if (!email.trim()) newErrors.email = "Email is required";
     if (!role) newErrors.role = "User role is required";
     if (!phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
     if (!idNumber.trim()) newErrors.idNumber = "ID number is required";
+    if (!kraPin.trim()) newErrors.kraPin = "KRA PIN is required"; // <── Added Validation
 
     if (firstName.length > 50) newErrors.firstName = "Max 50 characters";
     if (lastName.length > 50) newErrors.lastName = "Max 50 characters";
@@ -79,7 +80,7 @@ function AddStaffUser() {
 
     setLoading(true);
     const data = {
-      email: email || null, // <-- if empty, send null
+      email: email || null,
       first_name: firstName,
       last_name: lastName,
       role,
@@ -87,15 +88,14 @@ function AddStaffUser() {
       id_number: idNumber,
       nssf_number: nssfNumber || null,
       shif_sha_number: shifShaNumber || null,
+      kra_pin: kraPin, // <── Added to payload
       password: "changeme123",
     };
 
     try {
-      // Assuming addUserApi handles the data correctly
       const response = await addUserApi(data);
       if (response.status === "success") {
         showAlert("Staff user added successfully!", "success");
-        // Clear all fields on success
         setFirstName("");
         setLastName("");
         setEmail("");
@@ -103,10 +103,10 @@ function AddStaffUser() {
         setIdNumber("");
         setNssfNumber("");
         setShifShaNumber("");
+        setKraPin(""); // <── Clear field
         setRole("");
         setErrors({});
       } else {
-        // Handle server-side validation/message
         showAlert(response.message || "Failed to add user", "error");
       }
     } catch (err) {
@@ -121,7 +121,6 @@ function AddStaffUser() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        {/* Single Card Container */}
         <MDBox
           component="form"
           onSubmit={handleSubmit}
@@ -132,7 +131,6 @@ function AddStaffUser() {
               New Staff User Registration
             </MDTypography>
 
-            {/* Personal & Contact Information */}
             <MDTypography variant="h6" fontWeight="medium" mb={2}>
               Personal & Contact Information
             </MDTypography>
@@ -204,7 +202,6 @@ function AddStaffUser() {
               </Grid>
             </Grid>
 
-            {/* Identification & Employment */}
             <MDBox mt={4} mb={2}>
               <MDTypography variant="h6" fontWeight="medium">
                 Identification & Employment
@@ -227,6 +224,23 @@ function AddStaffUser() {
                   </MDBox>
                 )}
               </Grid>
+              {/* Added KRA PIN Input */}
+              <Grid item xs={12}>
+                <MDInput
+                  label="KRA PIN"
+                  fullWidth
+                  value={kraPin}
+                  onChange={(e) => setKraPin(e.target.value)}
+                  error={!!errors.kraPin}
+                />
+                {errors.kraPin && (
+                  <MDBox mt={0.5}>
+                    <MDTypography variant="caption" color="error">
+                      {errors.kraPin}
+                    </MDTypography>
+                  </MDBox>
+                )}
+              </Grid>
               <Grid item xs={12}>
                 <MDInput
                   label="NSSF Number (optional)"
@@ -245,7 +259,6 @@ function AddStaffUser() {
               </Grid>
             </Grid>
 
-            {/* User Role */}
             <MDBox mt={4} mb={2}>
               <MDTypography variant="h6" fontWeight="medium">
                 User Role
@@ -271,7 +284,6 @@ function AddStaffUser() {
               </MDBox>
             )}
 
-            {/* Submit Button */}
             <MDButton
               type="submit"
               variant="gradient"
