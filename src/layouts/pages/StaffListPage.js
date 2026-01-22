@@ -57,7 +57,7 @@ function StaffListPage() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
 
-  // DELETE DIALOG STATE (ADDED ONLY)
+  // DELETE DIALOG STATE
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -148,7 +148,7 @@ function StaffListPage() {
     }
   };
 
-  // ================= DELETE (DIALOG VERSION ONLY) =================
+  // ================= DELETE =================
   const openDeleteConfirm = (user) => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
@@ -166,7 +166,6 @@ function StaffListPage() {
     try {
       const res = await deleteUserApi(userToDelete.user_id);
 
-      // ✅ deleteUserApi already returns response.data
       if (res?.status === "success") {
         showAlert("Staff deleted successfully", "success");
         setStaffList((prev) => prev.filter((u) => u.user_id !== userToDelete.user_id));
@@ -255,13 +254,16 @@ function StaffListPage() {
                     return (
                       <TableRow key={user.user_id} hover>
                         <TableCell>
-                          <Avatar src={photoUrl} variant="rounded" sx={{ width: 48, height: 48 }} />
+                          <Avatar src={photoUrl} variant="rounded" sx={{ width: 46, height: 46 }} />
                         </TableCell>
 
                         <TableCell>
                           <MDTypography
                             fontWeight="bold"
-                            sx={{ color: hasMissing ? "error.main" : "dark.main" }}
+                            sx={{
+                              fontSize: "0.9rem", // 🔽 reduced
+                              color: hasMissing ? "error.main" : "dark.main",
+                            }}
                           >
                             {user.first_name} {user.last_name}
                           </MDTypography>
@@ -271,7 +273,10 @@ function StaffListPage() {
                         </TableCell>
 
                         <TableCell>
-                          <MDTypography fontWeight="medium">
+                          <MDTypography
+                            fontWeight="medium"
+                            sx={{ fontSize: "0.85rem" }} // 🔽 reduced
+                          >
                             {user.hourly_rate || "0.00"}
                           </MDTypography>
                         </TableCell>
