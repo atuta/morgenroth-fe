@@ -223,7 +223,7 @@ function StaffListPage() {
                 <TableRow sx={{ backgroundColor: "#f3f4f6" }}>
                   <TableCell sx={{ fontWeight: "bold" }}>Photo</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Staff Profile</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Rate</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Hourly Rate</TableCell>
                   <TableCell align="center" sx={{ fontWeight: "bold" }}>
                     Leave
                   </TableCell>
