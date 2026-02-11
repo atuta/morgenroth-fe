@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
 
@@ -42,6 +43,10 @@ function RecordHourCorrectionPage() {
 
   const [hours, setHours] = useState("");
   const [reason, setReason] = useState("");
+
+  // NEW (same logic as previous page)
+  const [month, setMonth] = useState(currentMonth);
+  const [year, setYear] = useState(currentYear);
 
   const [hoursError, setHoursError] = useState("");
   const [reasonError, setReasonError] = useState("");
@@ -86,7 +91,6 @@ function RecordHourCorrectionPage() {
 
   const handleSave = async () => {
     if (!user_id) return;
-
     if (!validate()) return;
 
     setLoading(true);
@@ -96,8 +100,8 @@ function RecordHourCorrectionPage() {
         user_id,
         hours: Number(hours),
         reason: reason.trim(),
-        month: currentMonth,
-        year: currentYear,
+        month,
+        year,
       };
 
       const res = await recordHourCorrectionApi(payload);
@@ -200,36 +204,48 @@ function RecordHourCorrectionPage() {
                   />
                 </Grid>
 
-                {/* Month (read-only & unclickable) */}
+                {/* Month */}
                 <Grid item xs={6}>
                   <TextField
+                    select
                     label="Month"
                     fullWidth
-                    value={currentMonth}
+                    value={month}
+                    onChange={(e) => setMonth(Number(e.target.value))}
                     InputProps={{
-                      readOnly: true,
                       sx: {
                         minHeight: 56,
-                        "& input": { pointerEvents: "none", color: "text.primary" },
                       },
                     }}
-                  />
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <MenuItem key={m} value={m}>
+                        {m}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
 
-                {/* Year (read-only & unclickable) */}
+                {/* Year */}
                 <Grid item xs={6}>
                   <TextField
+                    select
                     label="Year"
                     fullWidth
-                    value={currentYear}
+                    value={year}
+                    onChange={(e) => setYear(Number(e.target.value))}
                     InputProps={{
-                      readOnly: true,
                       sx: {
                         minHeight: 56,
-                        "& input": { pointerEvents: "none", color: "text.primary" },
                       },
                     }}
-                  />
+                  >
+                    {Array.from({ length: 6 }, (_, i) => currentYear - i).map((y) => (
+                      <MenuItem key={y} value={y}>
+                        {y}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
               </Grid>
             </MDBox>

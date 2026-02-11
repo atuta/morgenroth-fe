@@ -219,7 +219,6 @@ function RecordOvertimePaymentPage() {
                     fullWidth
                     value={month}
                     onChange={(e) => setMonth(Number(e.target.value))}
-                    disabled
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         minHeight: 48,
@@ -229,7 +228,11 @@ function RecordOvertimePaymentPage() {
                       },
                     }}
                   >
-                    <MenuItem value={currentMonth}>{currentMonth}</MenuItem>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <MenuItem key={m} value={m}>
+                        {m}
+                      </MenuItem>
+                    ))}
                   </TextField>
                   {errors.date && (
                     <MDTypography variant="caption" color="error">
@@ -246,7 +249,6 @@ function RecordOvertimePaymentPage() {
                     fullWidth
                     value={year}
                     onChange={(e) => setYear(Number(e.target.value))}
-                    disabled
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         minHeight: 48,
@@ -256,7 +258,11 @@ function RecordOvertimePaymentPage() {
                       },
                     }}
                   >
-                    <MenuItem value={currentYear}>{currentYear}</MenuItem>
+                    {Array.from({ length: 6 }, (_, i) => currentYear - i).map((y) => (
+                      <MenuItem key={y} value={y}>
+                        {y}
+                      </MenuItem>
+                    ))}
                   </TextField>
                 </Grid>
               </Grid>
