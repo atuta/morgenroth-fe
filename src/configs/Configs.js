@@ -38,6 +38,7 @@ const Configs = {
 
   // Working hours
   apiGetAllWorkingHoursEp: `${BASE_URL}/api/get-all-working-hours/`,
+  apiIsWithinWorkingHoursEp: `${BASE_URL}/api/attendance/is-within-working-hours/`,
 
   // Admin notice
   apiCreateAdminNoticeEp: `${BASE_URL}/api/create-admin-notice/`,

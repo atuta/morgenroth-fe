@@ -84,3 +84,28 @@ export const getUserAttendanceHistoryAdminApi = async (params) => {
     return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
   }
 };
+
+// ---------------------------
+// Check if current user is within working hours
+// Targets: path('api/attendance/is-within-working-hours/')
+export const isWithinWorkingHoursApi = async () => {
+  try {
+    const response = await axiosInstance.get(Configs.apiIsWithinWorkingHoursEp);
+
+    return { ok: true, status: response.status, data: response.data };
+  } catch (error) {
+    if (error.response) {
+      return {
+        ok: false,
+        status: error.response.status,
+        data: error.response.data,
+      };
+    }
+
+    return {
+      ok: false,
+      status: null,
+      data: { message: "network_or_unknown_error" },
+    };
+  }
+};

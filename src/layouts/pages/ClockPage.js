@@ -24,6 +24,9 @@ import clockInApi from "../../api/clockInApi";
 import clockOutApi from "../../api/clockOutApi";
 import getCurrentSessionApi from "../../api/getCurrentSessionApi";
 
+// NEW: working hours check service
+import { isWithinWorkingHoursApi } from "../../api/attendanceApi";
+
 import { useUserContext } from "../../context/UserContext";
 
 // --- Styled Components ---
@@ -47,13 +50,16 @@ function ClockPage() {
 
   const [loading, setLoading] = useState(false);
 
-  // Clock-in photo states (existing)
+  // Clock-in photo states
   const [photoBase64, setPhotoBase64] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
 
-  // Clock-out photo states (NEW)
+  // Clock-out photo states
   const [clockOutPhotoBase64, setClockOutPhotoBase64] = useState(null);
   const [clockOutCameraActive, setClockOutCameraActive] = useState(false);
+
+  // Working hours state: null | "yes" | "no"
+  const [withinWorkingHours, setWithinWorkingHours] = useState(null);
 
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -65,14 +71,14 @@ function ClockPage() {
 
   const [clockOutDisabledUntil, setClockOutDisabledUntil] = useState(null);
 
-  // New State for Interception Dialogue
+  // Dialog
   const [openTypeDialog, setOpenTypeDialog] = useState(false);
 
-  // Refs for Clock-in camera (existing)
+  // Refs for Clock-in camera
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // Refs for Clock-out camera (NEW)
+  // Refs for Clock-out camera
   const clockOutVideoRef = useRef(null);
   const clockOutCanvasRef = useRef(null);
 
@@ -84,7 +90,22 @@ function ClockPage() {
 
   useEffect(() => {
     fetchCurrentSession();
+    fetchWorkingHoursStatus();
   }, []);
+
+  const fetchWorkingHoursStatus = async () => {
+    try {
+      const res = await isWithinWorkingHoursApi();
+      if (res.ok && res.status === 200 && res.data?.status === "success") {
+        // "yes" | "no"
+        setWithinWorkingHours(res.data.within_working_hours);
+      } else {
+        setWithinWorkingHours(null);
+      }
+    } catch {
+      setWithinWorkingHours(null);
+    }
+  };
 
   const fetchCurrentSession = async () => {
     try {
@@ -123,7 +144,7 @@ function ClockPage() {
   }, [currentSession]);
 
   // -------------------------
-  // CLOCK-IN camera handlers (existing)
+  // CLOCK-IN camera handlers
   // -------------------------
   const stopCamera = () => {
     if (videoRef.current && videoRef.current.srcObject) {
@@ -165,7 +186,7 @@ function ClockPage() {
   };
 
   // -------------------------
-  // CLOCK-OUT camera handlers (NEW)
+  // CLOCK-OUT camera handlers
   // -------------------------
   const stopClockOutCamera = () => {
     if (clockOutVideoRef.current && clockOutVideoRef.current.srcObject) {
@@ -213,19 +234,48 @@ function ClockPage() {
   };
 
   // Intermediate function to trigger the Dialog
-  const handleClockInInitiation = () => {
+  const handleClockInInitiation = async () => {
+    // refresh status right before opening dialog
+    await fetchWorkingHoursStatus();
     setOpenTypeDialog(true);
   };
 
-  // Modified Clock-In to accept the choice from the Dialog
+  // Modified Clock-In to enforce working-hours rule
   const handleClockIn = async (clockinType) => {
     setOpenTypeDialog(false); // Close dialog
+
+    const canDecide = withinWorkingHours === "yes" || withinWorkingHours === "no";
+
+    // Regular allowed only within working hours; outside => overtime only
+    if (canDecide) {
+      if (withinWorkingHours === "no" && clockinType === "regular") {
+        showAlert(
+          "You are currently outside your working hours. Regular Shift clock-in is not allowed now. Please use Overtime Session instead.",
+          "warning"
+        );
+        return;
+      }
+      if (withinWorkingHours === "yes" && clockinType === "overtime") {
+        showAlert(
+          "You are currently within your working hours. Please use Regular Shift for clock-in.",
+          "info"
+        );
+        return;
+      }
+    } else {
+      // If we can't verify, don't block users; just inform.
+      showAlert(
+        "We could not verify your working hours at the moment. Please proceed with the correct shift type.",
+        "info"
+      );
+    }
+
     setLoading(true);
     try {
       const payload = {
         timestamp: new Date().toISOString(),
         photo_base64: photoBase64,
-        clockin_type: clockinType, // Added new field
+        clockin_type: clockinType,
       };
       const res = await clockInApi(payload);
 
@@ -260,7 +310,6 @@ function ClockPage() {
   const handleClockOut = async () => {
     setLoading(true);
     try {
-      // Require a photo for clock-out (NEW requirement)
       if (!clockOutPhotoBase64) {
         showAlert("📷 A photo is required to clock out. Please capture one.", "warning");
         setLoading(false);
@@ -309,7 +358,6 @@ function ClockPage() {
     const isClockOutDisabled =
       loading || (clockOutDisabledUntil && new Date() < clockOutDisabledUntil);
 
-    // NEW: clock-out requires a photo
     const isClockOutBlockedByPhoto = !clockOutPhotoBase64;
 
     return (
@@ -326,7 +374,7 @@ function ClockPage() {
               Clocked in at: {new Date(currentSession.clock_in_time).toLocaleTimeString()}
             </MDTypography>
 
-            {/* CLOCK-OUT PHOTO CAPTURE (NEW) */}
+            {/* CLOCK-OUT PHOTO CAPTURE */}
             <MDBox mb={3}>
               {!clockOutPhotoBase64 && !clockOutCameraActive && (
                 <>
@@ -424,6 +472,13 @@ function ClockPage() {
               Clock In Now
             </MDTypography>
 
+            <MDBox mb={2}>
+              <MDTypography variant="body2" color="text" textAlign="center">
+                Regular Shift clock-in is allowed only during working hours. Outside working hours,
+                please use Overtime Session.
+              </MDTypography>
+            </MDBox>
+
             <MDBox mb={3}>
               <Grid container spacing={2} justifyContent="center" alignItems="center">
                 <Grid item xs={12}>
@@ -490,7 +545,7 @@ function ClockPage() {
               color="success"
               fullWidth
               disabled={loading || !photoBase64}
-              onClick={handleClockInInitiation} // Now triggers Dialog instead of direct API
+              onClick={handleClockInInitiation}
               sx={{ mt: 1 }}
             >
               {loading ? <CircularProgress color="inherit" size={20} /> : "Clock In"}
@@ -523,28 +578,50 @@ function ClockPage() {
             Confirm Shift Type
           </MDTypography>
         </DialogTitle>
+
         <DialogContent>
           <MDTypography variant="body2" color="text">
             Please select the type of session you are clocking in for.
           </MDTypography>
+
+          {withinWorkingHours === "yes" && (
+            <MDTypography variant="caption" color="success" display="block" mt={1}>
+              You are within working hours. Regular Shift is allowed.
+            </MDTypography>
+          )}
+          {withinWorkingHours === "no" && (
+            <MDTypography variant="caption" color="error" display="block" mt={1}>
+              You are outside working hours. Only Overtime Session is allowed.
+            </MDTypography>
+          )}
+          {withinWorkingHours === null && (
+            <MDTypography variant="caption" color="text" display="block" mt={1}>
+              Working hours status could not be verified right now.
+            </MDTypography>
+          )}
         </DialogContent>
+
         <DialogActions sx={{ flexDirection: "column", p: 3, gap: 2 }}>
           <MDButton
             variant="gradient"
             color="info"
             fullWidth
             onClick={() => handleClockIn("regular")}
+            disabled={withinWorkingHours === "no"}
           >
             Regular Shift
           </MDButton>
+
           <MDButton
             variant="outlined"
             color="dark"
             fullWidth
             onClick={() => handleClockIn("overtime")}
+            disabled={withinWorkingHours === "yes"}
           >
             Overtime Session
           </MDButton>
+
           <MDButton
             variant="text"
             color="secondary"
