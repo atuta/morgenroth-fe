@@ -46,7 +46,15 @@ function ClockPage() {
   const { logout } = useUserContext();
 
   const [loading, setLoading] = useState(false);
+
+  // Clock-in photo states (existing)
   const [photoBase64, setPhotoBase64] = useState(null);
+  const [cameraActive, setCameraActive] = useState(false);
+
+  // Clock-out photo states (NEW)
+  const [clockOutPhotoBase64, setClockOutPhotoBase64] = useState(null);
+  const [clockOutCameraActive, setClockOutCameraActive] = useState(false);
+
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
@@ -60,9 +68,13 @@ function ClockPage() {
   // New State for Interception Dialogue
   const [openTypeDialog, setOpenTypeDialog] = useState(false);
 
+  // Refs for Clock-in camera (existing)
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [cameraActive, setCameraActive] = useState(false);
+
+  // Refs for Clock-out camera (NEW)
+  const clockOutVideoRef = useRef(null);
+  const clockOutCanvasRef = useRef(null);
 
   const showAlert = (message, severity = "info") => {
     setAlertMessage(message);
@@ -110,6 +122,9 @@ function ClockPage() {
     return () => clearInterval(timer);
   }, [currentSession]);
 
+  // -------------------------
+  // CLOCK-IN camera handlers (existing)
+  // -------------------------
   const stopCamera = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
@@ -147,6 +162,54 @@ function ClockPage() {
 
     setPhotoBase64(dataURL);
     stopCamera();
+  };
+
+  // -------------------------
+  // CLOCK-OUT camera handlers (NEW)
+  // -------------------------
+  const stopClockOutCamera = () => {
+    if (clockOutVideoRef.current && clockOutVideoRef.current.srcObject) {
+      clockOutVideoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      clockOutVideoRef.current.srcObject = null;
+    }
+    setClockOutCameraActive(false);
+  };
+
+  useEffect(() => {
+    if (clockOutCameraActive) {
+      navigator.mediaDevices
+        .getUserMedia({ video: { facingMode: "user" } })
+        .then((stream) => {
+          if (clockOutVideoRef.current) {
+            clockOutVideoRef.current.srcObject = stream;
+            clockOutVideoRef.current.play();
+          }
+        })
+        .catch(() => showAlert("Camera access denied or unavailable", "error"));
+    } else {
+      stopClockOutCamera();
+    }
+  }, [clockOutCameraActive]);
+
+  const handleClockOutCapture = () => {
+    if (!clockOutVideoRef.current || !clockOutCanvasRef.current) return;
+    const context = clockOutCanvasRef.current.getContext("2d");
+
+    clockOutCanvasRef.current.width = clockOutVideoRef.current.videoWidth;
+    clockOutCanvasRef.current.height = clockOutVideoRef.current.videoHeight;
+
+    context.drawImage(
+      clockOutVideoRef.current,
+      0,
+      0,
+      clockOutCanvasRef.current.width,
+      clockOutCanvasRef.current.height
+    );
+
+    const dataURL = clockOutCanvasRef.current.toDataURL("image/jpeg", 0.8);
+
+    setClockOutPhotoBase64(dataURL);
+    stopClockOutCamera();
   };
 
   // Intermediate function to trigger the Dialog
@@ -197,15 +260,30 @@ function ClockPage() {
   const handleClockOut = async () => {
     setLoading(true);
     try {
-      const payload = { timestamp: new Date().toISOString(), notes };
+      // Require a photo for clock-out (NEW requirement)
+      if (!clockOutPhotoBase64) {
+        showAlert("📷 A photo is required to clock out. Please capture one.", "warning");
+        setLoading(false);
+        return;
+      }
+
+      const payload = {
+        timestamp: new Date().toISOString(),
+        notes,
+        photo_base64: clockOutPhotoBase64,
+      };
       const res = await clockOutApi(payload);
 
       if ((res.status === 200 || res.status === 201) && res.data.status === "success") {
         showAlert("👋 Clock-out successful! Good work.", "success");
         setNotes("");
         setCurrentSession(null);
+        setClockOutPhotoBase64(null);
+        stopClockOutCamera();
       } else if (res.data.message === "no_active_session") {
         showAlert("⚠️ No active session found to clock out from.", "warning");
+      } else if (res.data.message === "invalid_photo_data") {
+        showAlert("❌ Invalid photo uploaded. Please retake the photo.", "error");
       } else {
         showAlert("❌ Clock-out failed. Please try again.", "error");
       }
@@ -231,6 +309,9 @@ function ClockPage() {
     const isClockOutDisabled =
       loading || (clockOutDisabledUntil && new Date() < clockOutDisabledUntil);
 
+    // NEW: clock-out requires a photo
+    const isClockOutBlockedByPhoto = !clockOutPhotoBase64;
+
     return (
       <MDBox p={3} bgColor="white" borderRadius="lg" width="100%">
         {currentSession ? (
@@ -244,6 +325,67 @@ function ClockPage() {
             <MDTypography variant="body2" color="text" mb={2}>
               Clocked in at: {new Date(currentSession.clock_in_time).toLocaleTimeString()}
             </MDTypography>
+
+            {/* CLOCK-OUT PHOTO CAPTURE (NEW) */}
+            <MDBox mb={3}>
+              {!clockOutPhotoBase64 && !clockOutCameraActive && (
+                <>
+                  <MDButton
+                    variant="gradient"
+                    color="info"
+                    fullWidth
+                    onClick={() => setClockOutCameraActive(true)}
+                    disabled={loading}
+                  >
+                    Start Camera for Clock-Out Photo
+                  </MDButton>
+                  <MDTypography variant="body2" color="text" textAlign="center" mt={1}>
+                    A photo is required for clock-out.
+                  </MDTypography>
+                </>
+              )}
+
+              {clockOutCameraActive && (
+                <MDBox display="flex" flexDirection="column" alignItems="center" gap={1}>
+                  <StyledVideo ref={clockOutVideoRef} autoPlay playsInline />
+                  <MDButton
+                    variant="gradient"
+                    color="success"
+                    fullWidth
+                    onClick={handleClockOutCapture}
+                    sx={{ mt: 1 }}
+                  >
+                    Capture Clock-Out Photo
+                  </MDButton>
+                  <MDButton variant="text" color="error" onClick={stopClockOutCamera}>
+                    Cancel Camera
+                  </MDButton>
+                </MDBox>
+              )}
+
+              {clockOutPhotoBase64 && (
+                <MDBox display="flex" flexDirection="column" alignItems="center" gap={1}>
+                  <MDTypography variant="caption" color="text">
+                    Clock-out photo captured successfully:
+                  </MDTypography>
+                  <StyledImage src={clockOutPhotoBase64} alt="clockout-preview" />
+                  <MDButton
+                    variant="gradient"
+                    color="warning"
+                    fullWidth
+                    onClick={() => {
+                      setClockOutPhotoBase64(null);
+                      setClockOutCameraActive(true);
+                    }}
+                    sx={{ mt: 1 }}
+                    disabled={loading}
+                  >
+                    Retake Clock-Out Photo
+                  </MDButton>
+                </MDBox>
+              )}
+            </MDBox>
+
             <TextField
               label="Clock-out Notes (optional)"
               multiline
@@ -259,15 +401,22 @@ function ClockPage() {
                 },
               }}
             />
+
             <MDButton
               variant="gradient"
               color="error"
               fullWidth
-              disabled={isClockOutDisabled}
+              disabled={isClockOutDisabled || isClockOutBlockedByPhoto}
               onClick={handleClockOut}
             >
               {loading ? <CircularProgress color="inherit" size={20} /> : "Clock Out"}
             </MDButton>
+
+            {isClockOutBlockedByPhoto && (
+              <MDTypography variant="caption" color="error" mt={1} display="block">
+                Clock-out photo is required.
+              </MDTypography>
+            )}
           </MDBox>
         ) : (
           <MDBox>
@@ -415,7 +564,10 @@ function ClockPage() {
       />
 
       <Footer />
+
+      {/* Hidden canvases */}
       <canvas ref={canvasRef} style={{ display: "none" }} />
+      <canvas ref={clockOutCanvasRef} style={{ display: "none" }} />
     </DashboardLayout>
   );
 }

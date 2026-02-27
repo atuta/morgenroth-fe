@@ -1,5 +1,5 @@
 // File: RecordAdvancePaymentPage.js
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
@@ -7,6 +7,7 @@ import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
+import InputAdornment from "@mui/material/InputAdornment";
 
 // Icons
 import PaymentsIcon from "@mui/icons-material/Payments";
@@ -31,21 +32,33 @@ import Configs from "../../configs/Configs";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
 
+const sanitizeSignedInteger = (raw) => {
+  if (raw == null) return "";
+
+  // Keep only digits and '-'
+  let v = String(raw).replace(/[^\d-]/g, "");
+
+  // Only allow a single leading '-'
+  const isNegative = v.startsWith("-");
+  const digitsOnly = v.replace(/-/g, "");
+
+  return (isNegative ? "-" : "") + digitsOnly;
+};
+
 function RecordAdvancePaymentPage() {
   const { state } = useLocation();
   const navigate = useNavigate();
 
   const user_id = state?.user_id;
   const photo = state?.photo;
+  const fullName = state?.full_name || "User";
 
-  const now = new Date();
+  const now = useMemo(() => new Date(), []);
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
-
-  // NEW (same pattern as other pages)
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(currentYear);
 
@@ -73,8 +86,9 @@ function RecordAdvancePaymentPage() {
   const validate = () => {
     let valid = true;
 
-    if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      setAmountError("Amount must be a positive number");
+    // Allow only signed integers, including negative, but disallow empty or just "-"
+    if (!amount || amount === "-" || !/^-?\d+$/.test(amount)) {
+      setAmountError("Amount must be a valid number");
       valid = false;
     } else {
       setAmountError("");
@@ -95,7 +109,6 @@ function RecordAdvancePaymentPage() {
     if (!validate()) return;
 
     setLoading(true);
-
     try {
       const payload = {
         user_id,
@@ -111,6 +124,7 @@ function RecordAdvancePaymentPage() {
         showAlert("Advance payment recorded successfully!", "success");
         setAmount("");
         setRemarks("");
+        // month/year stay as selected
       } else {
         showAlert(res.data?.message || "Failed to record advance.", "error");
       }
@@ -122,6 +136,8 @@ function RecordAdvancePaymentPage() {
     }
   };
 
+  const avatarSrc = photo ? `${Configs.baseUrl}${photo}` : DEFAULT_AVATAR;
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -130,18 +146,27 @@ function RecordAdvancePaymentPage() {
         <MDBox sx={{ maxWidth: "600px", margin: "0 auto 0 0" }}>
           <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
             <MDBox display="flex" alignItems="center" gap={3} flexWrap="wrap">
-              <Avatar
-                src={photo ? `${Configs.baseUrl}${photo}` : DEFAULT_AVATAR}
-                sx={{ width: 80, height: 80 }}
-              />
+              <Avatar src={avatarSrc} sx={{ width: 80, height: 80 }} />
               <MDBox flexGrow={1} minWidth={200}>
                 <MDTypography variant="h5" fontWeight="bold" mb={1}>
-                  Advance Payment to {state?.full_name || "User"}
+                  Advance Payment to {fullName}
                 </MDTypography>
                 <MDTypography variant="body2" color="text">
                   Enter advance details for the selected user
                 </MDTypography>
               </MDBox>
+
+              {/* Optional: quick back button if state is missing */}
+              {!user_id && (
+                <MDButton
+                  variant="outlined"
+                  color="info"
+                  onClick={() => navigate(-1)}
+                  sx={{ whiteSpace: "nowrap" }}
+                >
+                  Go Back
+                </MDButton>
+              )}
             </MDBox>
           </Paper>
 
@@ -151,25 +176,29 @@ function RecordAdvancePaymentPage() {
                 {/* Amount */}
                 <Grid item xs={12}>
                   <TextField
-                    label={
-                      <MDBox display="flex" alignItems="center">
-                        <PaymentsIcon fontSize="small" sx={{ mr: 1 }} />
-                        Amount (KES)
-                      </MDBox>
-                    }
+                    label="Amount (KES)"
                     fullWidth
-                    type="number"
+                    type="text"
                     value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    onChange={(e) => setAmount(sanitizeSignedInteger(e.target.value))}
                     error={Boolean(amountError)}
                     helperText={amountError}
+                    inputProps={{
+                      inputMode: "numeric",
+                      pattern: "-?[0-9]*",
+                    }}
+                    InputLabelProps={{ shrink: true }}
                     InputProps={{
                       sx: {
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: amountError ? "red" : undefined,
+                        },
                         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                           borderColor: amountError ? "red" : undefined,
                         },
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: amountError ? "red" : undefined,
+                        // Ensure normal padding (no hidden left offsets)
+                        "& .MuiOutlinedInput-input": {
+                          paddingLeft: "14px",
                         },
                       },
                     }}
@@ -179,12 +208,7 @@ function RecordAdvancePaymentPage() {
                 {/* Remarks */}
                 <Grid item xs={12}>
                   <TextField
-                    label={
-                      <MDBox display="flex" alignItems="center">
-                        <EventNoteIcon fontSize="small" sx={{ mr: 1 }} />
-                        Remarks (Required)
-                      </MDBox>
-                    }
+                    label="Remarks (Required)"
                     fullWidth
                     multiline
                     rows={3}
@@ -192,13 +216,19 @@ function RecordAdvancePaymentPage() {
                     onChange={(e) => setRemarks(e.target.value)}
                     error={Boolean(remarksError)}
                     helperText={remarksError}
+                    InputLabelProps={{ shrink: true }}
                     InputProps={{
                       sx: {
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: remarksError ? "red" : undefined,
+                        },
                         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                           borderColor: remarksError ? "red" : undefined,
                         },
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: remarksError ? "red" : undefined,
+                        // Multiline input padding (removes the weird left indent)
+                        "& textarea": {
+                          paddingLeft: "14px",
+                          paddingTop: "14px",
                         },
                       },
                     }}
@@ -213,11 +243,8 @@ function RecordAdvancePaymentPage() {
                     fullWidth
                     value={month}
                     onChange={(e) => setMonth(Number(e.target.value))}
-                    InputProps={{
-                      sx: {
-                        minHeight: 56,
-                      },
-                    }}
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{ sx: { minHeight: 56 } }}
                   >
                     {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                       <MenuItem key={m} value={m}>
@@ -235,11 +262,8 @@ function RecordAdvancePaymentPage() {
                     fullWidth
                     value={year}
                     onChange={(e) => setYear(Number(e.target.value))}
-                    InputProps={{
-                      sx: {
-                        minHeight: 56,
-                      },
-                    }}
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{ sx: { minHeight: 56 } }}
                   >
                     {Array.from({ length: 6 }, (_, i) => currentYear - i).map((y) => (
                       <MenuItem key={y} value={y}>
@@ -255,7 +279,7 @@ function RecordAdvancePaymentPage() {
               variant="gradient"
               color="info"
               fullWidth
-              disabled={loading}
+              disabled={loading || !user_id}
               onClick={handleSave}
             >
               {loading ? <CircularProgress size={20} color="inherit" /> : "Record Advance Payment"}

@@ -1,17 +1,12 @@
 // File: RecordOvertimePaymentPage.js
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
-
-// Icons
-import PaymentsIcon from "@mui/icons-material/Payments";
-import AccessTimeIcon from "@mui/icons-material/AccessTimeOutlined";
-import EventNoteIcon from "@mui/icons-material/EventNoteOutlined";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -32,16 +27,33 @@ import Configs from "../../configs/Configs";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
 
+/**
+ * Allows:
+ *  - digits only (e.g. "123")
+ *  - optional single leading '-' (e.g. "-123")
+ * Rejects all other characters.
+ */
+const sanitizeSignedInteger = (raw) => {
+  if (raw == null) return "";
+  let v = String(raw).replace(/[^\d-]/g, "");
+  const isNegative = v.startsWith("-");
+  const digitsOnly = v.replace(/-/g, "");
+  return (isNegative ? "-" : "") + digitsOnly;
+};
+
 function RecordOvertimePaymentPage() {
   const { state } = useLocation();
+  const navigate = useNavigate();
+
   const user_id = state?.user_id;
   const photo = state?.photo;
-  const fullName = state?.full_name || "";
+  const fullName = state?.full_name || "User";
 
-  const now = new Date();
+  const now = useMemo(() => new Date(), []);
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
+  // NOTE: hours & amount are strings because we sanitize as user types
   const [hours, setHours] = useState("");
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
@@ -70,11 +82,13 @@ function RecordOvertimePaymentPage() {
   const validateFields = () => {
     const newErrors = {};
 
-    if (!hours || isNaN(hours) || Number(hours) <= 0) {
-      newErrors.hours = "Please enter valid hours.";
+    // Hours: positive integer only
+    if (!hours || hours === "-" || !/^\d+$/.test(hours) || Number(hours) <= 0) {
+      newErrors.hours = "Please enter valid hours (positive number).";
     }
 
-    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+    // Amount: allow signed integers (negative allowed), but disallow empty / just "-"
+    if (!amount || amount === "-" || !/^-?\d+$/.test(amount)) {
       newErrors.amount = "Please enter a valid amount.";
     }
 
@@ -123,6 +137,8 @@ function RecordOvertimePaymentPage() {
     }
   };
 
+  const avatarSrc = photo ? `${Configs.baseUrl}${photo}` : DEFAULT_AVATAR;
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -132,10 +148,7 @@ function RecordOvertimePaymentPage() {
           {/* User Header */}
           <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
             <MDBox display="flex" alignItems="center" gap={3} flexWrap="wrap">
-              <Avatar
-                src={photo ? `${Configs.baseUrl}${photo}` : DEFAULT_AVATAR}
-                sx={{ width: 80, height: 80 }}
-              />
+              <Avatar src={avatarSrc} sx={{ width: 80, height: 80 }} />
               <MDBox flexGrow={1} minWidth={200}>
                 <MDTypography variant="h5" fontWeight="bold" mb={1}>
                   Overtime for {fullName}
@@ -144,6 +157,17 @@ function RecordOvertimePaymentPage() {
                   Enter overtime details for the selected user
                 </MDTypography>
               </MDBox>
+
+              {!user_id && (
+                <MDButton
+                  variant="outlined"
+                  color="info"
+                  onClick={() => navigate(-1)}
+                  sx={{ whiteSpace: "nowrap" }}
+                >
+                  Go Back
+                </MDButton>
+              )}
             </MDBox>
           </Paper>
 
@@ -154,59 +178,94 @@ function RecordOvertimePaymentPage() {
                 {/* Hours */}
                 <Grid item xs={12}>
                   <TextField
-                    label={
-                      <MDBox display="flex" alignItems="center">
-                        <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                        Hours (Required)
-                      </MDBox>
-                    }
+                    label="Hours (Required)"
                     fullWidth
-                    type="number"
+                    type="text"
                     value={hours}
-                    onChange={(e) => setHours(e.target.value)}
-                    error={!!errors.hours}
+                    onChange={(e) =>
+                      // hours should be digits only (no minus)
+                      setHours(String(e.target.value).replace(/[^\d]/g, ""))
+                    }
+                    error={Boolean(errors.hours)}
                     helperText={errors.hours}
-                    sx={{ "& .MuiOutlinedInput-root": { borderColor: errors.hours ? "red" : "" } }}
+                    inputProps={{
+                      inputMode: "numeric",
+                      pattern: "[0-9]*",
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      sx: {
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: errors.hours ? "red" : undefined,
+                        },
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: errors.hours ? "red" : undefined,
+                        },
+                        "& .MuiOutlinedInput-input": {
+                          paddingLeft: "14px",
+                        },
+                      },
+                    }}
                   />
                 </Grid>
 
                 {/* Amount */}
                 <Grid item xs={12}>
                   <TextField
-                    label={
-                      <MDBox display="flex" alignItems="center">
-                        <PaymentsIcon fontSize="small" sx={{ mr: 1 }} />
-                        Lumpsum Amount (KES) (Required)
-                      </MDBox>
-                    }
+                    label="Lumpsum Amount (KES) (Required)"
                     fullWidth
-                    type="number"
+                    type="text"
                     value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    error={!!errors.amount}
+                    onChange={(e) => setAmount(sanitizeSignedInteger(e.target.value))}
+                    error={Boolean(errors.amount)}
                     helperText={errors.amount}
-                    sx={{ "& .MuiOutlinedInput-root": { borderColor: errors.amount ? "red" : "" } }}
+                    inputProps={{
+                      inputMode: "numeric",
+                      pattern: "-?[0-9]*",
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      sx: {
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: errors.amount ? "red" : undefined,
+                        },
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: errors.amount ? "red" : undefined,
+                        },
+                        "& .MuiOutlinedInput-input": {
+                          paddingLeft: "14px",
+                        },
+                      },
+                    }}
                   />
                 </Grid>
 
                 {/* Remarks */}
                 <Grid item xs={12}>
                   <TextField
-                    label={
-                      <MDBox display="flex" alignItems="center">
-                        <EventNoteIcon fontSize="small" sx={{ mr: 1 }} />
-                        Remarks (Required)
-                      </MDBox>
-                    }
+                    label="Remarks (Required)"
                     fullWidth
                     multiline
                     rows={3}
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
-                    error={!!errors.remarks}
+                    error={Boolean(errors.remarks)}
                     helperText={errors.remarks}
-                    sx={{
-                      "& .MuiOutlinedInput-root": { borderColor: errors.remarks ? "red" : "" },
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      sx: {
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: errors.remarks ? "red" : undefined,
+                        },
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: errors.remarks ? "red" : undefined,
+                        },
+                        // Removes weird left indent for multiline
+                        "& textarea": {
+                          paddingLeft: "14px",
+                          paddingTop: "14px",
+                        },
+                      },
                     }}
                   />
                 </Grid>
@@ -219,12 +278,13 @@ function RecordOvertimePaymentPage() {
                     fullWidth
                     value={month}
                     onChange={(e) => setMonth(Number(e.target.value))}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        minHeight: 48,
-                        paddingTop: 1,
-                        paddingBottom: 1,
-                        borderColor: errors.date ? "red" : "",
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      sx: {
+                        minHeight: 56,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: errors.date ? "red" : undefined,
+                        },
                       },
                     }}
                   >
@@ -249,12 +309,13 @@ function RecordOvertimePaymentPage() {
                     fullWidth
                     value={year}
                     onChange={(e) => setYear(Number(e.target.value))}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        minHeight: 48,
-                        paddingTop: 1,
-                        paddingBottom: 1,
-                        borderColor: errors.date ? "red" : "",
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      sx: {
+                        minHeight: 56,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: errors.date ? "red" : undefined,
+                        },
                       },
                     }}
                   >
@@ -272,7 +333,7 @@ function RecordOvertimePaymentPage() {
               variant="gradient"
               color="info"
               fullWidth
-              disabled={loading}
+              disabled={loading || !user_id}
               onClick={handleSave}
             >
               {loading ? <CircularProgress size={20} color="inherit" /> : "Record Overtime"}
