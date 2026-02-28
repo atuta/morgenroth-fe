@@ -15,6 +15,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import SearchIcon from "@mui/icons-material/Search";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -32,7 +33,7 @@ const COLUMN_COUNT = 8;
 const DEFAULT_AVATAR = "/default-avatar.png";
 
 export default function LatenessRecordsPage() {
-  // Defaults: last 7 days (optional)
+  // Defaults: last 7 days
   const today = new Date();
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(today.getDate() - 7);
@@ -131,7 +132,7 @@ export default function LatenessRecordsPage() {
     fetchRecords(1);
   }, [startDate, endDate, session, isExcused]);
 
-  // Live search (frontend filtering)
+  // Live search (client-side on current page)
   useEffect(() => {
     if (!searchTerm) {
       setFilteredRecords(records);
@@ -174,9 +175,9 @@ export default function LatenessRecordsPage() {
     return String(val);
   };
 
-  const canShowPagination = useMemo(
-    () => !loading && filteredRecords.length > 0 && totalPages > 1,
-    [loading, filteredRecords.length, totalPages]
+  const showFooter = useMemo(
+    () => !loading && filteredRecords.length > 0,
+    [loading, filteredRecords]
   );
 
   return (
@@ -263,6 +264,7 @@ export default function LatenessRecordsPage() {
               />
             </Grid>
 
+            {/* Refresh */}
             <Grid item xs={12} md={1}>
               <MDButton
                 variant="gradient"
@@ -270,9 +272,18 @@ export default function LatenessRecordsPage() {
                 onClick={() => fetchRecords(page)}
                 disabled={loading}
                 fullWidth
-                sx={{ minHeight: 48 }}
+                sx={{
+                  minHeight: 48,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                {loading ? <CircularProgress size={20} color="white" /> : "↻"}
+                {loading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <RefreshIcon sx={{ fontSize: 24, color: "white" }} />
+                )}
               </MDButton>
             </Grid>
           </Grid>
@@ -368,24 +379,23 @@ export default function LatenessRecordsPage() {
             </Table>
           </TableContainer>
 
-          {/* Pagination */}
-          {!loading && filteredRecords.length > 0 && (
+          {/* Footer (Pagination + Total Records) */}
+          {showFooter && (
             <MDBox display="flex" flexDirection="column" alignItems="center" mt={2}>
-              <Pagination count={totalPages} page={page} onChange={handlePageChange} color="info" />
+              {totalPages > 1 && (
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handlePageChange}
+                  color="info"
+                />
+              )}
+
               <MDTypography variant="caption" display="block" mt={1} textAlign="center">
                 Total Records: {totalRecords}
               </MDTypography>
             </MDBox>
           )}
-
-          {canShowPagination === false &&
-            !loading &&
-            filteredRecords.length > 0 &&
-            totalPages <= 1 && (
-              <MDTypography variant="caption" display="block" mt={2} textAlign="center">
-                Total Records: {totalRecords}
-              </MDTypography>
-            )}
         </MDBox>
       </MDBox>
 
