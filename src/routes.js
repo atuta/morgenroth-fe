@@ -39,6 +39,7 @@ import SignIn from "layouts/authentication/sign-in";
 
 import AddOrganization from "layouts/pages/AddOrganization";
 import HourCorrectionsPage from "layouts/pages/HourCorrectionsPage";
+import LatenessRecordsPage from "layouts/pages/LatenessRecordsPage";
 import RecordHourCorrectionPage from "layouts/pages/RecordHourCorrectionPage";
 import RecordOvertimePaymentPage from "layouts/pages/RecordOvertimePaymentPage";
 import RecordAdvancePaymentPage from "layouts/pages/RecordAdvancePaymentPage";
@@ -218,6 +219,14 @@ const routes = [
         key: "hour-corrections",
         route: "/hour-corrections",
         component: <HourCorrectionsPage />,
+        userRoles: ["admin"],
+      },
+      {
+        type: "collapse",
+        name: "Lateness Records",
+        key: "lateness-records",
+        route: "/lateness-records",
+        component: <LatenessRecordsPage />,
         userRoles: ["admin"],
       },
 

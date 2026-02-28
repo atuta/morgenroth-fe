@@ -53,6 +53,7 @@ const Configs = {
   apiLunchOutEp: `${BASE_URL}/api/lunch-out/`,
   apiTotalHoursEp: `${BASE_URL}/api/total-hours/`,
   apiGetTodayUserTimeSummaryEp: `${BASE_URL}/api/get-today-user-time-summary/`,
+  apiLatenessRecordsEp: `${BASE_URL}/api/lateness-records/`,
   apiCurrentSessionEp: `${BASE_URL}/api/attendance/current-session/`,
   // New endpoints
   apiUserAttendanceHistoryEp: `${BASE_URL}/api/attendance/history/`,

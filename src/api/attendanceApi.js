@@ -109,3 +109,20 @@ export const isWithinWorkingHoursApi = async () => {
     };
   }
 };
+
+// ---------------------------
+// Get lateness records (paginated)
+// Targets: path('api/lateness-records/')
+// Query params (all optional):
+// { page, page_size, user_id, start_date, end_date, session, is_excused, search }
+export const getLatenessRecordsApi = async (params) => {
+  try {
+    const response = await axiosInstance.get(Configs.apiLatenessRecordsEp, { params });
+    return { ok: true, status: response.status, data: response.data };
+  } catch (error) {
+    if (error.response) {
+      return { ok: false, status: error.response.status, data: error.response.data };
+    }
+    return { ok: false, status: null, data: { message: "network_or_unknown_error" } };
+  }
+};
