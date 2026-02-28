@@ -27,6 +27,7 @@ const Configs = {
   apiUserFullNameEp: `${BASE_URL}/api/user-full-name/`,
   apiUserHasPermissionEp: `${BASE_URL}/api/user-has-permission/`,
   apiUserHasModulePermissionEp: `${BASE_URL}/api/user-has-module-permission/`,
+  apiResetUserPasswordEp: `${BASE_URL}/api/reset-user-password/`,
   apiDeleteUserEp: `${BASE_URL}/api/api-delete-user/`, // ✅ NEW
   apiAddUserEp: `${BASE_URL}/api/add-user/`,
   apiChangePasswordEp: `${BASE_URL}/api/change-password/`,

@@ -27,6 +27,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import LockResetIcon from "@mui/icons-material/LockReset"; // NEW
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -41,6 +42,7 @@ import getNonAdminUsersApi from "../../api/getNonAdminUsersApi";
 import updateUserLeaveStatusApi from "../../api/updateUserLeaveStatusApi";
 import updateUserHolidayStatusApi from "../../api/updateUserHolidayStatusApi";
 import deleteUserApi from "../../api/deleteUserApi";
+import resetUserPasswordApi from "../../api/resetUserPasswordApi"; // NEW
 import Configs from "../../configs/Configs";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=60";
@@ -53,6 +55,7 @@ function StaffListPage() {
   const [filteredStaff, setFilteredStaff] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
@@ -61,6 +64,11 @@ function StaffListPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // RESET PASSWORD DIALOG STATE (NEW)
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [userToReset, setUserToReset] = useState(null);
+  const [isResetting, setIsResetting] = useState(false);
 
   const showAlert = (message, severity = "info") => {
     setAlertMessage(message);
@@ -108,6 +116,7 @@ function StaffListPage() {
         (u) =>
           u.first_name?.toLowerCase().includes(term) ||
           u.last_name?.toLowerCase().includes(term) ||
+          u.username?.toLowerCase().includes(term) || // include username in search
           u.user_role?.toLowerCase().includes(term)
       )
     );
@@ -171,7 +180,7 @@ function StaffListPage() {
         setStaffList((prev) => prev.filter((u) => u.user_id !== userToDelete.user_id));
         setFilteredStaff((prev) => prev.filter((u) => u.user_id !== userToDelete.user_id));
       } else {
-        showAlert("Failed to delete staff", "error");
+        showAlert(res?.message || "Failed to delete staff", "error");
       }
     } catch (err) {
       console.error(err);
@@ -179,6 +188,46 @@ function StaffListPage() {
     } finally {
       setIsDeleting(false);
       closeDeleteConfirm();
+    }
+  };
+
+  // ================= RESET PASSWORD (NEW) =================
+  const openResetConfirm = (user) => {
+    setUserToReset(user);
+    setResetDialogOpen(true);
+  };
+
+  const closeResetConfirm = () => {
+    setResetDialogOpen(false);
+    setUserToReset(null);
+  };
+
+  const handleResetPassword = async () => {
+    if (!userToReset) return;
+
+    setIsResetting(true);
+    try {
+      const res = await resetUserPasswordApi({ user_id: userToReset.user_id });
+
+      if (res?.status === "success") {
+        showAlert(
+          `Password reset successful for ${userToReset.first_name} ${userToReset.last_name}. New password: changeme123`,
+          "success"
+        );
+      } else if (res?.message === "permission_denied") {
+        showAlert("You are not allowed to reset passwords.", "error");
+      } else if (res?.message === "user_not_found") {
+        showAlert("User not found.", "error");
+      } else {
+        showAlert(res?.message || "Password reset failed.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      const msg = err?.response?.data?.message || "Password reset failed.";
+      showAlert(msg, "error");
+    } finally {
+      setIsResetting(false);
+      closeResetConfirm();
     }
   };
 
@@ -203,7 +252,7 @@ function StaffListPage() {
 
           <MDBox mb={3}>
             <TextField
-              placeholder="Search staff by name or role"
+              placeholder="Search staff by name, username or role"
               fullWidth
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -261,22 +310,26 @@ function StaffListPage() {
                           <MDTypography
                             fontWeight="bold"
                             sx={{
-                              fontSize: "0.9rem", // 🔽 reduced
+                              fontSize: "0.9rem",
                               color: hasMissing ? "error.main" : "dark.main",
                             }}
                           >
                             {user.first_name} {user.last_name}
                           </MDTypography>
+
+                          {user.username && (
+                            <MDTypography variant="caption" color="text" display="block">
+                              @{user.username}
+                            </MDTypography>
+                          )}
+
                           <MDTypography variant="caption" color="text">
                             ({user.user_role} staff)
                           </MDTypography>
                         </TableCell>
 
                         <TableCell>
-                          <MDTypography
-                            fontWeight="medium"
-                            sx={{ fontSize: "0.85rem" }} // 🔽 reduced
-                          >
+                          <MDTypography fontWeight="medium" sx={{ fontSize: "0.85rem" }}>
                             {user.hourly_rate || "0.00"} KES
                           </MDTypography>
                         </TableCell>
@@ -320,6 +373,12 @@ function StaffListPage() {
                             </IconButton>
                           </Tooltip>
 
+                          <Tooltip title="Reset password to changeme123">
+                            <IconButton color="warning" onClick={() => openResetConfirm(user)}>
+                              <LockResetIcon />
+                            </IconButton>
+                          </Tooltip>
+
                           <Tooltip title="Delete staff">
                             <IconButton color="error" onClick={() => openDeleteConfirm(user)}>
                               <DeleteOutlineIcon />
@@ -335,6 +394,46 @@ function StaffListPage() {
           </TableContainer>
         </MDBox>
       </MDBox>
+
+      {/* RESET PASSWORD DIALOG (NEW) */}
+      <Dialog open={resetDialogOpen} onClose={closeResetConfirm}>
+        <DialogTitle sx={{ color: "warning.main", fontWeight: "bold" }}>
+          Confirm Password Reset
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You are about to reset the password for{" "}
+            <strong>
+              {userToReset?.first_name} {userToReset?.last_name}
+            </strong>
+            {userToReset?.username ? (
+              <>
+                {" "}
+                (<strong>@{userToReset.username}</strong>)
+              </>
+            ) : null}
+            .<br />
+            <br />
+            Their password will be set to: <strong>changeme123</strong>
+            <br />
+            <br />
+            Proceed?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={closeResetConfirm} color="dark" variant="text" disabled={isResetting}>
+            Cancel
+          </MDButton>
+          <MDButton
+            onClick={handleResetPassword}
+            color="warning"
+            variant="gradient"
+            disabled={isResetting}
+          >
+            {isResetting ? "Resetting..." : "Reset Password"}
+          </MDButton>
+        </DialogActions>
+      </Dialog>
 
       {/* DELETE DIALOG */}
       <Dialog open={deleteDialogOpen} onClose={closeDeleteConfirm}>
@@ -354,10 +453,15 @@ function StaffListPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <MDButton onClick={closeDeleteConfirm} color="dark" variant="text">
+          <MDButton onClick={closeDeleteConfirm} color="dark" variant="text" disabled={isDeleting}>
             Cancel
           </MDButton>
-          <MDButton onClick={handleDeleteUser} color="error" variant="gradient">
+          <MDButton
+            onClick={handleDeleteUser}
+            color="error"
+            variant="gradient"
+            disabled={isDeleting}
+          >
             {isDeleting ? "Deleting..." : "Permanently Delete"}
           </MDButton>
         </DialogActions>
