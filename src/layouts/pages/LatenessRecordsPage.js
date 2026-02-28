@@ -382,14 +382,7 @@ export default function LatenessRecordsPage() {
           {/* Footer (Pagination + Total Records) */}
           {showFooter && (
             <MDBox display="flex" flexDirection="column" alignItems="center" mt={2}>
-              {totalPages > 1 && (
-                <Pagination
-                  count={totalPages}
-                  page={page}
-                  onChange={handlePageChange}
-                  color="info"
-                />
-              )}
+              <Pagination count={totalPages} page={page} onChange={handlePageChange} color="info" />
 
               <MDTypography variant="caption" display="block" mt={1} textAlign="center">
                 Total Records: {totalRecords}
