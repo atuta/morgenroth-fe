@@ -8,7 +8,6 @@ import { styled } from "@mui/material/styles";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import TextField from "@mui/material/TextField";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
@@ -19,6 +18,10 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+
+// NEW: option buttons for clock-out reason
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 
 import clockInApi from "../../api/clockInApi";
 import clockOutApi from "../../api/clockOutApi";
@@ -66,7 +69,10 @@ function ClockPage() {
   const [alertSeverity, setAlertSeverity] = useState("info");
 
   const [currentSession, setCurrentSession] = useState(null);
+
+  // NOTE: notes now stores API-friendly values: "end" | "break" | ""
   const [notes, setNotes] = useState("");
+
   const [sessionDuration, setSessionDuration] = useState("00:00:00");
 
   const [clockOutDisabledUntil, setClockOutDisabledUntil] = useState(null);
@@ -97,8 +103,7 @@ function ClockPage() {
     try {
       const res = await isWithinWorkingHoursApi();
       if (res.ok && res.status === 200 && res.data?.status === "success") {
-        // "yes" | "no"
-        setWithinWorkingHours(res.data.within_working_hours);
+        setWithinWorkingHours(res.data.within_working_hours); // "yes" | "no"
       } else {
         setWithinWorkingHours(null);
       }
@@ -235,18 +240,16 @@ function ClockPage() {
 
   // Intermediate function to trigger the Dialog
   const handleClockInInitiation = async () => {
-    // refresh status right before opening dialog
     await fetchWorkingHoursStatus();
     setOpenTypeDialog(true);
   };
 
   // Modified Clock-In to enforce working-hours rule
   const handleClockIn = async (clockinType) => {
-    setOpenTypeDialog(false); // Close dialog
+    setOpenTypeDialog(false);
 
     const canDecide = withinWorkingHours === "yes" || withinWorkingHours === "no";
 
-    // Regular allowed only within working hours; outside => overtime only
     if (canDecide) {
       if (withinWorkingHours === "no" && clockinType === "regular") {
         showAlert(
@@ -263,7 +266,6 @@ function ClockPage() {
         return;
       }
     } else {
-      // If we can't verify, don't block users; just inform.
       showAlert(
         "We could not verify your working hours at the moment. Please proceed with the correct shift type.",
         "info"
@@ -284,11 +286,9 @@ function ClockPage() {
         setPhotoBase64(null);
         fetchCurrentSession();
 
-        // Disable Clock Out for 10 minutes
         const now = new Date();
         setClockOutDisabledUntil(new Date(now.getTime() + 10 * 60 * 1000));
 
-        // Timed logout after 10 seconds
         setTimeout(() => {
           logout();
         }, 10000);
@@ -307,6 +307,12 @@ function ClockPage() {
     }
   };
 
+  // NEW: handle selection for clock-out reason
+  const handleClockOutReasonChange = (event, value) => {
+    // value can be null if user deselects; keep it as "" in that case
+    setNotes(value || "");
+  };
+
   const handleClockOut = async () => {
     setLoading(true);
     try {
@@ -316,11 +322,19 @@ function ClockPage() {
         return;
       }
 
+      // Optional: enforce picking one option (recommended)
+      if (!notes) {
+        showAlert("Please select a clock-out reason: End of day or Break.", "warning");
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         timestamp: new Date().toISOString(),
-        notes,
+        notes, // "end" | "break"
         photo_base64: clockOutPhotoBase64,
       };
+
       const res = await clockOutApi(payload);
 
       if ((res.status === 200 || res.status === 201) && res.data.status === "success") {
@@ -434,21 +448,38 @@ function ClockPage() {
               )}
             </MDBox>
 
-            <TextField
-              label="Clock-out Notes (optional)"
-              multiline
-              rows={3}
-              fullWidth
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              InputLabelProps={{ shrink: true, required: false }}
-              sx={{
-                mb: 3,
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: "white",
-                },
-              }}
-            />
+            {/* CLOCK-OUT REASON OPTIONS (REPLACES TEXTAREA) */}
+            <MDBox mb={2}>
+              <MDTypography variant="body2" color="text" mb={1}>
+                Clock-out Reason
+              </MDTypography>
+
+              <ToggleButtonGroup
+                value={notes}
+                exclusive
+                onChange={handleClockOutReasonChange}
+                fullWidth
+                sx={{
+                  width: "100%",
+                  "& .MuiToggleButton-root": {
+                    flex: 1,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    borderRadius: 2,
+                  },
+                }}
+                disabled={loading}
+              >
+                <ToggleButton value="end">End of day</ToggleButton>
+                <ToggleButton value="break">Break</ToggleButton>
+              </ToggleButtonGroup>
+
+              {!notes && (
+                <MDTypography variant="caption" color="text" display="block" mt={1}>
+                  Please specify the clock-out reason.
+                </MDTypography>
+              )}
+            </MDBox>
 
             <MDButton
               variant="gradient"
