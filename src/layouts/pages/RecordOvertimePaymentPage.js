@@ -82,9 +82,9 @@ function RecordOvertimePaymentPage() {
   const validateFields = () => {
     const newErrors = {};
 
-    // Hours: positive integer only
-    if (!hours || hours === "-" || !/^\d+$/.test(hours) || Number(hours) <= 0) {
-      newErrors.hours = "Please enter valid hours (positive number).";
+    // Hours: allow signed integer (negative allowed), but disallow empty / just "-"
+    if (!hours || hours === "-" || !/^-?\d+$/.test(hours)) {
+      newErrors.hours = "Please enter valid hours (number, negative allowed).";
     }
 
     // Amount: allow signed integers (negative allowed), but disallow empty / just "-"
@@ -182,15 +182,17 @@ function RecordOvertimePaymentPage() {
                     fullWidth
                     type="text"
                     value={hours}
-                    onChange={(e) =>
-                      // hours should be digits only (no minus)
-                      setHours(String(e.target.value).replace(/[^\d]/g, ""))
-                    }
+                    onChange={(e) => {
+                      // allow digits + optional single leading '-' only, max length 3
+                      const sanitized = sanitizeSignedInteger(e.target.value).slice(0, 3);
+                      setHours(sanitized);
+                    }}
                     error={Boolean(errors.hours)}
                     helperText={errors.hours}
                     inputProps={{
                       inputMode: "numeric",
-                      pattern: "[0-9]*",
+                      pattern: "-?[0-9]*",
+                      maxLength: 3,
                     }}
                     InputLabelProps={{ shrink: true }}
                     InputProps={{

@@ -31,6 +31,20 @@ import Configs from "../../configs/Configs";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=80";
 
+/**
+ * Allows:
+ *  - digits only (e.g. "123")
+ *  - optional single leading '-' (e.g. "-123")
+ * Rejects all other characters.
+ */
+const sanitizeSignedInteger = (raw) => {
+  if (raw == null) return "";
+  let v = String(raw).replace(/[^\d-]/g, "");
+  const isNegative = v.startsWith("-");
+  const digitsOnly = v.replace(/-/g, "");
+  return (isNegative ? "-" : "") + digitsOnly;
+};
+
 function RecordHourCorrectionPage() {
   const { state } = useLocation();
 
@@ -72,7 +86,8 @@ function RecordHourCorrectionPage() {
   const validate = () => {
     let valid = true;
 
-    if (!hours || isNaN(hours) || Number(hours) === 0) {
+    // Hours: allow signed integer (negative allowed), but disallow empty / just "-"
+    if (!hours || hours === "-" || !/^-?\d+$/.test(hours) || Number(hours) === 0) {
       setHoursError("Hours must be a non-zero number");
       valid = false;
     } else {
@@ -157,11 +172,20 @@ function RecordHourCorrectionPage() {
                       </MDBox>
                     }
                     fullWidth
-                    type="number"
+                    type="text"
                     value={hours}
-                    onChange={(e) => setHours(e.target.value)}
+                    onChange={(e) => {
+                      // allow digits + optional single leading '-' only, max length 3
+                      const sanitized = sanitizeSignedInteger(e.target.value).slice(0, 3);
+                      setHours(sanitized);
+                    }}
                     error={Boolean(hoursError)}
                     helperText={hoursError}
+                    inputProps={{
+                      inputMode: "numeric",
+                      pattern: "-?[0-9]*",
+                      maxLength: 3,
+                    }}
                     InputProps={{
                       sx: {
                         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
