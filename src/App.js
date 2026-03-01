@@ -6,6 +6,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Icon from "@mui/material/Icon";
 
 import MDBox from "components/MDBox";
+import CookieBanner from "components/CookieBanner"; // ✅ Cookie banner
 
 import Sidenav from "examples/Sidenav";
 import Configurator from "examples/Configurator";
@@ -124,6 +125,9 @@ export default function App() {
   return (
     // ✅ Wrap app in UserProvider only, no BrowserRouter
     <UserProvider>
+      {/* ✅ Cookie banner mounted globally (shows once until accepted/rejected) */}
+      <CookieBanner />
+
       {direction === "rtl" ? (
         <CacheProvider value={rtlCache}>
           <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
