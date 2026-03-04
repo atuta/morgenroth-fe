@@ -32,6 +32,8 @@ import { isWithinWorkingHoursApi } from "../../api/attendanceApi";
 
 import { useUserContext } from "../../context/UserContext";
 
+const KENYA_TIMEZONE = "Africa/Nairobi";
+
 // --- Styled Components ---
 const StyledVideo = styled("video")({
   width: "100%",
@@ -128,16 +130,22 @@ function ClockPage() {
     }
   };
 
+  /**
+   * Timezone-safe session duration calculation.
+   * Uses UTC timestamps to ensure duration is accurate regardless of user location.
+   */
   useEffect(() => {
     let timer;
     if (currentSession) {
       const update = () => {
-        const start = new Date(currentSession.clock_in_time);
-        const now = new Date();
+        const start = new Date(currentSession.clock_in_time).getTime();
+        const now = new Date().getTime();
         const diff = now - start;
+
         const hrs = String(Math.floor(diff / 3600000)).padStart(2, "0");
         const mins = String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0");
         const secs = String(Math.floor((diff % 60000) / 1000)).padStart(2, "0");
+
         setSessionDuration(`${hrs}:${mins}:${secs}`);
       };
       update();
@@ -147,6 +155,18 @@ function ClockPage() {
     }
     return () => clearInterval(timer);
   }, [currentSession]);
+
+  // Helper to format timestamps to Kenya Time for the UI
+  const formatToKenyaTime = (isoString) => {
+    if (!isoString) return "-";
+    return new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+      timeZone: KENYA_TIMEZONE,
+    }).format(new Date(isoString));
+  };
 
   // -------------------------
   // CLOCK-IN camera handlers
@@ -309,7 +329,6 @@ function ClockPage() {
 
   // NEW: handle selection for clock-out reason
   const handleClockOutReasonChange = (event, value) => {
-    // value can be null if user deselects; keep it as "" in that case
     setNotes(value || "");
   };
 
@@ -322,7 +341,6 @@ function ClockPage() {
         return;
       }
 
-      // Optional: enforce picking one option (recommended)
       if (!notes) {
         showAlert("Please select a clock-out reason: End of day or Break.", "warning");
         setLoading(false);
@@ -331,7 +349,7 @@ function ClockPage() {
 
       const payload = {
         timestamp: new Date().toISOString(),
-        notes, // "end" | "break"
+        notes,
         photo_base64: clockOutPhotoBase64,
       };
 
@@ -385,7 +403,7 @@ function ClockPage() {
               {sessionDuration}
             </MDTypography>
             <MDTypography variant="body2" color="text" mb={2}>
-              Clocked in at: {new Date(currentSession.clock_in_time).toLocaleTimeString()}
+              Clocked in at: {formatToKenyaTime(currentSession.clock_in_time)}
             </MDTypography>
 
             {/* CLOCK-OUT PHOTO CAPTURE */}
@@ -448,7 +466,6 @@ function ClockPage() {
               )}
             </MDBox>
 
-            {/* CLOCK-OUT REASON OPTIONS (REPLACES TEXTAREA) */}
             <MDBox mb={2}>
               <MDTypography variant="body2" color="text" mb={1}>
                 Clock-out Reason

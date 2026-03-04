@@ -34,6 +34,7 @@ import CustomAlert from "../../components/CustomAlert";
 import { getAttendanceHistoryRangeApi } from "../../api/attendanceApi";
 
 const COLUMN_COUNT = 8;
+const KENYA_TIMEZONE = "Africa/Nairobi";
 
 const toISODate = (d) => {
   if (!d) return "";
@@ -43,11 +44,22 @@ const toISODate = (d) => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
+/**
+ * Formats timestamps to Kenya Time (EAT)
+ * Locks the view regardless of local browser timezone.
+ */
 const formatTime = (isoString) => {
-  if (!isoString) return "-";
+  if (!isoString || isoString === "open") return isoString || "-";
   try {
-    return new Date(isoString).toLocaleTimeString();
-  } catch {
+    const date = new Date(isoString);
+    return new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+      timeZone: KENYA_TIMEZONE,
+    }).format(date);
+  } catch (e) {
     return "-";
   }
 };
@@ -107,7 +119,6 @@ function AttendanceHistory() {
     setLoading(true);
 
     try {
-      // Date validation
       if (startDate && endDate && startDate > endDate) {
         showAlert("Start date cannot be after end date.", "warning");
         setLoading(false);
@@ -117,14 +128,7 @@ function AttendanceHistory() {
       const res = await getAttendanceHistoryRangeApi(buildParams(p));
 
       if (res.ok && res.status === 200 && res.data?.status === "success") {
-        /**
-         * Backend returns:
-         * { status: "success", message: { results: [], current_page, total_pages, total_records ... } }
-         *
-         * Some endpoints elsewhere may use `data`, so support both to be safe:
-         */
         const payload = res.data?.message || res.data?.data || {};
-
         const results = Array.isArray(payload.results) ? payload.results : [];
 
         setAttendanceData(results);
@@ -154,13 +158,11 @@ function AttendanceHistory() {
     }
   };
 
-  // Refetch when date filters change (also handles initial load)
   useEffect(() => {
     setPage(1);
     fetchHistory(1);
   }, [startDate, endDate]);
 
-  // Live search (client-side, current page)
   useEffect(() => {
     if (!searchTerm) {
       setFilteredData(attendanceData);
@@ -201,10 +203,9 @@ function AttendanceHistory() {
       <MDBox py={3}>
         <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
           <MDTypography variant="h5" fontWeight="bold" mb={2}>
-            Attendance History
+            Attendance History (Kenya Time)
           </MDTypography>
 
-          {/* Filters */}
           <Grid container spacing={2} mb={2}>
             <Grid item xs={12} md={2}>
               <TextField
@@ -248,7 +249,6 @@ function AttendanceHistory() {
               />
             </Grid>
 
-            {/* Refresh */}
             <Grid item xs={12} md={1}>
               <MDButton
                 variant="gradient"
@@ -272,7 +272,6 @@ function AttendanceHistory() {
             </Grid>
           </Grid>
 
-          {/* Table */}
           <TableContainer
             component={Paper}
             sx={{ maxHeight: 600, border: "1px solid #eee", boxShadow: "none" }}
@@ -397,7 +396,6 @@ function AttendanceHistory() {
             </Table>
           </TableContainer>
 
-          {/* Footer: always visible */}
           <MDBox display="flex" flexDirection="column" alignItems="center" mt={2}>
             <Pagination count={totalPages} page={page} onChange={handlePageChange} color="info" />
             <MDTypography variant="caption" display="block" mt={1} textAlign="center">
@@ -407,7 +405,6 @@ function AttendanceHistory() {
         </MDBox>
       </MDBox>
 
-      {/* Image Modal */}
       <Dialog
         open={openImageModal}
         onClose={() => setOpenImageModal(false)}

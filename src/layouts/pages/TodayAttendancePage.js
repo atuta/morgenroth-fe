@@ -34,27 +34,45 @@ import getTodayUserTimeSummaryApi from "../../api/getTodayUserTimeSummaryApi";
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/?d=mp&s=40";
 const COLUMN_COUNT = 8;
+const KENYA_TIMEZONE = "Africa/Nairobi";
 
+/**
+ * Formats an ISO string to Kenya Time (EAT)
+ * even if the viewer is in a different timezone.
+ */
 const formatTime = (isoString) => {
   if (!isoString || isoString === "open") return isoString || "-";
-  const date = new Date(isoString);
-  return new Intl.DateTimeFormat("default", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  }).format(date);
+  try {
+    const date = new Date(isoString);
+    return new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+      timeZone: KENYA_TIMEZONE,
+    }).format(date);
+  } catch (e) {
+    return "-";
+  }
 };
 
+/**
+ * Calculates live duration based on absolute UTC difference.
+ * Since Unix timestamps are universal, this works correctly
+ * regardless of local system time.
+ */
 const calculateLiveHours = (clockIn) => {
   if (!clockIn) return "-";
-  const start = new Date(clockIn);
-  const now = new Date();
+  const start = new Date(clockIn).getTime();
+  const now = new Date().getTime();
+
   const diffMs = now - start;
   if (diffMs < 0) return "0:00:00";
+
   const hours = Math.floor(diffMs / 3600000);
   const minutes = Math.floor((diffMs % 3600000) / 60000);
   const seconds = Math.floor((diffMs % 60000) / 1000);
+
   return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 };
 
@@ -161,7 +179,7 @@ function TodayAttendancePage() {
       <MDBox py={3}>
         <MDBox p={3} mb={3} width="100%" bgColor="white" borderRadius="lg">
           <MDTypography variant="h5" fontWeight="bold" mb={2}>
-            Today&apos;s Attendance
+            Today&apos;s Attendance (Kenya Time)
           </MDTypography>
 
           {/* Search Field */}
@@ -265,7 +283,6 @@ function TodayAttendancePage() {
                           </MDBox>
                         </TableCell>
 
-                        {/* --- Clock-In Photo with Rounded Square and Click Feature --- */}
                         <TableCell align="center" sx={{ width: "10%" }}>
                           {clockInPhotoUrl ? (
                             <MDBox
@@ -278,7 +295,7 @@ function TodayAttendancePage() {
                                 height: 40,
                                 borderRadius: "50%",
                                 objectFit: "cover",
-                                cursor: "pointer", // Indicate clickability
+                                cursor: "pointer",
                                 transition: "transform 0.2s",
                                 "&:hover": { transform: "scale(1.05)" },
                               }}
@@ -289,7 +306,6 @@ function TodayAttendancePage() {
                             </MDTypography>
                           )}
                         </TableCell>
-                        {/* ----------------------------------------- */}
 
                         <TableCell align="center" sx={{ width: "10%" }}>
                           <MDTypography
@@ -342,7 +358,7 @@ function TodayAttendancePage() {
         </MDBox>
       </MDBox>
 
-      {/* --- Image Magnification Dialog/Modal --- */}
+      {/* Image Magnification Dialog */}
       <Dialog open={openImageModal} onClose={handleCloseImageModal} maxWidth="md" fullWidth>
         <DialogContent sx={{ p: 1, position: "relative" }}>
           <IconButton
@@ -355,9 +371,7 @@ function TodayAttendancePage() {
               color: (theme) => theme.palette.grey[500],
               zIndex: 10,
               backgroundColor: "rgba(255, 255, 255, 0.7)",
-              "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 1)",
-              },
+              "&:hover": { backgroundColor: "rgba(255, 255, 255, 1)" },
             }}
           >
             <CloseIcon />
@@ -376,7 +390,6 @@ function TodayAttendancePage() {
           )}
         </DialogContent>
       </Dialog>
-      {/* --------------------------------------- */}
 
       <CustomAlert
         message={alertMessage}

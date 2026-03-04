@@ -31,6 +31,7 @@ import { getLatenessRecordsApi } from "../../api/attendanceApi";
 
 const COLUMN_COUNT = 8;
 const DEFAULT_AVATAR = "/default-avatar.png";
+const KENYA_TIMEZONE = "Africa/Nairobi";
 
 export default function LatenessRecordsPage() {
   // Defaults: last 7 days
@@ -44,6 +45,24 @@ export default function LatenessRecordsPage() {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
+  };
+
+  /**
+   * Formats timestamps to Kenya Time (EAT)
+   */
+  const formatToKenyaTime = (isoString) => {
+    if (!isoString) return "—";
+    try {
+      return new Intl.DateTimeFormat("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+        timeZone: KENYA_TIMEZONE,
+      }).format(new Date(isoString));
+    } catch (e) {
+      return "—";
+    }
   };
 
   const [startDate, setStartDate] = useState(toISODate(sevenDaysAgo));
@@ -127,12 +146,10 @@ export default function LatenessRecordsPage() {
     }
   };
 
-  // Refetch when filters change
   useEffect(() => {
     fetchRecords(1);
   }, [startDate, endDate, session, isExcused]);
 
-  // Live search (client-side on current page)
   useEffect(() => {
     if (!searchTerm) {
       setFilteredRecords(records);
@@ -187,10 +204,9 @@ export default function LatenessRecordsPage() {
       <MDBox py={3}>
         <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
           <MDTypography variant="h5" fontWeight="bold" mb={2}>
-            Lateness Records
+            Lateness Records (Kenya Time)
           </MDTypography>
 
-          {/* Filters */}
           <Grid container spacing={2} mb={2}>
             <Grid item xs={12} md={2}>
               <TextField
@@ -264,7 +280,6 @@ export default function LatenessRecordsPage() {
               />
             </Grid>
 
-            {/* Refresh */}
             <Grid item xs={12} md={1}>
               <MDButton
                 variant="gradient"
@@ -288,7 +303,6 @@ export default function LatenessRecordsPage() {
             </Grid>
           </Grid>
 
-          {/* Table */}
           <TableContainer component={Paper} sx={{ maxHeight: 600, boxShadow: "none" }}>
             <Table stickyHeader aria-label="lateness records table">
               <TableBody>
@@ -360,16 +374,10 @@ export default function LatenessRecordsPage() {
 
                       <TableCell>
                         <MDTypography variant="caption" color="text" display="block">
-                          Expected:{" "}
-                          {r.expected_start_time
-                            ? new Date(r.expected_start_time).toLocaleTimeString()
-                            : "—"}
+                          Expected: {formatToKenyaTime(r.expected_start_time)}
                         </MDTypography>
                         <MDTypography variant="caption" color="text" display="block">
-                          Actual:{" "}
-                          {r.actual_clock_in_time
-                            ? new Date(r.actual_clock_in_time).toLocaleTimeString()
-                            : "—"}
+                          Actual: {formatToKenyaTime(r.actual_clock_in_time)}
                         </MDTypography>
                       </TableCell>
                     </TableRow>
@@ -379,11 +387,9 @@ export default function LatenessRecordsPage() {
             </Table>
           </TableContainer>
 
-          {/* Footer (Pagination + Total Records) */}
           {showFooter && (
             <MDBox display="flex" flexDirection="column" alignItems="center" mt={2}>
               <Pagination count={totalPages} page={page} onChange={handlePageChange} color="info" />
-
               <MDTypography variant="caption" display="block" mt={1} textAlign="center">
                 Total Records: {totalRecords}
               </MDTypography>
