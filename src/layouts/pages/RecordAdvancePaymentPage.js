@@ -4,10 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
-import InputAdornment from "@mui/material/InputAdornment";
 
 // Icons
 import PaymentsIcon from "@mui/icons-material/Payments";
@@ -45,6 +43,14 @@ const sanitizeSignedInteger = (raw) => {
   return (isNegative ? "-" : "") + digitsOnly;
 };
 
+const toISODate = (d) => {
+  if (!d) return "";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 function RecordAdvancePaymentPage() {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -54,16 +60,13 @@ function RecordAdvancePaymentPage() {
   const fullName = state?.full_name || "User";
 
   const now = useMemo(() => new Date(), []);
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
-
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [month, setMonth] = useState(currentMonth);
-  const [year, setYear] = useState(currentYear);
+  const [selectedDate, setSelectedDate] = useState(toISODate(now));
 
   const [amountError, setAmountError] = useState("");
   const [remarksError, setRemarksError] = useState("");
+  const [dateError, setDateError] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -86,7 +89,6 @@ function RecordAdvancePaymentPage() {
   const validate = () => {
     let valid = true;
 
-    // Allow only signed integers, including negative, but disallow empty or just "-"
     if (!amount || amount === "-" || !/^-?\d+$/.test(amount)) {
       setAmountError("Amount must be a valid number");
       valid = false;
@@ -101,6 +103,13 @@ function RecordAdvancePaymentPage() {
       setRemarksError("");
     }
 
+    if (!selectedDate) {
+      setDateError("Date is required");
+      valid = false;
+    } else {
+      setDateError("");
+    }
+
     return valid;
   };
 
@@ -110,12 +119,15 @@ function RecordAdvancePaymentPage() {
 
     setLoading(true);
     try {
+      const [yearStr, monthStr, dayStr] = selectedDate.split("-");
+
       const payload = {
         user_id,
         amount: Number(amount),
         remarks: remarks.trim(),
-        month,
-        year,
+        day: Number(dayStr),
+        month: Number(monthStr),
+        year: Number(yearStr),
       };
 
       const res = await createAdvanceAdminApi(payload);
@@ -124,7 +136,7 @@ function RecordAdvancePaymentPage() {
         showAlert("Advance payment recorded successfully!", "success");
         setAmount("");
         setRemarks("");
-        // month/year stay as selected
+        // keep selected date as chosen
       } else {
         showAlert(res.data?.message || "Failed to record advance.", "error");
       }
@@ -137,6 +149,7 @@ function RecordAdvancePaymentPage() {
   };
 
   const avatarSrc = photo ? `${Configs.baseUrl}${photo}` : DEFAULT_AVATAR;
+  const inputSx = { "& .MuiInputBase-root": { minHeight: 56 } };
 
   return (
     <DashboardLayout>
@@ -156,7 +169,6 @@ function RecordAdvancePaymentPage() {
                 </MDTypography>
               </MDBox>
 
-              {/* Optional: quick back button if state is missing */}
               {!user_id && (
                 <MDButton
                   variant="outlined"
@@ -196,7 +208,6 @@ function RecordAdvancePaymentPage() {
                         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                           borderColor: amountError ? "red" : undefined,
                         },
-                        // Ensure normal padding (no hidden left offsets)
                         "& .MuiOutlinedInput-input": {
                           paddingLeft: "14px",
                         },
@@ -225,7 +236,6 @@ function RecordAdvancePaymentPage() {
                         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                           borderColor: remarksError ? "red" : undefined,
                         },
-                        // Multiline input padding (removes the weird left indent)
                         "& textarea": {
                           paddingLeft: "14px",
                           paddingTop: "14px",
@@ -235,42 +245,19 @@ function RecordAdvancePaymentPage() {
                   />
                 </Grid>
 
-                {/* Month */}
-                <Grid item xs={6}>
+                {/* Date Picker */}
+                <Grid item xs={12}>
                   <TextField
-                    select
-                    label="Month"
+                    type="date"
+                    label="Advance Date"
                     fullWidth
-                    value={month}
-                    onChange={(e) => setMonth(Number(e.target.value))}
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    error={Boolean(dateError)}
+                    helperText={dateError}
                     InputLabelProps={{ shrink: true }}
-                    InputProps={{ sx: { minHeight: 56 } }}
-                  >
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                      <MenuItem key={m} value={m}>
-                        {m}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                {/* Year */}
-                <Grid item xs={6}>
-                  <TextField
-                    select
-                    label="Year"
-                    fullWidth
-                    value={year}
-                    onChange={(e) => setYear(Number(e.target.value))}
-                    InputLabelProps={{ shrink: true }}
-                    InputProps={{ sx: { minHeight: 56 } }}
-                  >
-                    {Array.from({ length: 6 }, (_, i) => currentYear - i).map((y) => (
-                      <MenuItem key={y} value={y}>
-                        {y}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    sx={inputSx}
+                  />
                 </Grid>
               </Grid>
             </MDBox>

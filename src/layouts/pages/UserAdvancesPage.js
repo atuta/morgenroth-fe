@@ -20,11 +20,20 @@ import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import CustomAlert from "../../components/CustomAlert";
 
 import { getAllAdvancesUserApi } from "../../api/overtimeAndAdvanceApi";
 
-const COLUMN_COUNT = 6;
+const COLUMN_COUNT = 4;
+
+const formatNaturalDate = (day, month, year) => {
+  if (!day || !month || !year) return "-";
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
 
 function UserAdvancesPage() {
   const today = new Date();
@@ -40,34 +49,26 @@ function UserAdvancesPage() {
   const [filteredAdvances, setFilteredAdvances] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  const [alertOpen, setAlertOpen] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertSeverity, setAlertSeverity] = useState("info");
-
-  const showAlert = (message, severity = "info") => {
-    setAlertMessage(message);
-    setAlertSeverity(severity);
-    setAlertOpen(true);
-  };
 
   const fetchAdvances = async () => {
     setLoading(true);
+
     try {
       const res = await getAllAdvancesUserApi({
         start_date: `${year}-${String(month).padStart(2, "0")}-01`,
         end_date: `${year}-${String(month).padStart(2, "0")}-31`,
       });
+
       if (res.ok && Array.isArray(res.data?.message)) {
-        setAdvances(res.data.message);
-        setFilteredAdvances(res.data.message);
+        const records = res.data.message;
+        setAdvances(records);
+        setFilteredAdvances(records);
       } else {
-        showAlert(res.data?.message || "Failed to fetch advances.", "error");
         setAdvances([]);
         setFilteredAdvances([]);
       }
     } catch (err) {
       console.error(err);
-      showAlert("Server error. Could not fetch advances.", "error");
       setAdvances([]);
       setFilteredAdvances([]);
     } finally {
@@ -84,18 +85,23 @@ function UserAdvancesPage() {
       setFilteredAdvances(advances);
       return;
     }
+
     const term = searchTerm.toLowerCase();
+
     const result = advances.filter(
       (a) =>
+        formatNaturalDate(a.day, a.month, a.year).toLowerCase().includes(term) ||
         (a.remarks || "").toLowerCase().includes(term) ||
-        (a.user_full_name || "").toLowerCase().includes(term)
+        (a.approved_by || "").toLowerCase().includes(term)
     );
+
     setFilteredAdvances(result);
   }, [searchTerm, advances]);
 
   return (
     <DashboardLayout>
       <DashboardNavbar />
+
       <MDBox py={3}>
         <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
           <MDTypography variant="h5" fontWeight="bold" mb={2}>
@@ -140,7 +146,7 @@ function UserAdvancesPage() {
 
             <Grid item xs={12} md={4}>
               <TextField
-                label="Search by remarks"
+                label="Search by date, remarks, or approver"
                 fullWidth
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -174,11 +180,9 @@ function UserAdvancesPage() {
             <Table stickyHeader aria-label="user advances table">
               <TableBody>
                 <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
+                  <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Remarks</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Amount (KES)</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Month</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Year</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Created At</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Approved By</TableCell>
                 </TableRow>
 
@@ -195,7 +199,7 @@ function UserAdvancesPage() {
                   <TableRow>
                     <TableCell colSpan={COLUMN_COUNT} align="center">
                       <MDTypography variant="body2">
-                        No advances found for {month}/{year}.
+                        No advance payment records found for {month}/{year}.
                       </MDTypography>
                     </TableCell>
                   </TableRow>
@@ -205,15 +209,13 @@ function UserAdvancesPage() {
                       key={adv.advance_id}
                       sx={{ "&:hover": { backgroundColor: "#f9f9f9" } }}
                     >
+                      <TableCell>{formatNaturalDate(adv.day, adv.month, adv.year)}</TableCell>
                       <TableCell>{adv.remarks || "N/A"}</TableCell>
                       <TableCell>
                         <MDTypography variant="body2" fontWeight="bold" color="info">
                           KES {adv.amount ?? 0}
                         </MDTypography>
                       </TableCell>
-                      <TableCell>{adv.month}</TableCell>
-                      <TableCell>{adv.year}</TableCell>
-                      <TableCell>{new Date(adv.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>{adv.approved_by || "N/A"}</TableCell>
                     </TableRow>
                   ))
@@ -224,12 +226,6 @@ function UserAdvancesPage() {
         </MDBox>
       </MDBox>
 
-      <CustomAlert
-        message={alertMessage}
-        severity={alertSeverity}
-        open={alertOpen}
-        onClose={() => setAlertOpen(false)}
-      />
       <Footer />
     </DashboardLayout>
   );

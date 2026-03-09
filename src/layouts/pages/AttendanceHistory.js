@@ -128,15 +128,16 @@ function AttendanceHistory() {
       const res = await getAttendanceHistoryRangeApi(buildParams(p));
 
       if (res.ok && res.status === 200 && res.data?.status === "success") {
-        const payload = res.data?.message || res.data?.data || {};
+        const payload = res.data?.data || {};
         const results = Array.isArray(payload.results) ? payload.results : [];
+        const pagination = payload.pagination || {};
 
         setAttendanceData(results);
         setFilteredData(results);
 
-        setPage(payload.current_page || p);
-        setTotalPages(payload.total_pages || 1);
-        setTotalRecords(payload.total_records || 0);
+        setPage(pagination.page || p);
+        setTotalPages(pagination.total_pages || 1);
+        setTotalRecords(pagination.total_records || 0);
       } else {
         showAlert(res.data?.message || "Failed to fetch history.", "error");
         setAttendanceData([]);

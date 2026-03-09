@@ -1,6 +1,7 @@
 // File: AdminUserAdvancePaymentsPage.js
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -21,11 +22,20 @@ import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import CustomAlert from "../../components/CustomAlert";
 
 import { getUserAdvancesAdminApi } from "../../api/overtimeAndAdvanceApi";
 
-const COLUMN_COUNT = 6; // Incremented to include Approved By column
+const COLUMN_COUNT = 4;
+
+const formatNaturalDate = (day, month, year) => {
+  if (!day || !month || !year) return "-";
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
 
 function AdminUserAdvancePaymentsPage() {
   const location = useLocation();
@@ -44,23 +54,12 @@ function AdminUserAdvancePaymentsPage() {
   const [filteredAdvances, setFilteredAdvances] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  const [alertOpen, setAlertOpen] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertSeverity, setAlertSeverity] = useState("info");
-
-  const showAlert = (message, severity = "info") => {
-    setAlertMessage(message);
-    setAlertSeverity(severity);
-    setAlertOpen(true);
-  };
 
   const fetchAdvances = async () => {
-    if (!user_id) {
-      showAlert("No user specified", "error");
-      return;
-    }
+    if (!user_id) return;
 
     setLoading(true);
+
     try {
       const res = await getUserAdvancesAdminApi({
         user_id,
@@ -68,17 +67,16 @@ function AdminUserAdvancePaymentsPage() {
         end_date: `${year}-${String(month).padStart(2, "0")}-31`,
       });
 
-      if (res.ok && Array.isArray(res.data?.message)) {
-        setAdvances(res.data.message);
-        setFilteredAdvances(res.data.message);
+      if (res.ok && res.data?.status === "success") {
+        const records = Array.isArray(res.data?.message) ? res.data.message : [];
+        setAdvances(records);
+        setFilteredAdvances(records);
       } else {
-        showAlert(res.data?.message || "Failed to load advances.", "error");
         setAdvances([]);
         setFilteredAdvances([]);
       }
     } catch (err) {
       console.error(err);
-      showAlert("Server error. Could not fetch advances.", "error");
       setAdvances([]);
       setFilteredAdvances([]);
     } finally {
@@ -95,14 +93,23 @@ function AdminUserAdvancePaymentsPage() {
       setFilteredAdvances(advances);
       return;
     }
+
     const term = searchTerm.toLowerCase();
-    const result = advances.filter((a) => (a.remarks || "").toLowerCase().includes(term));
+
+    const result = advances.filter(
+      (a) =>
+        (a.remarks || "").toLowerCase().includes(term) ||
+        formatNaturalDate(a.day, a.month, a.year).toLowerCase().includes(term) ||
+        (a.approved_by || "").toLowerCase().includes(term)
+    );
+
     setFilteredAdvances(result);
   }, [searchTerm, advances]);
 
   return (
     <DashboardLayout>
       <DashboardNavbar />
+
       <MDBox py={3}>
         <MDBox p={3} mb={3} bgColor="white" borderRadius="lg">
           <MDTypography variant="h5" fontWeight="bold" mb={2}>
@@ -147,7 +154,7 @@ function AdminUserAdvancePaymentsPage() {
 
             <Grid item xs={12} md={4}>
               <TextField
-                label="Search by remarks"
+                label="Search by remarks, date, or approver"
                 fullWidth
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -180,11 +187,9 @@ function AdminUserAdvancePaymentsPage() {
           <TableContainer component={Paper} sx={{ maxHeight: 600, boxShadow: "none" }}>
             <Table stickyHeader aria-label="user advances table">
               <TableBody>
-                {/* Header */}
                 <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
+                  <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Amount (KES)</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Month</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Year</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Remarks</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Approved By</TableCell>
                 </TableRow>
@@ -213,12 +218,15 @@ function AdminUserAdvancePaymentsPage() {
                       sx={{ "&:hover": { backgroundColor: "#f9f9f9" } }}
                     >
                       <TableCell>
+                        {formatNaturalDate(advance.day, advance.month, advance.year)}
+                      </TableCell>
+
+                      <TableCell>
                         <MDTypography variant="body2" fontWeight="bold" color="info">
                           KES {advance.amount ?? 0}
                         </MDTypography>
                       </TableCell>
-                      <TableCell>{advance.month}</TableCell>
-                      <TableCell>{advance.year}</TableCell>
+
                       <TableCell>{advance.remarks || "-"}</TableCell>
                       <TableCell>{advance.approved_by || "-"}</TableCell>
                     </TableRow>
@@ -230,12 +238,6 @@ function AdminUserAdvancePaymentsPage() {
         </MDBox>
       </MDBox>
 
-      <CustomAlert
-        message={alertMessage}
-        severity={alertSeverity}
-        open={alertOpen}
-        onClose={() => setAlertOpen(false)}
-      />
       <Footer />
     </DashboardLayout>
   );

@@ -4,7 +4,6 @@ import { useLocation } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
 
@@ -45,6 +44,14 @@ const sanitizeSignedInteger = (raw) => {
   return (isNegative ? "-" : "") + digitsOnly;
 };
 
+const toISODate = (d) => {
+  if (!d) return "";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 function RecordHourCorrectionPage() {
   const { state } = useLocation();
 
@@ -52,18 +59,14 @@ function RecordHourCorrectionPage() {
   const photo = state?.photo;
 
   const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
 
   const [hours, setHours] = useState("");
   const [reason, setReason] = useState("");
-
-  // NEW (same logic as previous page)
-  const [month, setMonth] = useState(currentMonth);
-  const [year, setYear] = useState(currentYear);
+  const [selectedDate, setSelectedDate] = useState(toISODate(now));
 
   const [hoursError, setHoursError] = useState("");
   const [reasonError, setReasonError] = useState("");
+  const [dateError, setDateError] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -86,7 +89,6 @@ function RecordHourCorrectionPage() {
   const validate = () => {
     let valid = true;
 
-    // Hours: allow signed integer (negative allowed), but disallow empty / just "-"
     if (!hours || hours === "-" || !/^-?\d+$/.test(hours) || Number(hours) === 0) {
       setHoursError("Hours must be a non-zero number");
       valid = false;
@@ -101,6 +103,13 @@ function RecordHourCorrectionPage() {
       setReasonError("");
     }
 
+    if (!selectedDate) {
+      setDateError("Date is required");
+      valid = false;
+    } else {
+      setDateError("");
+    }
+
     return valid;
   };
 
@@ -111,12 +120,15 @@ function RecordHourCorrectionPage() {
     setLoading(true);
 
     try {
+      const [yearStr, monthStr, dayStr] = selectedDate.split("-");
+
       const payload = {
         user_id,
         hours: Number(hours),
         reason: reason.trim(),
-        month,
-        year,
+        day: Number(dayStr),
+        month: Number(monthStr),
+        year: Number(yearStr),
       };
 
       const res = await recordHourCorrectionApi(payload);
@@ -135,6 +147,8 @@ function RecordHourCorrectionPage() {
       setLoading(false);
     }
   };
+
+  const inputSx = { "& .MuiInputBase-root": { minHeight: 56 } };
 
   return (
     <DashboardLayout>
@@ -175,7 +189,6 @@ function RecordHourCorrectionPage() {
                     type="text"
                     value={hours}
                     onChange={(e) => {
-                      // allow digits + optional single leading '-' only, max length 3
                       const sanitized = sanitizeSignedInteger(e.target.value).slice(0, 3);
                       setHours(sanitized);
                     }}
@@ -228,48 +241,19 @@ function RecordHourCorrectionPage() {
                   />
                 </Grid>
 
-                {/* Month */}
-                <Grid item xs={6}>
+                {/* Date Picker */}
+                <Grid item xs={12}>
                   <TextField
-                    select
-                    label="Month"
+                    type="date"
+                    label="Correction Date"
                     fullWidth
-                    value={month}
-                    onChange={(e) => setMonth(Number(e.target.value))}
-                    InputProps={{
-                      sx: {
-                        minHeight: 56,
-                      },
-                    }}
-                  >
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                      <MenuItem key={m} value={m}>
-                        {m}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                {/* Year */}
-                <Grid item xs={6}>
-                  <TextField
-                    select
-                    label="Year"
-                    fullWidth
-                    value={year}
-                    onChange={(e) => setYear(Number(e.target.value))}
-                    InputProps={{
-                      sx: {
-                        minHeight: 56,
-                      },
-                    }}
-                  >
-                    {Array.from({ length: 6 }, (_, i) => currentYear - i).map((y) => (
-                      <MenuItem key={y} value={y}>
-                        {y}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    error={Boolean(dateError)}
+                    helperText={dateError}
+                    InputLabelProps={{ shrink: true }}
+                    sx={inputSx}
+                  />
                 </Grid>
               </Grid>
             </MDBox>

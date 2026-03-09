@@ -30,6 +30,16 @@ import Configs from "../../configs/Configs";
 const COLUMN_COUNT = 7;
 const DEFAULT_AVATAR = "/default-avatar.png";
 
+const formatNaturalDate = (day, month, year) => {
+  if (!day || !month || !year) return "-";
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
 export default function HourCorrectionsPage() {
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
@@ -63,9 +73,11 @@ export default function HourCorrectionsPage() {
     setLoading(true);
     try {
       const res = await getHourCorrectionsApi({ month, year, page: p });
+
       if (res.status === 200 && res.data.status === "success") {
-        setCorrections(res.data.data.results || []);
-        setFilteredCorrections(res.data.data.results || []);
+        const results = res.data.data.results || [];
+        setCorrections(results);
+        setFilteredCorrections(results);
         setPage(res.data.data.current_page || 1);
         setTotalPages(res.data.data.total_pages || 1);
         setTotalRecords(res.data.data.total_records || 0);
@@ -99,10 +111,18 @@ export default function HourCorrectionsPage() {
       setFilteredCorrections(corrections);
       return;
     }
+
     const term = searchTerm.toLowerCase();
     const result = corrections.filter(
-      (c) => c.full_name?.toLowerCase().includes(term) || c.user_role?.toLowerCase().includes(term)
+      (c) =>
+        c.full_name?.toLowerCase().includes(term) ||
+        c.user_role?.toLowerCase().includes(term) ||
+        formatNaturalDate(c.day, c.month, c.year).toLowerCase().includes(term) ||
+        String(c.reason || "")
+          .toLowerCase()
+          .includes(term)
     );
+
     setFilteredCorrections(result);
   }, [searchTerm, corrections]);
 
@@ -119,7 +139,6 @@ export default function HourCorrectionsPage() {
             Hour Corrections
           </MDTypography>
 
-          {/* Filters */}
           <Grid container spacing={2} mb={2}>
             <Grid item xs={6} md={2}>
               <TextField
@@ -157,7 +176,7 @@ export default function HourCorrectionsPage() {
 
             <Grid item xs={12} md={4}>
               <TextField
-                label="Search by name or role"
+                label="Search by name, role, date, or reason"
                 fullWidth
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -186,13 +205,12 @@ export default function HourCorrectionsPage() {
             </Grid>
           </Grid>
 
-          {/* Table */}
           <TableContainer component={Paper} sx={{ maxHeight: 600, boxShadow: "none" }}>
             <Table stickyHeader aria-label="hour corrections table">
               <TableBody>
                 <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
-                  <TableCell sx={{ fontWeight: "bold" }}>Photo</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Photo</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>User</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Hours</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Hourly Rate</TableCell>
@@ -223,6 +241,7 @@ export default function HourCorrectionsPage() {
                       key={c.correction_id}
                       sx={{ "&:hover": { backgroundColor: "#f9f9f9" } }}
                     >
+                      <TableCell>{formatNaturalDate(c.day, c.month, c.year)}</TableCell>
                       <TableCell>
                         <Avatar
                           src={c.photo ? `${Configs.baseUrl}${c.photo}` : DEFAULT_AVATAR}
@@ -234,10 +253,12 @@ export default function HourCorrectionsPage() {
                             transition: "0.2s",
                             "&:hover": { transform: "scale(1.1)" },
                           }}
-                          onError={(e) => (e.currentTarget.src = DEFAULT_AVATAR)}
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = DEFAULT_AVATAR;
+                          }}
                         />
                       </TableCell>
-                      <TableCell>{c.date}</TableCell>
                       <TableCell>
                         <MDTypography fontWeight="bold">{c.full_name}</MDTypography>
                         <MDTypography variant="caption" color="text">
@@ -255,7 +276,6 @@ export default function HourCorrectionsPage() {
             </Table>
           </TableContainer>
 
-          {/* Pagination */}
           {!loading && filteredCorrections.length > 0 && (
             <MDBox display="flex" flexDirection="column" alignItems="center" mt={2}>
               <Pagination count={totalPages} page={page} onChange={handlePageChange} color="info" />

@@ -1,8 +1,8 @@
-const BASE_URL = "https://api.morgenroth-schulhaus.org";
-const BASE_WS_URL = "wss://api.morgenroth-schulhaus.org";
+// const BASE_URL = "https://api.morgenroth-schulhaus.org";
+// const BASE_WS_URL = "wss://api.morgenroth-schulhaus.org";
 
-// const BASE_URL = "http://127.0.0.1:8000";
-// const BASE_WS_URL = "ws://127.0.0.1:8000";
+const BASE_URL = "http://127.0.0.1:8000";
+const BASE_WS_URL = "ws://127.0.0.1:8000";
 
 const Configs = {
   baseUrl: BASE_URL,
@@ -69,10 +69,11 @@ const Configs = {
   apiGetAllUserAdvancesEp: `${BASE_URL}/api/advance/get-all/`,
   apiAdminGetUserAdvancesByMonthEp: `${BASE_URL}/api/admin/advance/get-by-month/`,
   apiAdminGetAllUserAdvancesEp: `${BASE_URL}/api/admin/advance/get-all/`,
-  // New endpoints
   apiAllAdvancesEp: `${BASE_URL}/api/advances/all/`,
   apiUserAdvancesEp: `${BASE_URL}/api/advances/user/`,
   apiAdminUserAdvancesEp: `${BASE_URL}/api/advances/admin/user/`,
+  apiGetAdvanceByIdEp: `${BASE_URL}/api/advances/get/`,
+  apiUpdateAdvanceEp: `${BASE_URL}/api/advances/update/`,
 
   // Overtime
   apiAdminRecordOvertimeEp: `${BASE_URL}/api/overtime/record/`,

@@ -2,14 +2,16 @@
 import axiosInstance from "../axios/axiosInstance";
 import Configs from "../configs/Configs";
 
-const recordHourCorrectionApi = async ({ user_id, hours, reason, month, year }) => {
+const recordHourCorrectionApi = async ({ user_id, hours, reason, day, month, year }) => {
   try {
     if (!user_id) {
       throw new Error("user_id is required to record hour correction");
     }
+
     if (hours === undefined || hours === null) {
       throw new Error("hours is required to record hour correction");
     }
+
     if (!reason) {
       throw new Error("reason is required to record hour correction");
     }
@@ -19,6 +21,10 @@ const recordHourCorrectionApi = async ({ user_id, hours, reason, month, year }) 
       hours: Number(hours),
       reason,
     };
+
+    if (day !== undefined && day !== null) {
+      payload.day = Number(day);
+    }
 
     if (month !== undefined && month !== null) {
       payload.month = Number(month);
@@ -31,6 +37,7 @@ const recordHourCorrectionApi = async ({ user_id, hours, reason, month, year }) 
     console.log("Payload before API call:", payload);
 
     const response = await axiosInstance.post(Configs.apiAdminRecordHourCorrectionEp, payload);
+
     return response.data;
   } catch (error) {
     console.error("recordHourCorrectionApi error:", error);
