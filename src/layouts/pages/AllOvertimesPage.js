@@ -25,7 +25,32 @@ import CustomAlert from "../../components/CustomAlert";
 
 import { getAllOvertimesAdminApi } from "../../api/overtimeAndAdvanceApi";
 
-const COLUMN_COUNT = 6; // incremented for Actions column
+const COLUMN_COUNT = 5;
+
+const formatNaturalDate = (dateValue) => {
+  if (!dateValue) return "-";
+
+  try {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return "-";
+
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch (e) {
+    return "-";
+  }
+};
+
+const getMonthRange = (year, month) => {
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  return { startDate, endDate };
+};
 
 function AllOvertimesPage() {
   const navigate = useNavigate();
@@ -43,6 +68,7 @@ function AllOvertimesPage() {
   const [filteredOvertimes, setFilteredOvertimes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("info");
@@ -55,11 +81,15 @@ function AllOvertimesPage() {
 
   const fetchOvertimes = async () => {
     setLoading(true);
+
     try {
+      const { startDate, endDate } = getMonthRange(year, month);
+
       const res = await getAllOvertimesAdminApi({
-        start_date: `${year}-${String(month).padStart(2, "0")}-01`,
-        end_date: `${year}-${String(month).padStart(2, "0")}-31`,
+        start_date: startDate,
+        end_date: endDate,
       });
+
       if (res.ok && Array.isArray(res.data?.message)) {
         setOvertimes(res.data.message);
         setFilteredOvertimes(res.data.message);
@@ -87,13 +117,17 @@ function AllOvertimesPage() {
       setFilteredOvertimes(overtimes);
       return;
     }
+
     const term = searchTerm.toLowerCase();
+
     const result = overtimes.filter(
       (o) =>
         (o.user_full_name || "").toLowerCase().includes(term) ||
         (o.user_email || "").toLowerCase().includes(term) ||
-        (o.remarks || "").toLowerCase().includes(term)
+        (o.remarks || "").toLowerCase().includes(term) ||
+        formatNaturalDate(o.date).toLowerCase().includes(term)
     );
+
     setFilteredOvertimes(result);
   }, [searchTerm, overtimes]);
 
@@ -106,7 +140,6 @@ function AllOvertimesPage() {
             All Overtimes
           </MDTypography>
 
-          {/* Filters */}
           <Grid container spacing={2} mb={2}>
             <Grid item xs={6} md={2}>
               <TextField
@@ -144,7 +177,7 @@ function AllOvertimesPage() {
 
             <Grid item xs={12} md={4}>
               <TextField
-                label="Search by employee, email, or remarks"
+                label="Search by employee, email, remarks, or date"
                 fullWidth
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -173,17 +206,14 @@ function AllOvertimesPage() {
             </Grid>
           </Grid>
 
-          {/* Table */}
           <TableContainer component={Paper} sx={{ maxHeight: 600, boxShadow: "none" }}>
             <Table stickyHeader aria-label="all overtimes table">
               <TableBody>
-                {/* Header */}
                 <TableRow sx={{ backgroundColor: "#f0f0f0" }}>
+                  <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Hours</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Amount (KES)</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Month</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Year</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
                 </TableRow>
 
@@ -210,6 +240,7 @@ function AllOvertimesPage() {
                       key={ot.overtime_id}
                       sx={{ "&:hover": { backgroundColor: "#f9f9f9" } }}
                     >
+                      <TableCell>{formatNaturalDate(ot.date)}</TableCell>
                       <TableCell>{ot.user_full_name || "N/A"}</TableCell>
                       <TableCell>{ot.hours ?? 0}</TableCell>
                       <TableCell>
@@ -217,8 +248,6 @@ function AllOvertimesPage() {
                           KES {ot.amount ?? 0}
                         </MDTypography>
                       </TableCell>
-                      <TableCell>{ot.month}</TableCell>
-                      <TableCell>{ot.year}</TableCell>
                       <TableCell>
                         <MDButton
                           variant="gradient"
@@ -226,7 +255,10 @@ function AllOvertimesPage() {
                           size="small"
                           onClick={() =>
                             navigate("/admin-user-overtime-payments", {
-                              state: { user_id: ot.user_id, user_full_name: ot.user_full_name },
+                              state: {
+                                user_id: ot.user_id,
+                                user_full_name: ot.user_full_name,
+                              },
                             })
                           }
                         >
@@ -248,6 +280,7 @@ function AllOvertimesPage() {
         open={alertOpen}
         onClose={() => setAlertOpen(false)}
       />
+
       <Footer />
     </DashboardLayout>
   );

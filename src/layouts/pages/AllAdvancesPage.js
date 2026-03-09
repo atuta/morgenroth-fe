@@ -111,12 +111,22 @@ function AllAdvancesPage() {
     resetEditState();
   };
 
-  const buildParams = (p = 1) => ({
-    start_date: `${year}-${String(month).padStart(2, "0")}-01`,
-    end_date: `${year}-${String(month).padStart(2, "0")}-31`,
-    page: p,
-    per_page: pageSize,
-  });
+  const buildParams = (p = 1) => {
+    const firstDate = `${year}-${String(month).padStart(2, "0")}-01`;
+
+    const lastDay = new Date(year, month, 0).getDate();
+    const lastDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(
+      2,
+      "0"
+    )}`;
+
+    return {
+      start_date: firstDate,
+      end_date: lastDate,
+      page: p,
+      per_page: pageSize,
+    };
+  };
 
   const resetListState = () => {
     setAdvances([]);
